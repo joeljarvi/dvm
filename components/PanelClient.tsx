@@ -3,45 +3,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import type { View } from "@/lib/types";
+import ProjectClient from "./ProjectClient";
 
-const clients = [
-  "Björk & Berries",
-  "Apoteket Hjärtat",
-  "H&M",
-  "IKEA",
-  "Pressbyrån",
-  "IfLyko",
-  "Lendo",
-  "KPMG",
-  "Inika",
-  "KÄLLA",
-  "Åkestam Holst",
-  "Bold",
-  "NoA Ignite",
-  "Bluebird",
-];
-
-const title = "Project title";
-
-const year = 2026;
-
-const container = {
-  hidden: {
-    transition: { staggerChildren: 0.06, staggerDirection: -1 },
-  },
-  show: {
-    transition: { staggerChildren: 0.08 },
-  },
-};
-
-const item = {
-  hidden: (x: number) => ({ opacity: 0, x }),
-  show: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as const },
-  },
-};
+const ratios = ["aspect-3/4", "aspect-16/9", "aspect-4/3", "aspect-9/16"];
 
 const PINK_SHADES = [
   "bg-pink-100",
@@ -68,36 +32,48 @@ const GREEN_SHADES = [
 const pick = (palette: string[]) =>
   palette[Math.floor(Math.random() * palette.length)];
 
+const ease = [0.4, 0, 0.2, 1] as const;
+
 export default function PanelClient({
   view,
   panel,
+  list,
+  title,
+  year,
+  projectOpen,
+  setProjectOpen,
+  itemDetailOpen,
+  setItemDetailOpen,
 }: {
   view: View;
   panel: "personal" | "commissioned";
+  list: string[];
+  title: string;
+  year: number;
+  projectOpen: boolean;
+  setProjectOpen: (open: boolean) => void;
+  itemDetailOpen: boolean;
+  setItemDetailOpen: (open: boolean) => void;
 }) {
   const palette = panel === "personal" ? PINK_SHADES : GREEN_SHADES;
-  const xOffset = panel === "personal" ? -24 : 24;
-  const [classes, setClasses] = useState<string[]>(
-    Array.from({ length: 7 }, () => ""),
-  );
 
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [color, setColor] = useState("");
+  const [ratio, setRatio] = useState("aspect-3/4");
+  const [dataIndex, setDataIndex] = useState(0);
 
-  const repick = () =>
-    setClasses(Array.from({ length: 7 }, () => pick(palette)));
+  const repick = () => {
+    setColor(pick(palette));
+    setRatio(pick(ratios));
+    setDataIndex(Math.floor(Math.random() * list.length));
+  };
 
   useEffect(() => {
     repick();
   }, []);
 
-  const hoverText =
-    hoveredIndex !== null
-      ? `${clients[hoveredIndex]}, ${title}, ${year}`
-      : null;
-
   return (
     <div
-      className="relative flex flex-col items-center justify-center w-full h-dvh"
+      className="relative flex items-center justify-center w-full h-dvh"
       onClick={(e) => {
         if (view !== panel) return;
         e.stopPropagation();
@@ -105,28 +81,51 @@ export default function PanelClient({
       }}
     >
       <motion.div
-        className="flex flex-col lg:flex-row gap-0 p-1 w-1/3 items-center justify-center h-full lg:h-[25vh] lg:w-auto lg:max-w-7xl"
-        custom={xOffset}
-        variants={container}
-        initial="hidden"
-        animate={view === panel ? "show" : "hidden"}
+        className={`${ratio} h-[66.6vh] max-w-xs lg:max-w-3xl cursor-pointer ${color}`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: view === panel ? 1 : 0 }}
+        transition={{ duration: 0.4, ease }}
+        onClick={(e) => {
+          if (view !== panel) return;
+          e.stopPropagation();
+          setProjectOpen(true);
+        }}
+      />
+
+      {view === panel && (
+        <div className="lg:hidden z-10 absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none flex items-center pb-1.5">
+          <span className="font-selecta font-medium text-sm uppercase tracking-wider">
+            {dataIndex + 1}/{list.length}
+          </span>
+        </div>
+      )}
+
+      {view === panel && (
+        <div className="z-10 absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 lg:top-auto lg:translate-y-0 lg:bottom-0 pointer-events-none flex items-center">
+          <span className="font-selecta font-medium text-sm flex flex-col lg:flex-row justify-center gap-0 items-center pb-1.5 lg:items-baseline lg:gap-16 uppercase tracking-wide">
+            <span>{list[dataIndex]}</span>
+            {panel === "commissioned" && <span>{title}</span>}
+            <span>{year}</span>
+          </span>
+        </div>
+      )}
+
+      {/* PROJECT OVERLAY */}
+      <motion.div
+        className={`absolute inset-0  z-10 overflow-hidden`}
+        initial={{ y: "-100%" }}
+        animate={{ y: projectOpen ? "0%" : "-100%" }}
+        transition={{ duration: 0.6, ease }}
         onClick={(e) => e.stopPropagation()}
       >
-        {classes.map((cls, index) => (
-          <motion.div
-            key={index}
-            className={`aspect-3/4 h-full ${cls} ${index >= 6 ? "hidden lg:block" : ""}`}
-            custom={xOffset}
-            variants={item}
-            onMouseEnter={() => setHoveredIndex(index)}
-            onMouseLeave={() => setHoveredIndex(null)}
-          />
-        ))}
+        <ProjectClient
+          list={list[dataIndex]}
+          panel={panel}
+          isOpen={projectOpen}
+          itemDetailOpen={itemDetailOpen}
+          setItemDetailOpen={setItemDetailOpen}
+        />
       </motion.div>
-
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pb-2 pointer-events-none">
-        {hoverText && <span>{hoverText}</span>}
-      </div>
     </div>
   );
 }

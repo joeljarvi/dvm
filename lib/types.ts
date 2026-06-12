@@ -1,1 +1,1 @@
-export type View = "personal" | "commissioned" | "about" | "index" | null;
+export type View = "personal" | "commissioned" | null;

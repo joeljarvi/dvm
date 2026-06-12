@@ -5,16 +5,13 @@ import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import PanelClient from "@/components/PanelClient";
 import type { View } from "@/lib/types";
+import AboutSection from "@/components/AboutSection";
+import IndexSection from "@/components/IndexSection";
+import { clients, models, title, year } from "@/lib/data";
 
 function pathToView(path: string): View {
   const slug = path.replace(/^\//, "");
-  if (
-    slug === "personal" ||
-    slug === "commissioned" ||
-    slug === "about" ||
-    slug === "index"
-  )
-    return slug;
+  if (slug === "personal" || slug === "commissioned") return slug;
   return null;
 }
 
@@ -23,6 +20,16 @@ export default function Home() {
   const [hovered, setHovered] = useState<"personal" | "commissioned" | null>(
     null,
   );
+  const [projectOpen, setProjectOpenState] = useState<
+    "personal" | "commissioned" | null
+  >(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [indexOpen, setIndexOpen] = useState(false);
+  const [itemDetailOpen, setItemDetailOpen] = useState(false);
+
+  function setProjectOpen(panel: "personal" | "commissioned", open: boolean) {
+    setProjectOpenState(open ? panel : null);
+  }
 
   const ease = [0.4, 0, 0.2, 1] as const;
 
@@ -48,29 +55,51 @@ export default function Home() {
       <section className="relative flex w-full overflow-hidden">
         {/* Buttons always visible at section level */}
         <Button
-          className={`absolute top-0 left-0 z-10 hover:text-pink-400 ${hovered === "personal" ? "text-pink-400" : ""} {view === "personal" ? "text-pink-400" : ""}`}
-          onClick={() => toggle("personal")}
+          className={`absolute top-0 left-0 z-60 hover:text-pink-400 ${hovered === "personal" ? "text-pink-400" : ""} {view === "personal" ? "text-pink-400" : ""}`}
+          onClick={() => {
+            if (view === "commissioned" && projectOpen === "commissioned") {
+              setProjectOpen("commissioned", false);
+              setTimeout(() => setView("personal"), 600);
+            } else {
+              toggle("personal");
+            }
+          }}
         >
           personal
         </Button>
         {(view === "personal" || view === "commissioned") && (
           <Button
-            className="absolute top-0 left-1/2 -translate-x-1/2 z-10 hover:text-pink-400"
-            onClick={() => setView(null)}
+            className="absolute top-0 left-1/2 -translate-x-1/2 z-60 hover:text-pink-400"
+            onClick={() => {
+              if (itemDetailOpen) {
+                setItemDetailOpen(false);
+              } else if (projectOpen) {
+                setProjectOpen(projectOpen, false);
+              } else {
+                setView(null);
+              }
+            }}
           >
             back
           </Button>
         )}
         <Button
-          className={`absolute top-0 right-0 z-10 hover:text-pink-400 ${hovered === "commissioned" ? "text-pink-400" : ""} {view === "commissioned" ? "text-pink-400" : ""}`}
-          onClick={() => toggle("commissioned")}
+          className={`absolute top-0 right-0 z-60 hover:text-pink-400 ${hovered === "commissioned" ? "text-pink-400" : ""} {view === "commissioned" ? "text-pink-400" : ""}`}
+          onClick={() => {
+            if (view === "personal" && projectOpen === "personal") {
+              setProjectOpen("personal", false);
+              setTimeout(() => setView("commissioned"), 600);
+            } else {
+              toggle("commissioned");
+            }
+          }}
         >
           commissioned
         </Button>
 
         {/* LEFT (PERSONAL) */}
         <motion.div
-          className="overflow-hidden cursor-pointer bg-neutral-300"
+          className="overflow-hidden cursor-pointer bg-neutral-200"
           initial={{ x: "-100%" }}
           animate={{
             x: 0,
@@ -86,12 +115,22 @@ export default function Home() {
           onMouseEnter={() => setHovered("personal")}
           onMouseLeave={() => setHovered(null)}
         >
-          <PanelClient view={view} panel="personal" />
+          <PanelClient
+            view={view}
+            panel="personal"
+            list={models}
+            title={title}
+            year={year}
+            projectOpen={projectOpen === "personal"}
+            setProjectOpen={(open) => setProjectOpen("personal", open)}
+            itemDetailOpen={itemDetailOpen}
+            setItemDetailOpen={setItemDetailOpen}
+          />
         </motion.div>
 
         {/* RIGHT (COMMISSIONED) */}
         <motion.div
-          className="overflow-hidden cursor-pointer bg-neutral-500"
+          className="overflow-hidden cursor-pointer bg-neutral-300"
           initial={{ x: "100%" }}
           animate={{
             x: 0,
@@ -107,47 +146,52 @@ export default function Home() {
           onMouseEnter={() => setHovered("commissioned")}
           onMouseLeave={() => setHovered(null)}
         >
-          <PanelClient view={view} panel="commissioned" />
+          <PanelClient
+            view={view}
+            panel="commissioned"
+            list={clients}
+            title={title}
+            year={year}
+            projectOpen={projectOpen === "commissioned"}
+            setProjectOpen={(open) => setProjectOpen("commissioned", open)}
+            itemDetailOpen={itemDetailOpen}
+            setItemDetailOpen={setItemDetailOpen}
+          />
         </motion.div>
 
         <Button
-          className={`absolute bottom-0 left-0 z-30 hover:text-pink-400 ${view === "about" ? "text-pink-400" : "text-foreground"}`}
-          onClick={() => toggle("about")}
+          className={`absolute bottom-0 left-0 z-60 hover:text-pink-400 ${aboutOpen ? "text-pink-400" : "text-foreground"}`}
+          onClick={() => setAboutOpen((o) => !o)}
         >
           about
         </Button>
 
-        {(view === "index" || view === "about") && (
-          <Button
-            className="absolute bottom-0 left-1/2 -translate-x-1/2 z-30 hover:text-pink-400"
-            onClick={() => setView(null)}
-          >
-            back
-          </Button>
-        )}
-
         <Button
-          className={`absolute bottom-0 right-0 z-30 hover:text-pink-400 ${view === "index" ? "text-pink-400" : "text-foreground"}`}
-          onClick={() => toggle("index")}
+          className={`absolute bottom-0 right-0 z-60 hover:text-pink-400 ${indexOpen ? "text-pink-400" : "text-foreground"}`}
+          onClick={() => setIndexOpen((o) => !o)}
         >
           index
         </Button>
 
-        {/* ABOUT OVERLAY */}
+        {/* ABOUT OVERLAY — left half, slides from bottom */}
         <motion.div
-          className="absolute inset-0 z-5 shadow bg-neutral-100"
+          className="absolute bottom-0 left-0 w-full lg:w-1/4 h-full z-40 bg-neutral-100"
           initial={{ y: "100%" }}
-          animate={{ y: view === "about" ? "0%" : "100%" }}
+          animate={{ y: aboutOpen ? "0%" : "100%" }}
           transition={{ duration: 0.6, ease }}
-        />
+        >
+          {aboutOpen && <AboutSection />}
+        </motion.div>
 
-        {/* INDEX OVERLAY */}
+        {/* INDEX OVERLAY — right half, slides from bottom */}
         <motion.div
-          className="absolute inset-0 z-5 shadow bg-neutral-200"
+          className="absolute bottom-0 right-0 w-full lg:w-1/4 h-full z-50 bg-neutral-200"
           initial={{ y: "100%" }}
-          animate={{ y: view === "index" ? "0%" : "100%" }}
+          animate={{ y: indexOpen ? "0%" : "100%" }}
           transition={{ duration: 0.6, ease }}
-        />
+        >
+          {indexOpen && <IndexSection />}
+        </motion.div>
       </section>
     </div>
   );
