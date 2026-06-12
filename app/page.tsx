@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
+import PanelClient from "@/components/PanelClient";
 
 type View = "personal" | "commissioned" | "about" | "index" | null;
 
@@ -48,13 +49,14 @@ export default function Home() {
       <section className="relative flex w-full overflow-hidden">
         {/* Buttons always visible at section level */}
         <Button
-          className={`absolute top-0 left-0 z-10 hover:text-red-500 ${hovered === "personal" ? "text-red-500" : ""}`}
+          className={`absolute top-0 left-0 z-10 hover:text-red-500 ${hovered === "personal" ? "text-red-500" : ""} {view === "personal" ? "text-red-500" : ""}`}
           onClick={() => toggle("personal")}
         >
           personal
         </Button>
+
         <Button
-          className={`absolute top-0 right-0 z-10 hover:text-red-500 ${hovered === "commissioned" ? "text-red-500" : ""}`}
+          className={`absolute top-0 right-0 z-10 hover:text-red-500 ${hovered === "commissioned" ? "text-red-500" : ""} {view === "commissioned" ? "text-red-500" : ""}`}
           onClick={() => toggle("commissioned")}
         >
           commissioned
@@ -78,6 +80,7 @@ export default function Home() {
           onMouseEnter={() => setHovered("personal")}
           onMouseLeave={() => setHovered(null)}
         >
+          {view === "personal" && <PanelClient />}
           <div className="h-dvh bg-neutral-300" />
         </motion.div>
 
