@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import PanelClient from "@/components/PanelClient";
-
-type View = "personal" | "commissioned" | "about" | "index" | null;
+import type { View } from "@/lib/types";
 
 function pathToView(path: string): View {
   const slug = path.replace(/^\//, "");
@@ -49,14 +48,21 @@ export default function Home() {
       <section className="relative flex w-full overflow-hidden">
         {/* Buttons always visible at section level */}
         <Button
-          className={`absolute top-0 left-0 z-10 hover:text-red-500 ${hovered === "personal" ? "text-red-500" : ""} {view === "personal" ? "text-red-500" : ""}`}
+          className={`absolute top-0 left-0 z-10 hover:text-pink-400 ${hovered === "personal" ? "text-pink-400" : ""} {view === "personal" ? "text-pink-400" : ""}`}
           onClick={() => toggle("personal")}
         >
           personal
         </Button>
-
+        {(view === "personal" || view === "commissioned") && (
+          <Button
+            className="absolute top-0 left-1/2 -translate-x-1/2 z-10 hover:text-pink-400"
+            onClick={() => setView(null)}
+          >
+            back
+          </Button>
+        )}
         <Button
-          className={`absolute top-0 right-0 z-10 hover:text-red-500 ${hovered === "commissioned" ? "text-red-500" : ""} {view === "commissioned" ? "text-red-500" : ""}`}
+          className={`absolute top-0 right-0 z-10 hover:text-pink-400 ${hovered === "commissioned" ? "text-pink-400" : ""} {view === "commissioned" ? "text-pink-400" : ""}`}
           onClick={() => toggle("commissioned")}
         >
           commissioned
@@ -64,7 +70,7 @@ export default function Home() {
 
         {/* LEFT (PERSONAL) */}
         <motion.div
-          className="overflow-hidden cursor-pointer"
+          className="overflow-hidden cursor-pointer bg-neutral-300"
           initial={{ x: "-100%" }}
           animate={{
             x: 0,
@@ -80,13 +86,12 @@ export default function Home() {
           onMouseEnter={() => setHovered("personal")}
           onMouseLeave={() => setHovered(null)}
         >
-          {view === "personal" && <PanelClient />}
-          <div className="h-dvh bg-neutral-300" />
+          <PanelClient view={view} panel="personal" />
         </motion.div>
 
         {/* RIGHT (COMMISSIONED) */}
         <motion.div
-          className="overflow-hidden cursor-pointer"
+          className="overflow-hidden cursor-pointer bg-neutral-500"
           initial={{ x: "100%" }}
           animate={{
             x: 0,
@@ -102,11 +107,11 @@ export default function Home() {
           onMouseEnter={() => setHovered("commissioned")}
           onMouseLeave={() => setHovered(null)}
         >
-          <div className="h-dvh bg-neutral-500" />
+          <PanelClient view={view} panel="commissioned" />
         </motion.div>
 
         <Button
-          className={`absolute bottom-0 left-0 z-10 hover:text-red-500 ${view === "about" ? "text-red-500" : "text-foreground"}`}
+          className={`absolute bottom-0 left-0 z-30 hover:text-pink-400 ${view === "about" ? "text-pink-400" : "text-foreground"}`}
           onClick={() => toggle("about")}
         >
           about
@@ -114,15 +119,15 @@ export default function Home() {
 
         {(view === "index" || view === "about") && (
           <Button
-            className=" absolute bottom-0 left-1/2  font-medium font-selecta text-2xl lg:text-4xl py-1 px-2 text-background "
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 z-30 hover:text-pink-400"
             onClick={() => setView(null)}
           >
-            Back
+            back
           </Button>
         )}
 
         <Button
-          className={`absolute bottom-0 right-0 z-10 hover:text-red-500 ${view === "index" ? "text-red-500" : "text-foreground"}`}
+          className={`absolute bottom-0 right-0 z-30 hover:text-pink-400 ${view === "index" ? "text-pink-400" : "text-foreground"}`}
           onClick={() => toggle("index")}
         >
           index
