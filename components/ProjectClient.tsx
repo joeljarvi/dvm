@@ -74,7 +74,7 @@ export default function ProjectClient({
 
   return (
     <div
-      className={`${panel === "personal" ? "bg-neutral-300" : "bg-neutral-400"} absolute bottom-0 left-0 right-0 flex flex-col items-center justify-center h-[calc(100dvh-1rem)]`}
+      className={`${panel === "personal" ? "bg-neutral-300" : "bg-neutral-400"} absolute bottom-0 left-0 right-0 flex flex-col items-center justify-center h-[calc(100dvh-0.5rem)]`}
     >
       <div
         className="flex flex-wrap lg:flex-row gap-0 p-0 w-full h-dvh overflow-y-scroll scrollbar-none [&::-webkit-scrollbar]:hidden items-center justify-center lg:h-[25vh] lg:w-auto "
@@ -103,10 +103,10 @@ export default function ProjectClient({
 
       {/* ITEM DETAIL OVERLAY */}
       <motion.div
-        className={`absolute top-4 bottom-0 z-20 flex items-center justify-center ${
+        className={`absolute top-2 bottom-0 z-20 flex items-center justify-center ${
           panel === "personal"
-            ? "left-0 right-4 shadow-[8px_0_28px_rgba(0,0,0,0.22)]"
-            : "right-0 left-4 shadow-[-8px_0_28px_rgba(0,0,0,0.22)]"
+            ? "left-0 right-2"
+            : "right-0 left-2"
         } bg-neutral-100 cursor-pointer`}
         initial={{ x: panel === "commissioned" ? "100%" : "-100%" }}
         animate={{

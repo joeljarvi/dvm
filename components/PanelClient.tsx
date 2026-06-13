@@ -107,9 +107,7 @@ export default function PanelClient({
       {/* PROJECT OVERLAY */}
       <motion.div
         className={`absolute top-0 bottom-0 z-10 ${
-          panel === "personal"
-            ? "left-0 right-4 shadow-[8px_0_24px_rgba(0,0,0,0.18)]"
-            : "right-0 left-4 shadow-[-8px_0_24px_rgba(0,0,0,0.18)]"
+          panel === "personal" ? "left-0 right-2" : "right-0 left-2"
         }`}
         initial={{ x: panel === "commissioned" ? "100%" : "-100%" }}
         animate={{
