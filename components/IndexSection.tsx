@@ -23,17 +23,25 @@ export default function IndexSection() {
         {order === "asc" ? "A–Z" : "Z–A"}
       </button>
 
-      <p className="text-xs uppercase tracking-wider opacity-50 mb-1">Commissioned</p>
+      <p className="text-xs uppercase tracking-wider opacity-50 mb-1">
+        Commissioned
+      </p>
       <ul className="flex flex-col gap-1 mb-6">
         {sortedClients.map((name) => (
-          <li key={name} className="text-sm uppercase tracking-wide">{name}</li>
+          <li key={name} className="text-sm uppercase tracking-wide">
+            {name}
+          </li>
         ))}
       </ul>
 
-      <p className="text-xs uppercase tracking-wider opacity-50 mb-1">Personal</p>
+      <p className="text-xs uppercase tracking-wider opacity-50 mb-1">
+        Personal
+      </p>
       <ul className="flex flex-col gap-1">
         {sortedModels.map((name) => (
-          <li key={name} className="text-sm uppercase tracking-wide">{name}</li>
+          <li key={name} className="text-sm uppercase tracking-wide">
+            {name}
+          </li>
         ))}
       </ul>
     </div>

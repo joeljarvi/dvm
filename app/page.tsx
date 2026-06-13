@@ -51,7 +51,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="font-selecta">
+    <div className="font-selecta w-screen">
       <section className="relative flex w-full overflow-hidden">
         {/* Buttons always visible at section level */}
         <Button
@@ -67,7 +67,7 @@ export default function Home() {
         >
           personal
         </Button>
-        {(view === "personal" || view === "commissioned") && (
+        {view && (
           <Button
             className="absolute top-0 left-1/2 -translate-x-1/2 z-60 hover:text-pink-400"
             onClick={() => {
@@ -80,7 +80,7 @@ export default function Home() {
               }
             }}
           >
-            back
+            {itemDetailOpen ? "close" : "back"}
           </Button>
         )}
         <Button
@@ -99,7 +99,7 @@ export default function Home() {
 
         {/* LEFT (PERSONAL) */}
         <motion.div
-          className="overflow-hidden cursor-pointer bg-neutral-200"
+          className="overflow-hidden bg-neutral-200 shadow-lg cursor-pointer "
           initial={{ x: "-100%" }}
           animate={{
             x: 0,
@@ -175,7 +175,7 @@ export default function Home() {
 
         {/* ABOUT OVERLAY — left half, slides from bottom */}
         <motion.div
-          className="absolute bottom-0 left-0 w-full lg:w-1/4 h-full z-40 bg-neutral-100"
+          className="absolute bottom-0 left-0 w-full lg:w-1/2 h-full z-40 bg-neutral-100"
           initial={{ y: "100%" }}
           animate={{ y: aboutOpen ? "0%" : "100%" }}
           transition={{ duration: 0.6, ease }}

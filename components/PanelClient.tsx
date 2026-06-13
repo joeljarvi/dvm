@@ -73,7 +73,7 @@ export default function PanelClient({
 
   return (
     <div
-      className="relative flex items-center justify-center w-full h-dvh"
+      className={`relative flex items-center justify-center w-full h-dvh`}
       onClick={(e) => {
         if (view !== panel) return;
         e.stopPropagation();
@@ -93,38 +93,40 @@ export default function PanelClient({
       />
 
       {view === panel && (
-        <div className="lg:hidden z-10 absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none flex items-center pb-1.5">
-          <span className="font-selecta font-medium text-sm uppercase tracking-wider">
-            {dataIndex + 1}/{list.length}
-          </span>
-        </div>
-      )}
-
-      {view === panel && (
-        <div className="z-10 absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 lg:top-auto lg:translate-y-0 lg:bottom-0 pointer-events-none flex items-center">
+        <div className="z-10 absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none flex items-center">
           <span className="font-selecta font-medium text-sm flex flex-col lg:flex-row justify-center gap-0 items-center pb-1.5 lg:items-baseline lg:gap-16 uppercase tracking-wide">
             <span>{list[dataIndex]}</span>
-            {panel === "commissioned" && <span>{title}</span>}
-            <span>{year}</span>
+            {panel === "commissioned" && (
+              <span className="hidden lg:inline">{title}</span>
+            )}
+            <span className="hidden lg:inline">{year}</span>
           </span>
         </div>
       )}
 
       {/* PROJECT OVERLAY */}
       <motion.div
-        className={`absolute inset-0  z-10 overflow-hidden`}
-        initial={{ y: "-100%" }}
-        animate={{ y: projectOpen ? "0%" : "-100%" }}
+        className={`absolute top-0 bottom-0 z-10 ${
+          panel === "personal"
+            ? "left-0 right-4 shadow-[8px_0_24px_rgba(0,0,0,0.18)]"
+            : "right-0 left-4 shadow-[-8px_0_24px_rgba(0,0,0,0.18)]"
+        }`}
+        initial={{ x: panel === "commissioned" ? "100%" : "-100%" }}
+        animate={{
+          x: projectOpen ? "0%" : panel === "commissioned" ? "100%" : "-100%",
+        }}
         transition={{ duration: 0.6, ease }}
         onClick={(e) => e.stopPropagation()}
       >
-        <ProjectClient
-          list={list[dataIndex]}
-          panel={panel}
-          isOpen={projectOpen}
-          itemDetailOpen={itemDetailOpen}
-          setItemDetailOpen={setItemDetailOpen}
-        />
+        <div className="absolute inset-0 overflow-hidden">
+          <ProjectClient
+            list={list[dataIndex]}
+            panel={panel}
+            isOpen={projectOpen}
+            itemDetailOpen={itemDetailOpen}
+            setItemDetailOpen={setItemDetailOpen}
+          />
+        </div>
       </motion.div>
     </div>
   );
