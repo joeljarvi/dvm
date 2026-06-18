@@ -93,12 +93,18 @@ export default function ProjectClient({
         ))}
       </div>
 
-      <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 lg:top-auto lg:translate-y-0 lg:bottom-0 pointer-events-none flex items-center lg:w-full">
-        <span className="font-selecta font-medium text-sm flex flex-col lg:grid lg:grid-cols-3 lg:w-full text-center justify-center gap-0 items-center pb-1.5  uppercase tracking-wide">
-          <span>{list}</span>
-          {panel === "commissioned" && <span>{title}</span>}
-          <span>{year}</span>
-        </span>
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none flex items-center justify-center">
+        {panel === "personal" ? (
+          <span className="font-selecta font-medium text-sm uppercase tracking-wide text-center pb-1.5">
+            {list}
+          </span>
+        ) : (
+          <span className="font-selecta font-medium text-sm flex flex-col lg:grid lg:grid-cols-3 lg:w-full text-center justify-center gap-0 items-center pb-1.5 uppercase tracking-wide">
+            <span>{list}</span>
+            <span>{title}</span>
+            <span>{year}</span>
+          </span>
+        )}
       </div>
 
       {/* ITEM DETAIL OVERLAY */}

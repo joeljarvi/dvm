@@ -93,14 +93,18 @@ export default function PanelClient({
       />
 
       {view === panel && (
-        <div className="z-10 absolute bottom-0 left-0 right-0 pointer-events-none flex items-center justify-center w-full ">
-          <span className="font-selecta font-medium text-sm flex flex-col lg:grid lg:grid-cols-3  lg:w-full justify-center gap-0 items-center pb-1.5 lg:items-baseline lg:gap-16 uppercase tracking-wide text-center">
-            <span>{list[dataIndex]}</span>
-            {panel === "commissioned" && (
+        <div className="z-10 absolute bottom-0 left-0 right-0 pointer-events-none flex items-center justify-center w-full">
+          {panel === "personal" ? (
+            <span className="font-selecta font-medium text-sm uppercase tracking-wide text-center pb-1.5">
+              {list[dataIndex]}
+            </span>
+          ) : (
+            <span className="font-selecta font-medium text-sm flex flex-col lg:grid lg:grid-cols-3 lg:w-full justify-center gap-0 items-center pb-1.5 lg:items-baseline lg:gap-16 uppercase tracking-wide text-center">
+              <span>{list[dataIndex]}</span>
               <span className="hidden lg:inline">{title}</span>
-            )}
-            <span className="hidden lg:inline">{year}</span>
-          </span>
+              <span className="hidden lg:inline">{year}</span>
+            </span>
+          )}
         </div>
       )}
 

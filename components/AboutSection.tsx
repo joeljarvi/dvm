@@ -7,7 +7,7 @@ Alongside commissioned work, an ongoing personal practice focuses on nature, for
 
 export default function AboutSection() {
   return (
-    <div className="relative grid grid-cols-2 lg:grid-cols-2 items-start justify-start w-full h-full   font-selecta font-medium  text-sm   tracking-wide leading-[1.2]  gap-0    lg:tracking-normal  pt-[50dvh]  text-background   ">
+    <div className="relative grid grid-cols-2 lg:grid-cols-2 items-start justify-start w-full h-full   font-selecta font-medium  text-sm   tracking-wide leading-[1.2]  gap-0    lg:tracking-normal    text-background   ">
       <span className="col-span-1 bg-neutral-600 lg:bg-neutral-400  w-full h-full px-2.5 pt-2 ">
         <h1 className=" ">Daniel von Malmborg</h1>
         <h2>+46708247484</h2>

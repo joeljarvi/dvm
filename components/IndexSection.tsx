@@ -35,16 +35,15 @@ export default function IndexSection() {
   const sorted = sortList(activeList === "clients" ? clients : models, order);
 
   return (
-    <div className="relative h-full w-full font-selecta font-medium text-sm tracking-wide leading-[1.2] lg:tracking-normal text-background  ">
+    <div className="relative h-full w-full font-selecta font-medium text-sm tracking-wide leading-[1.2] lg:tracking-normal text-background   ">
       {/* Full-height split background */}
       <div className="absolute inset-0 flex pointer-events-none  ">
-        <div className="w-1/3 bg-neutral-800 lg:bg-neutral-700" />
-        <div className="flex-1 bg-neutral-900 w-1/3" />
-        <div className="flex-1 bg-neutral-900 w-1/3" />
+        <div className="w-1/2 bg-neutral-800 lg:bg-neutral-700" />
+        <div className="flex-1 bg-neutral-900 w-1/2" />
       </div>
 
       {/* Scrollable grid content */}
-      <div className="relative h-full overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden grid grid-cols-2 lg:grid-cols-3 pt-16">
+      <div className="relative h-full overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden grid grid-cols-2 lg:grid-cols-3  ">
         {/* Header left: clients/models toggle */}
         <div className="h-8 flex items-center px-2.5">
           <button
@@ -83,7 +82,7 @@ export default function IndexSection() {
               ))}
             </ul>
           ) : (
-            <div className="grid grid-cols-4 lg:grid-cols-9 gap-2.5 pt-2.5 px-2.5 pb-2.5 ">
+            <div className="grid grid-cols-4 lg:grid-cols-7 gap-2.5 pt-2.5 px-2.5 pb-2.5 ">
               {RED_SHADES.map((shade, i) => (
                 <div key={i}>
                   <div className={`${shade} aspect-3/4 max-w-64 w-full`} />

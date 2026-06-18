@@ -26,12 +26,26 @@ export default function Home() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [indexOpen, setIndexOpen] = useState(false);
   const [itemDetailOpen, setItemDetailOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setIsDesktop(mq.matches);
+    const handler = () => setIsDesktop(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   function setProjectOpen(panel: "personal" | "commissioned", open: boolean) {
     setProjectOpenState(open ? panel : null);
   }
 
   const ease = [0.4, 0, 0.2, 1] as const;
+
+  const aboutInset = aboutOpen ? 1 : -0.5;
+  const aboutLeftShift = aboutInset + (indexOpen ? 0.5 : 0);
+  const indexInset = indexOpen ? 1 : -0.5;
+  const indexInsetRem = `${indexInset}rem`;
 
   function setView(next: View) {
     setViewState(next);
@@ -57,6 +71,11 @@ export default function Home() {
         <Button
           className={`absolute top-0 left-0 z-60 hover:text-pink-400 ${hovered === "personal" ? "text-pink-400" : ""} {view === "personal" ? "text-pink-400" : ""}`}
           onClick={() => {
+            if (aboutOpen || indexOpen) {
+              setAboutOpen(false);
+              setIndexOpen(false);
+              return;
+            }
             if (view === "commissioned" && projectOpen === "commissioned") {
               setProjectOpen("commissioned", false);
               setTimeout(() => setView("personal"), 600);
@@ -97,6 +116,11 @@ export default function Home() {
         <Button
           className={`absolute top-0 right-0 z-60 hover:text-pink-400 ${hovered === "commissioned" ? "text-pink-400" : ""} {view === "commissioned" ? "text-pink-400" : ""}`}
           onClick={() => {
+            if (aboutOpen || indexOpen) {
+              setAboutOpen(false);
+              setIndexOpen(false);
+              return;
+            }
             if (view === "personal" && projectOpen === "personal") {
               setProjectOpen("personal", false);
               setTimeout(() => setView("commissioned"), 600);
@@ -111,7 +135,7 @@ export default function Home() {
         {/* LEFT (PERSONAL) */}
         <motion.div
           className="overflow-hidden bg-neutral-200 shadow-lg cursor-pointer "
-          initial={{ x: "-100%" }}
+          initial={{ x: "0" }}
           animate={{
             x: 0,
             width:
@@ -142,7 +166,7 @@ export default function Home() {
         {/* RIGHT (COMMISSIONED) */}
         <motion.div
           className="overflow-hidden cursor-pointer bg-neutral-300"
-          initial={{ x: "100%" }}
+          initial={{ x: "0%" }}
           animate={{
             x: 0,
             width:
@@ -184,21 +208,47 @@ export default function Home() {
           index
         </Button>
 
-        {/* ABOUT OVERLAY — left half, slides from bottom */}
+        {/* PAGE SCRIM — darkens panels behind all overlays */}
         <motion.div
-          className="absolute bottom-0 left-0 w-full lg:w-1/2 h-full z-50 pt-2 pl-2 "
+          className="absolute inset-0 z-35 pointer-events-none bg-black"
+          animate={{ opacity: aboutOpen || indexOpen ? 0.4 : 0 }}
+          transition={{ duration: 0.6, ease }}
+        />
+
+        {/* INDEX SCRIM / CLICK-CATCHER — darkens index overlay when about is on top; also catches outside clicks to close about */}
+        <motion.div
+          className="absolute inset-0 z-45 bg-black"
+          style={{ pointerEvents: aboutOpen ? "auto" : "none" }}
+          animate={{ opacity: aboutOpen && indexOpen ? 0.3 : 0 }}
+          transition={{ duration: 0.6, ease }}
+          onClick={() => setAboutOpen(false)}
+        />
+
+        {/* ABOUT OVERLAY — anchored left, slides from bottom */}
+        <motion.div
+          className="absolute bottom-0 z-50"
           initial={{ y: "100%" }}
-          animate={{ y: aboutOpen ? "0%" : "100%" }}
+          animate={{
+            y: aboutOpen ? "0%" : "100%",
+            left: `${aboutLeftShift}rem`,
+            height: "calc(100dvh - 7.5rem)",
+            width: isDesktop ? `calc(50% - ${aboutLeftShift}rem)` : `calc(100vw - ${aboutInset * 2 + (indexOpen ? 0.5 : 0)}rem)`,
+          }}
           transition={{ duration: 0.6, ease }}
         >
           {aboutOpen && <AboutSection />}
         </motion.div>
 
-        {/* INDEX OVERLAY — right half, slides from bottom */}
+        {/* INDEX OVERLAY — anchored bottom-right with inset on all sides */}
         <motion.div
-          className="absolute bottom-0 right-0 w-full lg:w-full h-full z-40 pt-2 pr-2.5"
+          className="absolute bottom-0 z-40"
           initial={{ y: "100%" }}
-          animate={{ y: indexOpen ? "0%" : "100%" }}
+          animate={{
+            y: indexOpen ? "0%" : "100%",
+            right: indexInsetRem,
+            height: `calc(100dvh - ${indexInsetRem})`,
+            width: `calc(100vw - ${indexInset * 2}rem)`,
+          }}
           transition={{ duration: 0.6, ease }}
         >
           {indexOpen && <IndexSection />}
