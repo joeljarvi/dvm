@@ -93,8 +93,8 @@ export default function ProjectClient({
         ))}
       </div>
 
-      <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 lg:top-auto lg:translate-y-0 lg:bottom-0 pointer-events-none flex items-center">
-        <span className="font-selecta font-medium text-sm flex flex-col lg:flex-row justify-center gap-0 items-center pb-1.5 lg:items-baseline lg:gap-16 uppercase tracking-wide">
+      <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 lg:top-auto lg:translate-y-0 lg:bottom-0 pointer-events-none flex items-center lg:w-full">
+        <span className="font-selecta font-medium text-sm flex flex-col lg:grid lg:grid-cols-3 lg:w-full text-center justify-center gap-0 items-center pb-1.5  uppercase tracking-wide">
           <span>{list}</span>
           {panel === "commissioned" && <span>{title}</span>}
           <span>{year}</span>
@@ -104,9 +104,7 @@ export default function ProjectClient({
       {/* ITEM DETAIL OVERLAY */}
       <motion.div
         className={`absolute top-2 bottom-0 z-20 flex items-center justify-center ${
-          panel === "personal"
-            ? "left-0 right-2"
-            : "right-0 left-2"
+          panel === "personal" ? "left-0 right-2" : "right-0 left-2"
         } bg-neutral-100 cursor-pointer`}
         initial={{ x: panel === "commissioned" ? "100%" : "-100%" }}
         animate={{

@@ -7,8 +7,8 @@ Alongside commissioned work, an ongoing personal practice focuses on nature, for
 
 export default function AboutSection() {
   return (
-    <div className="relative grid grid-cols-2 lg:grid-cols-3 items-start justify-start w-full h-full pt-16 pl-2.5 pr-3 font-selecta font-medium  text-sm   tracking-wide leading-[1.2]  gap-2  lg:pb-24  lg:tracking-normal   ">
-      <span className="col-span-1 ">
+    <div className="relative grid grid-cols-2 lg:grid-cols-2 items-start justify-start w-full h-full   font-selecta font-medium  text-sm   tracking-wide leading-[1.2]  gap-0    lg:tracking-normal  pt-[50dvh]  text-background   ">
+      <span className="col-span-1 bg-neutral-600 lg:bg-neutral-400  w-full h-full px-2.5 pt-2 ">
         <h1 className=" ">Daniel von Malmborg</h1>
         <h2>+46708247484</h2>
         <Link href="mailto:daniel@vonmalmborg.com">
@@ -16,7 +16,7 @@ export default function AboutSection() {
         </Link>
       </span>
 
-      <div className=" flex flex-col max-w-xs col-span-1 lg:col-span-2  lg:max-w-lg">
+      <div className=" bg-neutral-700 lg:bg-neutral-500 flex flex-col  col-span-1 lg:col-span-1 w-full h-full px-2.5 pt-2 ">
         <span>
           I’m a photographer and creative producer working in advertising for
           brands and agencies that value quality over quantity.

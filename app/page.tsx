@@ -67,7 +67,18 @@ export default function Home() {
         >
           personal
         </Button>
-        {view && (
+        {(aboutOpen || indexOpen) && (
+          <Button
+            className="absolute top-0 left-1/2 -translate-x-1/2 z-60 hover:text-pink-400"
+            onClick={() => {
+              setAboutOpen(false);
+              setIndexOpen(false);
+            }}
+          >
+            close
+          </Button>
+        )}
+        {view && !aboutOpen && !indexOpen && (
           <Button
             className="absolute top-0 left-1/2 -translate-x-1/2 z-60 hover:text-pink-400"
             onClick={() => {
@@ -160,14 +171,14 @@ export default function Home() {
         </motion.div>
 
         <Button
-          className={`absolute bottom-0 left-0 z-60 hover:text-pink-400 ${aboutOpen ? "text-pink-400" : "text-foreground"}`}
+          className={`absolute bottom-0 left-0 z-70 hover:text-pink-400 ${aboutOpen ? "text-pink-400" : "text-background"}`}
           onClick={() => setAboutOpen((o) => !o)}
         >
           about
         </Button>
 
         <Button
-          className={`absolute bottom-0 right-0 z-60 hover:text-pink-400 ${indexOpen ? "text-pink-400" : "text-foreground"}`}
+          className={`absolute bottom-0 right-0 z-60 hover:text-pink-400 ${indexOpen ? "text-pink-400" : "text-background"}`}
           onClick={() => setIndexOpen((o) => !o)}
         >
           index
@@ -175,7 +186,7 @@ export default function Home() {
 
         {/* ABOUT OVERLAY — left half, slides from bottom */}
         <motion.div
-          className="absolute bottom-0 left-0 w-full lg:w-1/2 h-full z-40 bg-neutral-100"
+          className="absolute bottom-0 left-0 w-full lg:w-1/2 h-full z-50 pt-2 pl-2 "
           initial={{ y: "100%" }}
           animate={{ y: aboutOpen ? "0%" : "100%" }}
           transition={{ duration: 0.6, ease }}
@@ -185,7 +196,7 @@ export default function Home() {
 
         {/* INDEX OVERLAY — right half, slides from bottom */}
         <motion.div
-          className="absolute bottom-0 right-0 w-full lg:w-1/4 h-full z-50 bg-neutral-200"
+          className="absolute bottom-0 right-0 w-full lg:w-full h-full z-40 pt-2 pr-2.5"
           initial={{ y: "100%" }}
           animate={{ y: indexOpen ? "0%" : "100%" }}
           transition={{ duration: 0.6, ease }}
