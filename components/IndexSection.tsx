@@ -56,7 +56,7 @@ export default function IndexSection({ onClose }: { onClose?: () => void }) {
       {/* Top bar: close center, tabs center, view toggle right (desktop) */}
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-center gap-2">
         {onClose && (
-          <Button className="fixed top-0 left-0 lg:absolute lg:top-auto lg:left-1/2 lg:-translate-x-1/2 hover:text-pink-400" onClick={onClose}>
+          <Button className="fixed top-0 left-1/2 -translate-x-1/2 lg:absolute lg:top-auto hover:text-pink-400" onClick={onClose}>
             close
           </Button>
         )}

@@ -11,7 +11,7 @@ export default function AboutSection({ onClose }: { onClose?: () => void }) {
     <div className="relative grid grid-cols-1 lg:grid-cols-2 items-start justify-start w-full h-full   font-selecta font-medium  text-lg lg:text-xll   tracking-wide leading-[1.2]  gap-0    lg:tracking-normal    text-background   ">
       {onClose && (
         <Button
-          className="fixed top-0 left-0 lg:absolute lg:left-1/2 lg:-translate-x-1/2 z-10 hover:text-pink-400"
+          className="fixed top-0 left-1/2 -translate-x-1/2 lg:absolute z-10 hover:text-pink-400"
           onClick={onClose}
         >
           close
