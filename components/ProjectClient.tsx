@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import type { Project } from "@/lib/types";
+import MetadataBar from "./MetadataBar";
+import { Button } from "@/components/ui/button";
 
 const PINK_SHADES = [
   "bg-pink-100",
@@ -38,84 +41,153 @@ const RATIOS = [
 const pick = (palette: string[]) =>
   palette[Math.floor(Math.random() * palette.length)];
 
-const title = "Project title";
-const year = 2026;
 const ease = [0.4, 0, 0.2, 1] as const;
+const PLACEHOLDER_COUNT = 7;
 
 export default function ProjectClient({
   panel,
-  list,
+  project,
+  dataIndex,
   itemDetailOpen,
   setItemDetailOpen,
+  infoVisible,
 }: {
   panel: "personal" | "commissioned";
   isOpen: boolean;
-  list: string;
+  project: Project | undefined;
+  dataIndex: number;
   itemDetailOpen: boolean;
   setItemDetailOpen: (open: boolean) => void;
+  infoVisible: boolean;
 }) {
   const palette = panel === "personal" ? PINK_SHADES : GREEN_SHADES;
-  const [classes, setClasses] = useState<string[]>(
-    Array.from({ length: 7 }, () => ""),
+  const hasImages = !!project?.images?.length;
+
+  const [placeholderColors, setPlaceholderColors] = useState<string[]>(
+    Array.from({ length: PLACEHOLDER_COUNT }, () => ""),
   );
-  const [ratioClasses, setRatioClasses] = useState<string[]>(
-    Array.from({ length: 7 }, () => "aspect-3/4"),
+  const [placeholderRatios, setPlaceholderRatios] = useState<string[]>(
+    Array.from({ length: PLACEHOLDER_COUNT }, () => "aspect-3/4"),
   );
-  const [selectedItem, setSelectedItem] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    setClasses(Array.from({ length: 7 }, () => pick(palette)));
-    setRatioClasses(Array.from({ length: 7 }, () => pick(RATIOS)));
+    setPlaceholderColors(
+      Array.from({ length: PLACEHOLDER_COUNT }, () => pick(palette)),
+    );
+    setPlaceholderRatios(
+      Array.from({ length: PLACEHOLDER_COUNT }, () => pick(RATIOS)),
+    );
   }, []);
 
   useEffect(() => {
-    if (!itemDetailOpen) setSelectedItem(null);
+    if (!itemDetailOpen) setSelectedIndex(null);
   }, [itemDetailOpen]);
+
+  const serial = `${panel === "personal" ? "PER" : "COM"}${String(dataIndex + 1).padStart(4, "0")}`;
+
+  const items = hasImages
+    ? project!.images!
+    : Array.from({ length: PLACEHOLDER_COUNT });
+  const itemCount = items.length;
+
+  const credits = project?.credits?.length ? (
+    <span className="flex flex-col items-center lg:items-end gap-0.5">
+      {project.credits.map((c, i) => (
+        <span key={i}>
+          {c.role}: {c.name}
+        </span>
+      ))}
+    </span>
+  ) : null;
 
   return (
     <div
-      className={`${panel === "personal" ? "bg-neutral-300" : "bg-neutral-400"} absolute bottom-0 left-0 right-0 flex flex-col items-center justify-center h-[calc(100dvh-0.5rem)]`}
+      className={`${panel === "personal" ? "bg-neutral-300" : "bg-neutral-400"} absolute bottom-0 left-0 right-0 flex flex-col items-center justify-center h-[calc(100dvh-2.75rem)]`}
     >
       <div
-        className="flex flex-wrap lg:flex-row gap-0 p-0 w-full h-dvh overflow-y-scroll scrollbar-none [&::-webkit-scrollbar]:hidden items-center justify-center lg:h-[25vh] lg:w-auto "
+        className="flex flex-wrap lg:flex-row gap-x-2 p-0 w-full h-dvh overflow-y-scroll scrollbar-none [&::-webkit-scrollbar]:hidden items-center justify-center lg:h-[25vh] lg:w-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {classes.map((cls, index) => (
-          <div
-            key={index}
-            className={`${ratioClasses[index]} w-full lg:w-auto lg:h-full ${cls} cursor-pointer ${index >= 6 ? "hidden lg:block" : ""}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedItem(index);
-              setItemDetailOpen(true);
-            }}
-          />
-        ))}
+        {items.map((item, index) => {
+          const media = hasImages ? project!.images![index] : null;
+          return (
+            <div
+              key={index}
+              className={`w-full lg:w-auto lg:h-full cursor-pointer overflow-hidden ${
+                !media
+                  ? `${placeholderRatios[index]} ${placeholderColors[index]}`
+                  : ""
+              } ${index >= 6 ? "hidden lg:block" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedIndex(index);
+                setItemDetailOpen(true);
+              }}
+            >
+              {media?.type === "image" && (
+                <img
+                  src={media.url}
+                  className="h-full w-full object-cover"
+                  alt=""
+                />
+              )}
+              {media?.type === "file" && (
+                <video
+                  src={media.url}
+                  className="h-full w-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-none flex items-center justify-center">
-        {panel === "personal" ? (
-          <span className="font-selecta font-medium text-sm uppercase tracking-wide text-center pb-1.5">
-            {list}
-          </span>
-        ) : (
-          <span className="font-selecta font-medium text-sm flex flex-col lg:grid lg:grid-cols-3 lg:w-full text-center justify-center gap-0 items-center pb-1.5 uppercase tracking-wide">
-            <span>{list}</span>
-            <span>{title}</span>
-            <span>{year}</span>
-          </span>
-        )}
-      </div>
+      {infoVisible && (
+        <>
+          {/* Top bar: mobile = stacked center; desktop = serial | title | client */}
+          <MetadataBar
+            stackOnMobile
+            className="absolute top-1/2 -translate-y-1/2 lg:hidden text-xl mix-blend-difference text-white w-full"
+            left={
+              <>
+                <span className="hidden lg:inline">{serial}</span>
+                <span className="lg:hidden">{project?.client}</span>
+              </>
+            }
+            center={project?.title}
+            right={
+              <>
+                <span className="hidden lg:inline ">{project?.client}</span>
+                <span className="lg:hidden">{credits}</span>
+              </>
+            }
+          />
+          {/*  desktop only — agency | credits | year */}
+          <MetadataBar
+            className="hidden  lg:flex absolute top-0 mix-blend-difference text-background h-8"
+            left={project?.agency}
+            center={credits}
+            right={project?.year ? String(project.year) : undefined}
+          />
+        </>
+      )}
 
       {/* ITEM DETAIL OVERLAY */}
       <motion.div
-        className={`absolute top-2 bottom-0 z-20 flex items-center justify-center ${
-          panel === "personal" ? "left-0 right-2" : "right-0 left-2"
-        } bg-neutral-100 cursor-pointer`}
+        className={`absolute top-2.5 lg:top-5  bottom-0 z-20 flex items-center justify-center ${
+          panel === "personal"
+            ? "left-0 right-2.5 lg:right-2.5"
+            : "right-0 left-2.5 lg:left-2.5"
+        } bg-neutral-900 cursor-pointer`}
         initial={{ x: panel === "commissioned" ? "100%" : "-100%" }}
         animate={{
           x:
-            selectedItem !== null
+            selectedIndex !== null
               ? "0%"
               : panel === "commissioned"
                 ? "100%"
@@ -123,24 +195,64 @@ export default function ProjectClient({
         }}
         transition={{ duration: 0.6, ease }}
         onClick={() => {
-          setSelectedItem(null);
+          setSelectedIndex(null);
           setItemDetailOpen(false);
         }}
       >
-        {selectedItem !== null && (
-          <div
-            className={`${ratioClasses[selectedItem]} h-[66.6vh] max-w-xs lg:max-w-3xl ${classes[selectedItem]} cursor-pointer`}
-            onClick={(e) => {
+        <Button
+          className="hidden lg:block absolute top-0 left-1/2 -translate-x-1/2 z-30 hover:text-pink-400 text-background"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedIndex(null);
+            setItemDetailOpen(false);
+          }}
+        >
+          close
+        </Button>
+        {selectedIndex !== null &&
+          (() => {
+            const media = hasImages ? project!.images![selectedIndex] : null;
+            const advance = (e: React.MouseEvent) => {
               e.stopPropagation();
-              if (classes.length > 1) {
-                setSelectedItem((selectedItem + 1) % classes.length);
-              } else {
-                setSelectedItem(null);
-                setItemDetailOpen(false);
-              }
-            }}
-          />
-        )}
+              setSelectedIndex((selectedIndex + 1) % itemCount);
+            };
+            return (
+              <>
+                {media ? (
+                  media.type === "image" ? (
+                    <img
+                      src={media.url}
+                      className="h-[66.6vh] w-auto max-w-xs lg:max-w-3xl object-contain cursor-pointer"
+                      alt=""
+                      onClick={advance}
+                    />
+                  ) : (
+                    <video
+                      src={media.url}
+                      className="h-[66.6vh] w-auto max-w-xs lg:max-w-3xl object-contain cursor-pointer"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      onClick={advance}
+                    />
+                  )
+                ) : (
+                  <div
+                    className={`${placeholderRatios[selectedIndex]} h-[66.6vh] max-w-xs lg:max-w-3xl ${placeholderColors[selectedIndex]} cursor-pointer`}
+                    onClick={advance}
+                  />
+                )}
+
+                {infoVisible && (
+                  <MetadataBar
+                    className="absolute bottom-2 block lg:hidden"
+                    center={`${selectedIndex + 1} (${String(itemCount).padStart(4, "0")})`}
+                  />
+                )}
+              </>
+            );
+          })()}
       </motion.div>
     </div>
   );

@@ -1,259 +1,55 @@
-"use client";
+import { client } from "@/sanity/client";
+import HomeClient from "@/components/HomeClient";
+import { models, clients } from "@/lib/data";
+import type { Project } from "@/lib/types";
 
-import { useEffect, useState } from "react";
-import { motion } from "motion/react";
-import { Button } from "@/components/ui/button";
-import PanelClient from "@/components/PanelClient";
-import type { View } from "@/lib/types";
-import AboutSection from "@/components/AboutSection";
-import IndexSection from "@/components/IndexSection";
-import { clients, models, title, year } from "@/lib/data";
-
-function pathToView(path: string): View {
-  const slug = path.replace(/^\//, "");
-  if (slug === "personal" || slug === "commissioned") return slug;
-  return null;
+async function fetchCommissionedProjects(): Promise<Project[]> {
+  try {
+    return await client.fetch<Project[]>(
+      `*[_type == "project" && category == "commissioned"] | order(dateAdded desc) {
+        title,
+        "coverImageUrl": coverImage.asset->url,
+        client,
+        agency,
+        year,
+        "images": images[]{
+          "url": asset->url,
+          "type": _type
+        },
+        "credits": credits[]{ role, name }
+      }`
+    );
+  } catch {
+    return [];
+  }
 }
 
-export default function Home() {
-  const [view, setViewState] = useState<View>(null);
-  const [hovered, setHovered] = useState<"personal" | "commissioned" | null>(
-    null,
-  );
-  const [projectOpen, setProjectOpenState] = useState<
-    "personal" | "commissioned" | null
-  >(null);
-  const [aboutOpen, setAboutOpen] = useState(false);
-  const [indexOpen, setIndexOpen] = useState(false);
-  const [itemDetailOpen, setItemDetailOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    setIsDesktop(mq.matches);
-    const handler = () => setIsDesktop(mq.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  function setProjectOpen(panel: "personal" | "commissioned", open: boolean) {
-    setProjectOpenState(open ? panel : null);
+async function fetchFeaturedCoverImage(): Promise<string | null> {
+  try {
+    const result = await client.fetch<{ coverImageUrl: string } | null>(
+      `*[_type == "project" && category == "commissioned" && featured == true][0] {
+        "coverImageUrl": coverImage.asset->url
+      }`
+    );
+    return result?.coverImageUrl ?? null;
+  } catch {
+    return null;
   }
+}
 
-  const ease = [0.4, 0, 0.2, 1] as const;
+export default async function Home() {
+  const [commissionedFromSanity, featuredCoverImageUrl] = await Promise.all([
+    fetchCommissionedProjects(),
+    fetchFeaturedCoverImage(),
+  ]);
 
-  const aboutInset = aboutOpen ? 1 : -0.5;
-  const aboutLeftShift = aboutInset + (indexOpen ? 0.5 : 0);
-  const indexInset = indexOpen ? 1 : -0.5;
-  const indexInsetRem = `${indexInset}rem`;
-
-  function setView(next: View) {
-    setViewState(next);
-    window.history.pushState(null, "", next ? `/${next}` : "/");
-  }
-
-  function toggle(target: View) {
-    setView(view === target ? null : target);
-  }
-
-  useEffect(() => {
-    function onPopState() {
-      setViewState(pathToView(window.location.pathname));
-    }
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+  const commissionedList = commissionedFromSanity.length > 0 ? commissionedFromSanity : clients;
 
   return (
-    <div className="font-selecta w-screen">
-      <section className="relative flex w-full overflow-hidden">
-        {/* Buttons always visible at section level */}
-        <Button
-          className={`absolute top-0 left-0 z-60 hover:text-pink-400 ${hovered === "personal" ? "text-pink-400" : ""} {view === "personal" ? "text-pink-400" : ""}`}
-          onClick={() => {
-            if (aboutOpen || indexOpen) {
-              setAboutOpen(false);
-              setIndexOpen(false);
-              return;
-            }
-            if (view === "commissioned" && projectOpen === "commissioned") {
-              setProjectOpen("commissioned", false);
-              setTimeout(() => setView("personal"), 600);
-            } else {
-              toggle("personal");
-            }
-          }}
-        >
-          personal
-        </Button>
-        {(aboutOpen || indexOpen) && (
-          <Button
-            className="absolute top-0 left-1/2 -translate-x-1/2 z-60 hover:text-pink-400"
-            onClick={() => {
-              setAboutOpen(false);
-              setIndexOpen(false);
-            }}
-          >
-            close
-          </Button>
-        )}
-        {view && !aboutOpen && !indexOpen && (
-          <Button
-            className="absolute top-0 left-1/2 -translate-x-1/2 z-60 hover:text-pink-400"
-            onClick={() => {
-              if (itemDetailOpen) {
-                setItemDetailOpen(false);
-              } else if (projectOpen) {
-                setProjectOpen(projectOpen, false);
-              } else {
-                setView(null);
-              }
-            }}
-          >
-            {itemDetailOpen ? "close" : "back"}
-          </Button>
-        )}
-        <Button
-          className={`absolute top-0 right-0 z-60 hover:text-pink-400 ${hovered === "commissioned" ? "text-pink-400" : ""} {view === "commissioned" ? "text-pink-400" : ""}`}
-          onClick={() => {
-            if (aboutOpen || indexOpen) {
-              setAboutOpen(false);
-              setIndexOpen(false);
-              return;
-            }
-            if (view === "personal" && projectOpen === "personal") {
-              setProjectOpen("personal", false);
-              setTimeout(() => setView("commissioned"), 600);
-            } else {
-              toggle("commissioned");
-            }
-          }}
-        >
-          commissioned
-        </Button>
-
-        {/* LEFT (PERSONAL) */}
-        <motion.div
-          className="overflow-hidden bg-neutral-200 shadow-lg cursor-pointer "
-          initial={{ x: "0" }}
-          animate={{
-            x: 0,
-            width:
-              view === "commissioned"
-                ? "0%"
-                : view === "personal"
-                  ? "100%"
-                  : "50%",
-          }}
-          transition={{ duration: 0.6, ease }}
-          onClick={() => toggle("personal")}
-          onMouseEnter={() => setHovered("personal")}
-          onMouseLeave={() => setHovered(null)}
-        >
-          <PanelClient
-            view={view}
-            panel="personal"
-            list={models}
-            title={title}
-            year={year}
-            projectOpen={projectOpen === "personal"}
-            setProjectOpen={(open) => setProjectOpen("personal", open)}
-            itemDetailOpen={itemDetailOpen}
-            setItemDetailOpen={setItemDetailOpen}
-          />
-        </motion.div>
-
-        {/* RIGHT (COMMISSIONED) */}
-        <motion.div
-          className="overflow-hidden cursor-pointer bg-neutral-300"
-          initial={{ x: "0%" }}
-          animate={{
-            x: 0,
-            width:
-              view === "personal"
-                ? "0%"
-                : view === "commissioned"
-                  ? "100%"
-                  : "50%",
-          }}
-          transition={{ duration: 0.6, ease }}
-          onClick={() => toggle("commissioned")}
-          onMouseEnter={() => setHovered("commissioned")}
-          onMouseLeave={() => setHovered(null)}
-        >
-          <PanelClient
-            view={view}
-            panel="commissioned"
-            list={clients}
-            title={title}
-            year={year}
-            projectOpen={projectOpen === "commissioned"}
-            setProjectOpen={(open) => setProjectOpen("commissioned", open)}
-            itemDetailOpen={itemDetailOpen}
-            setItemDetailOpen={setItemDetailOpen}
-          />
-        </motion.div>
-
-        <Button
-          className={`absolute bottom-0 left-0 z-70 hover:text-pink-400 ${aboutOpen ? "text-pink-400" : "text-background"}`}
-          onClick={() => setAboutOpen((o) => !o)}
-        >
-          about
-        </Button>
-
-        <Button
-          className={`absolute bottom-0 right-0 z-60 hover:text-pink-400 ${indexOpen ? "text-pink-400" : "text-background"}`}
-          onClick={() => setIndexOpen((o) => !o)}
-        >
-          index
-        </Button>
-
-        {/* PAGE SCRIM — darkens panels behind all overlays */}
-        <motion.div
-          className="absolute inset-0 z-35 pointer-events-none bg-black"
-          animate={{ opacity: aboutOpen || indexOpen ? 0.4 : 0 }}
-          transition={{ duration: 0.6, ease }}
-        />
-
-        {/* INDEX SCRIM / CLICK-CATCHER — darkens index overlay when about is on top; also catches outside clicks to close about */}
-        <motion.div
-          className="absolute inset-0 z-45 bg-black"
-          style={{ pointerEvents: aboutOpen ? "auto" : "none" }}
-          animate={{ opacity: aboutOpen && indexOpen ? 0.3 : 0 }}
-          transition={{ duration: 0.6, ease }}
-          onClick={() => setAboutOpen(false)}
-        />
-
-        {/* ABOUT OVERLAY — anchored left, slides from bottom */}
-        <motion.div
-          className="absolute bottom-0 z-50"
-          initial={{ y: "100%" }}
-          animate={{
-            y: aboutOpen ? "0%" : "100%",
-            left: `${aboutLeftShift}rem`,
-            height: "calc(100dvh - 7.5rem)",
-            width: isDesktop ? `calc(50% - ${aboutLeftShift}rem)` : `calc(100vw - ${aboutInset * 2 + (indexOpen ? 0.5 : 0)}rem)`,
-          }}
-          transition={{ duration: 0.6, ease }}
-        >
-          {aboutOpen && <AboutSection />}
-        </motion.div>
-
-        {/* INDEX OVERLAY — anchored bottom-right with inset on all sides */}
-        <motion.div
-          className="absolute bottom-0 z-40"
-          initial={{ y: "100%" }}
-          animate={{
-            y: indexOpen ? "0%" : "100%",
-            right: indexInsetRem,
-            height: `calc(100dvh - ${indexInsetRem})`,
-            width: `calc(100vw - ${indexInset * 2}rem)`,
-          }}
-          transition={{ duration: 0.6, ease }}
-        >
-          {indexOpen && <IndexSection />}
-        </motion.div>
-      </section>
-    </div>
+    <HomeClient
+      personalList={models}
+      commissionedList={commissionedList}
+      featuredCoverImageUrl={featuredCoverImageUrl}
+    />
   );
 }

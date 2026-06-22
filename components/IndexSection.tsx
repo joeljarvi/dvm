@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { clients, models } from "@/lib/data";
+import { Button } from "./ui/button";
 
 const RED_SHADES = [
   "bg-red-100",
@@ -22,62 +23,71 @@ const RED_SHADES = [
   "bg-rose-800",
 ];
 
-const sortList = (list: string[], order: "asc" | "desc") =>
+const sortList = (list: { title: string }[], order: "asc" | "desc") =>
   [...list].sort((a, b) =>
-    order === "asc" ? a.localeCompare(b, "sv") : b.localeCompare(a, "sv"),
+    order === "asc"
+      ? a.title.localeCompare(b.title, "sv")
+      : b.title.localeCompare(a.title, "sv"),
   );
 
-export default function IndexSection() {
+export default function IndexSection({ onClose }: { onClose?: () => void }) {
   const [order] = useState<"asc" | "desc">("asc");
-  const [activeList, setActiveList] = useState<"clients" | "models">("clients");
+  const [activeList, setActiveList] = useState<
+    "personal" | "commissioned" | "all"
+  >("all");
   const [viewMode, setViewMode] = useState<"list" | "thumbnails">("list");
 
-  const sorted = sortList(activeList === "clients" ? clients : models, order);
+  const baseList =
+    activeList === "personal"
+      ? models
+      : activeList === "commissioned"
+        ? clients
+        : [...models, ...clients];
+  const sorted = sortList(baseList, order);
 
   return (
-    <div className="relative h-full w-full font-selecta font-medium text-sm tracking-wide leading-[1.2] lg:tracking-normal text-background   ">
+    <div className="relative h-full w-full font-selecta font-medium text-lg lg:text-xl tracking-wide  text-background   ">
       {/* Full-height split background */}
       <div className="absolute inset-0 flex pointer-events-none  ">
-        <div className="w-1/2 bg-neutral-800 lg:bg-neutral-700" />
-        <div className="flex-1 bg-neutral-900 w-1/2" />
+        <div className="w-full bg-neutral-800 lg:bg-neutral-700 lg:w-1/2" />
+        <div className="flex-1 bg-neutral-900 w-1/2 hidden lg:flex" />
       </div>
 
-      {/* Scrollable grid content */}
-      <div className="relative h-full overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden grid grid-cols-2 lg:grid-cols-3  ">
-        {/* Header left: clients/models toggle */}
-        <div className="h-8 flex items-center px-2.5">
-          <button
-            className="uppercase hover:text-pink-400"
-            onClick={() =>
-              setActiveList((l) => (l === "clients" ? "models" : "clients"))
-            }
+      {/* Top bar: close center, tabs center, view toggle right (desktop) */}
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-center gap-2">
+        {onClose && (
+          <Button className="fixed top-0 left-0 lg:absolute lg:top-auto lg:left-1/2 lg:-translate-x-1/2 hover:text-pink-400" onClick={onClose}>
+            close
+          </Button>
+        )}
+        {(["personal", "commissioned", "all"] as const).map((tab) => (
+          <Button
+            key={tab}
+            className={`uppercase hover:text-pink-400 ${activeList === tab ? "text-pink-400" : ""}`}
+            onClick={() => setActiveList(tab)}
           >
-            {activeList === "clients" ? "models" : "clients"}
-          </button>
-        </div>
+            {tab}
+          </Button>
+        ))}
+        <Button
+          className="hidden lg:inline-flex absolute right-0 uppercase hover:text-pink-400"
+          onClick={() => setViewMode((v) => (v === "list" ? "thumbnails" : "list"))}
+        >
+          {viewMode === "list" ? "thumbnails" : "list"}
+        </Button>
+      </div>
 
-        {/* Header right: list/thumbnails toggle — spans 2 cols on desktop */}
-        <div className="h-8 flex items-center justify-end px-2.5 lg:col-span-2">
-          <button
-            className="uppercase hover:text-pink-400"
-            onClick={() =>
-              setViewMode((v) => (v === "list" ? "thumbnails" : "list"))
-            }
-          >
-            {viewMode === "list" ? "thumbnails" : "list"}
-          </button>
-        </div>
-
-        {/* Content: spans all columns */}
-        <div className="col-span-2 lg:col-span-3  overflow-y-scroll">
+      {/* Scrollable content */}
+      <div className="relative h-full overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden pt-8">
+        <div className="col-span-2 lg:col-span-3 overflow-y-scroll">
           {viewMode === "list" ? (
             <ul className="flex flex-col items-start justify-start gap-0 px-2.5 pt-2.5">
-              {sorted.map((name) => (
+              {sorted.map((item) => (
                 <li
-                  key={name}
+                  key={item.title}
                   className="text-sm uppercase tracking-wide leading-[1.2]"
                 >
-                  {name}
+                  {item.title}
                 </li>
               ))}
             </ul>
@@ -90,6 +100,17 @@ export default function IndexSection() {
               ))}
             </div>
           )}
+        </div>
+
+        <div className="flex justify-center lg:hidden px-2.5 py-2">
+          <Button
+            className="uppercase hover:text-pink-400"
+            onClick={() =>
+              setViewMode((v) => (v === "list" ? "thumbnails" : "list"))
+            }
+          >
+            {viewMode === "list" ? "thumbnails" : "list"}
+          </Button>
         </div>
       </div>
     </div>

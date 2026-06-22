@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import { motion } from "motion/react";
-import type { View } from "@/lib/types";
+import type { View, Project } from "@/lib/types";
 import ProjectClient from "./ProjectClient";
+import MetadataBar from "./MetadataBar";
 
 const ratios = ["aspect-3/4", "aspect-16/9", "aspect-4/3", "aspect-9/16"];
 
@@ -38,22 +40,22 @@ export default function PanelClient({
   view,
   panel,
   list,
-  title,
   year,
   projectOpen,
   setProjectOpen,
   itemDetailOpen,
   setItemDetailOpen,
+  infoVisible,
 }: {
   view: View;
   panel: "personal" | "commissioned";
-  list: string[];
-  title: string;
+  list: Project[];
   year: number;
   projectOpen: boolean;
   setProjectOpen: (open: boolean) => void;
   itemDetailOpen: boolean;
   setItemDetailOpen: (open: boolean) => void;
+  infoVisible: boolean;
 }) {
   const palette = panel === "personal" ? PINK_SHADES : GREEN_SHADES;
 
@@ -71,6 +73,9 @@ export default function PanelClient({
     repick();
   }, []);
 
+  const current = list[dataIndex];
+  const totalStr = String(list.length).padStart(4, "0");
+
   return (
     <div
       className={`relative flex items-center justify-center w-full h-dvh`}
@@ -80,38 +85,63 @@ export default function PanelClient({
         repick();
       }}
     >
-      <motion.div
-        className={`${ratio} h-[66.6vh] max-w-xs lg:max-w-3xl cursor-pointer ${color}`}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: view === panel ? 1 : 0 }}
-        transition={{ duration: 0.4, ease }}
-        onClick={(e) => {
-          if (view !== panel) return;
-          e.stopPropagation();
-          setProjectOpen(true);
-        }}
-      />
+      {current?.coverImageUrl ? (
+        <motion.img
+          src={current.coverImageUrl}
+          alt={current.title}
+          className="h-[66.6vh] w-auto max-w-xs lg:max-w-3xl cursor-pointer object-cover"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: view === panel ? 1 : 0 }}
+          transition={{ duration: 0.4, ease }}
+          onClick={(e) => {
+            if (view !== panel) return;
+            e.stopPropagation();
+            setProjectOpen(true);
+          }}
+        />
+      ) : (
+        <motion.div
+          className={`${ratio} h-[66.6vh] max-w-xs lg:max-w-3xl cursor-pointer ${color}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: view === panel ? 1 : 0 }}
+          transition={{ duration: 0.4, ease }}
+          onClick={(e) => {
+            if (view !== panel) return;
+            e.stopPropagation();
+            setProjectOpen(true);
+          }}
+        />
+      )}
 
-      {view === panel && (
-        <div className="z-10 absolute bottom-0 left-0 right-0 pointer-events-none flex items-center justify-center w-full">
-          {panel === "personal" ? (
-            <span className="font-selecta font-medium text-sm uppercase tracking-wide text-center pb-1.5">
-              {list[dataIndex]}
-            </span>
-          ) : (
-            <span className="font-selecta font-medium text-sm flex flex-col lg:grid lg:grid-cols-3 lg:w-full justify-center gap-0 items-center pb-1.5 lg:items-baseline lg:gap-16 uppercase tracking-wide text-center">
-              <span>{list[dataIndex]}</span>
-              <span className="hidden lg:inline">{title}</span>
-              <span className="hidden lg:inline">{year}</span>
-            </span>
-          )}
-        </div>
+      {/* LIGHTBOX UI */}
+      {(view === panel || itemDetailOpen) && infoVisible && (
+        <>
+          <MetadataBar
+            className="z-10 absolute top-6 text-lg lg:text-xl px-2.5 h-8"
+            left={
+              <>
+                <span className="lg:hidden">{`${panel === "personal" ? "PER" : "COM"}${String(dataIndex + 1).padStart(4, "0")}`}</span>
+                <span className="hidden lg:inline">
+                  {`${panel === "personal" ? "PER" : "COM"}${String(dataIndex + 1).padStart(4, "0")}`}
+                  {!projectOpen && `—${totalStr}`}
+                </span>
+              </>
+            }
+            center={<span className="hidden lg:inline">{current?.title}</span>}
+            right={
+              <>
+                <span className="lg:hidden">{current?.title}</span>
+                <span className="hidden lg:inline">{current?.client}</span>
+              </>
+            }
+          />
+        </>
       )}
 
       {/* PROJECT OVERLAY */}
       <motion.div
         className={`absolute top-0 bottom-0 z-10 ${
-          panel === "personal" ? "left-0 right-2" : "right-0 left-2"
+          panel === "personal" ? "left-0 right-2.5" : "right-0 left-2.5"
         }`}
         initial={{ x: panel === "commissioned" ? "100%" : "-100%" }}
         animate={{
@@ -122,11 +152,14 @@ export default function PanelClient({
       >
         <div className="absolute inset-0 overflow-hidden">
           <ProjectClient
-            list={list[dataIndex]}
+            key={current?.title}
+            project={current}
             panel={panel}
+            dataIndex={dataIndex}
             isOpen={projectOpen}
             itemDetailOpen={itemDetailOpen}
             setItemDetailOpen={setItemDetailOpen}
+            infoVisible={infoVisible}
           />
         </div>
       </motion.div>
