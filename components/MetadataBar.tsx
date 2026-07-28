@@ -17,9 +17,9 @@ export default function MetadataBar({
   return (
     <div
       className={cn(
-        "relative left-0 right-0 flex items-center justify-between px-2 h-6 font-selecta text-lg lg:text-xl font-medium uppercase tracking-wide pointer-events-none mix-blend-difference text-background",
+        "relative left-0 right-0 flex items-center justify-between px-2 h-8 font-selecta text-lg lg:text-xl font-medium lowercase  tracking-wide pointer-events-none mix-blend-difference text-background",
         stackOnMobile &&
-          "flex-col items-center justify-center lg:flex-row lg:justify-between h-auto lg:h-6 ",
+          "flex-col items-center justify-center lg:flex-row lg:justify-between h-auto lg:h-8 ",
         className,
       )}
     >

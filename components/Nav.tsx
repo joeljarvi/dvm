@@ -1,216 +1,152 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
-import type { View } from "@/lib/types";
+import { closeTop, useModalCount } from "@/lib/modalStack";
+import Link from "next/link";
 
 const ease = [0.4, 0, 0.2, 1] as const;
 
-interface NavProps {
-  view: View;
-  hovered: "personal" | "commissioned" | null;
-  projectOpen: "personal" | "commissioned" | null;
-  aboutOpen: boolean;
-  indexOpen: boolean;
-  itemDetailOpen: boolean;
-  onPersonalClick: () => void;
-  onCommissionedClick: () => void;
-  onAboutClick: () => void;
-  onIndexClick: () => void;
-  onInfoClick: () => void;
-  infoVisible: boolean;
-  onCloseOrBack: () => void;
-}
-
-export default function Nav({
-  view,
-  hovered,
-  projectOpen,
-  aboutOpen,
-  indexOpen,
-  itemDetailOpen,
-  onPersonalClick,
-  onCommissionedClick,
-  onAboutClick,
-  onIndexClick,
-  onInfoClick,
-  infoVisible,
-  onCloseOrBack,
-}: NavProps) {
+export default function Nav() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const modalCount = useModalCount();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const centerLabel = itemDetailOpen ? "close" : "back";
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (menuOpen) setMenuOpen(false);
+      else closeTop();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
-  function closeMenu() {
+  // No site nav over the Sanity Studio.
+  if (pathname.startsWith("/studio")) return null;
+
+  const personalActive = pathname.startsWith("/personal");
+  const commissionedActive = pathname.startsWith("/commissioned");
+  const aboutActive = pathname === "/about";
+  const indexActive = pathname === "/index";
+  const anyActive =
+    personalActive || commissionedActive || aboutActive || indexActive;
+
+  const go = (href: string) => {
+    router.push(href);
     setMenuOpen(false);
-  }
+  };
 
   return (
     <>
-      {/* DESKTOP */}
+      {/* DESKTOP — corners + bottom bar */}
       <div className="hidden lg:contents">
-        <Button
-          className={`absolute  left-0 top-0 z-60 hover:text-pink-400 ${hovered === "personal" ? "text-pink-400" : ""}`}
-          onClick={onPersonalClick}
-        >
-          personal
-        </Button>
-
-        {view && !itemDetailOpen && (
+        <div className="fixed left-0 top-0 z-50 flex items-center justify-center w-full">
           <Button
-            className={`absolute top-0 left-1/2 -translate-x-1/2 z-60 hover:text-pink-400`}
-            onClick={onCloseOrBack}
+            data-nav="personal"
+            className={`hover:text-pink-400 w-1/2 justify-start ${personalActive ? "text-pink-400" : ""}`}
+            onClick={() => router.push("/personal")}
           >
-            back
+            personal
           </Button>
-        )}
-
-        <Button
-          className={`absolute top-0 right-0 z-60 hover:text-pink-400 ${hovered === "commissioned" ? "text-pink-400" : ""}`}
-          onClick={onCommissionedClick}
-        >
-          commissioned
-        </Button>
-
-        <Button
-          className={`absolute bottom-0 ${itemDetailOpen ? "left-5" : projectOpen && view === "commissioned" ? "left-2.5" : "left-0"} z-70 hover:text-pink-400 ${aboutOpen ? "text-pink-400" : "text-background"}`}
-          onClick={onAboutClick}
-        >
-          about
-        </Button>
-
-        {(view || projectOpen) && (
           <Button
-            className={`absolute bottom-0 left-1/2 -translate-x-1/2 z-60  gap-x-1 hover:text-pink-400 ${infoVisible ? "text-pink-400" : "text-background"}`}
-            onClick={onInfoClick}
+            data-nav="commissioned"
+            className={`hover:text-pink-400 w-1/2 justify-end ${commissionedActive ? "text-pink-400" : ""}`}
+            onClick={() => router.push("/commissioned")}
           >
-            info{" "}
-            <div
-              className={`w-3.5 aspect-square ${infoVisible ? "bg-pink-400 text-pink-400 " : "bg-foreground  hover:bg-pink-400"}`}
-            />
+            commissioned
           </Button>
-        )}
+        </div>
 
-        <Button
-          className={`absolute bottom-0 ${itemDetailOpen ? "right-4" : projectOpen && view === "personal" ? "right-2.5" : "right-0"} z-60 hover:text-pink-400 ${indexOpen ? "text-pink-400" : "text-background"}`}
-          onClick={onIndexClick}
+        <div
+          className={`fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between ${anyActive ? "bg-transparent" : "bg-transparent"}`}
         >
-          index
-        </Button>
+          <Button
+            className={`hover:text-pink-400 ${aboutActive ? "text-pink-400" : ""}`}
+            onClick={() => router.push("/about")}
+          >
+            about
+          </Button>
+
+          {modalCount > 0 && (
+            <Button className="hover:text-pink-400" onClick={closeTop}>
+              close
+            </Button>
+          )}
+
+          <Button
+            className={`hover:text-pink-400 ${indexActive ? "text-pink-400" : ""}`}
+            onClick={() => router.push("/index")}
+          >
+            index
+          </Button>
+        </div>
       </div>
 
-      {/* MOBILE */}
+      {/* MOBILE — menu button + overlay */}
       <div className="lg:hidden">
-        {!view ? (
-          <>
-            {/* HOME: personal + commissioned top, about + index bottom */}
-            {aboutOpen || indexOpen ? (
+        {modalCount > 0 && !menuOpen && (
+          <Button
+            className="fixed bottom-1 left-0 z-60 hover:text-pink-400"
+            onClick={closeTop}
+          >
+            close
+          </Button>
+        )}
+
+        <Button
+          className="fixed bottom-1 right-0 z-60 hover:text-pink-400"
+          onClick={() => setMenuOpen((o) => !o)}
+        >
+          {menuOpen ? "close" : "menu"}
+        </Button>
+
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center gap-1 "
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease }}
+            >
               <Button
-                className="absolute top-1 right-0 z-60"
-                onClick={() => setMenuOpen((o) => !o)}
+                className={`text-xl hover:text-pink-400 ${personalActive ? "text-pink-400" : ""}`}
+                onClick={() => go("/personal")}
               >
-                {menuOpen ? "close" : "menu"}
+                personal
               </Button>
-            ) : (
-              <div className="absolute top-1 left-0 right-0 z-60 flex justify-between ">
-                <Button onClick={onPersonalClick}>personal</Button>
-                <Button onClick={onCommissionedClick}>commissioned</Button>
-              </div>
-            )}
-            <div className="absolute bottom-1 left-0 right-0 z-60 flex justify-between ">
               <Button
-                className={aboutOpen ? "text-pink-400" : ""}
-                onClick={onAboutClick}
+                className={`text-xl hover:text-pink-400 ${commissionedActive ? "text-pink-400" : ""}`}
+                onClick={() => go("/commissioned")}
+              >
+                commissioned
+              </Button>
+              <Button
+                className={`text-xl hover:text-pink-400 ${aboutActive ? "text-pink-400" : ""}`}
+                onClick={() => go("/about")}
               >
                 about
               </Button>
               <Button
-                className={indexOpen ? "text-pink-400" : ""}
-                onClick={onIndexClick}
+                className={`text-xl hover:text-pink-400 ${indexActive ? "text-pink-400" : ""}`}
+                onClick={() => go("/index")}
               >
                 index
               </Button>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* NON-HOME: back/close + menu */}
-            {!menuOpen && (
               <Button
-                className="absolute top-1 left-0 z-60 hover:text-pink-400"
-                onClick={onCloseOrBack}
+                className={`text-xl hover:text-pink-400 ${indexActive ? "text-pink-400" : ""}`}
+                onClick={() => go("/index")}
+                asChild
               >
-                {centerLabel}
+                <Link href="/studio"> log in</Link>
               </Button>
-            )}
-
-            <Button
-              className="absolute top-1 right-0 z-60"
-              onClick={() => setMenuOpen((o) => !o)}
-            >
-              {menuOpen ? "close" : "menu"}
-            </Button>
-
-            <AnimatePresence>
-              {menuOpen && (
-                <motion.div
-                  className="absolute inset-0 z-50 bg-background flex flex-col items-center justify-center gap-2.5"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25, ease }}
-                >
-                  <Button
-                    className="text-xl hover:text-pink-400"
-                    onClick={() => {
-                      onPersonalClick();
-                      closeMenu();
-                    }}
-                  >
-                    personal
-                  </Button>
-                  <Button
-                    className="text-xl hover:text-pink-400"
-                    onClick={() => {
-                      onCommissionedClick();
-                      closeMenu();
-                    }}
-                  >
-                    commissioned
-                  </Button>
-                  <Button
-                    className="text-xl hover:text-pink-400"
-                    onClick={() => {
-                      onAboutClick();
-                      closeMenu();
-                    }}
-                  >
-                    about
-                  </Button>
-                  <Button
-                    className="text-xl hover:text-pink-400"
-                    onClick={() => {
-                      onIndexClick();
-                      closeMenu();
-                    }}
-                  >
-                    index
-                  </Button>
-                  <Button
-                    className={`text-xl hover:text-pink-400 ${!infoVisible ? "text-pink-400" : ""}`}
-                    onClick={() => {
-                      onInfoClick();
-                      closeMenu();
-                    }}
-                  >
-                    info
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

@@ -8,6 +8,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-selecta: var(--font-selecta);
+  --font-director: var(--font-director);
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -127,4 +128,19 @@
   html {
     @apply font-sans;
   }
+}
+
+/* Home panels and nav labels act as one group: hovering a panel tints its
+   matching nav label (and vice-versa). Bridges the layout↔page trees via :has. */
+body:has([data-panel="personal"]:hover) [data-nav="personal"],
+body:has([data-nav="personal"]:hover) [data-panel="personal"],
+body:has([data-panel="commissioned"]:hover) [data-nav="commissioned"],
+body:has([data-nav="commissioned"]:hover) [data-panel="commissioned"] {
+  color: var(--color-pink-400, #f472b6);
+}
+
+/* Tint the featured image when its nav label is hovered. */
+body:has([data-nav="personal"]:hover) [data-panel="personal"] img,
+body:has([data-nav="commissioned"]:hover) [data-panel="commissioned"] img {
+  opacity: 0.85;
 }

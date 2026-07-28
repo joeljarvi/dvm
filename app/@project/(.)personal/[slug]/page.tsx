@@ -1,0 +1,21 @@
+import { notFound } from "next/navigation";
+import { fetchProjectBySlug } from "@/sanity/queries";
+import ProjectDetail from "@/components/ProjectDetail";
+import Layer from "@/components/Layer";
+
+// Level 2 — intercepts /personal/[slug], stacked over the @view browser.
+export default async function PersonalProjectModal({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const project = await fetchProjectBySlug("personal", slug);
+  if (!project) notFound();
+
+  return (
+    <Layer level={2}>
+      <ProjectDetail project={project} panel="personal" />
+    </Layer>
+  );
+}

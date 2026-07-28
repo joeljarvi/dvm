@@ -12,6 +12,7 @@ export type Credit = {
 
 export type Project = {
   title: string;
+  slug?: string;
   coverImageUrl?: string;
   client?: string;
   agency?: string;
