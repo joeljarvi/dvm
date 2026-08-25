@@ -14,7 +14,7 @@ export default async function CommissionedProjectModal({
   if (!project) notFound();
 
   return (
-    <Layer level={2}>
+    <Layer level={2} closeLabel="Close">
       <ProjectDetail project={project} panel="commissioned" />
     </Layer>
   );

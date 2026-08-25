@@ -4,7 +4,7 @@ import Layer from "@/components/Layer";
 // Level 4 — intercepts /index, layered on top of everything else.
 export default function IndexModal() {
   return (
-    <Layer level={4}>
+    <Layer level={3}>
       <IndexSection />
     </Layer>
   );

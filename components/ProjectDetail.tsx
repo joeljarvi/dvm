@@ -6,7 +6,7 @@ import type { Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { arrowCursor } from "@/lib/cursor";
 import { useRegisterModal } from "@/lib/modalStack";
-import MetadataBar from "./MetadataBar";
+import { usePublishViewChrome } from "@/lib/viewChrome";
 
 const PINK_SHADES = [
   "bg-pink-100",
@@ -87,11 +87,31 @@ export default function ProjectDetail({
 
   // The lightbox is a modal layer too — register it so the shared close button
   // closes it before the project layer underneath.
-  useRegisterModal(selectedIndex !== null, () => setSelectedIndex(null));
+  useRegisterModal(
+    selectedIndex !== null,
+    () => setSelectedIndex(null),
+    "Close",
+  );
+
+  usePublishViewChrome(
+    <span className="flex items-center gap-x-2 font-selecta font-medium tracking-wider">
+      {project.agency && (
+        <span className="flex gap-x-2">
+          <span>Agency:</span>
+          <span className="italic">{project.agency}</span>
+        </span>
+      )}
+      {project.credits?.map((c, i) => (
+        <span className="" key={i}>
+          {c.role}: <span className=" italic ">{c.name}</span>
+        </span>
+      ))}
+    </span>,
+  );
 
   return (
     <div
-      className={`${panel === "personal" ? "bg-neutral-300" : "bg-neutral-400"} relative flex flex-col items-center justify-center w-full h-full`}
+      className={`${panel === "personal" ? "bg-background" : "bg-background"} relative flex flex-col items-center justify-center w-full h-full`}
     >
       <div className="flex flex-wrap lg:flex-row gap-x-2 p-0 w-full h-full overflow-y-scroll scrollbar-none [&::-webkit-scrollbar]:hidden items-center justify-center lg:h-[25vh] lg:w-auto">
         {items.map((item, index) => {
@@ -128,38 +148,9 @@ export default function ProjectDetail({
         })}
       </div>
 
-      {/* agency top-left everywhere; credits top-right on desktop, bottom-left on mobile */}
-      <MetadataBar
-        className="z-10 absolute top-2 px-2.5 h-8"
-        left={project.agency && <span>{project.agency}</span>}
-        right={
-          <span className="hidden lg:flex items-center gap-x-2">
-            {project.credits?.map((c, i) => (
-              <span key={i}>
-                {c.role}: {c.name}
-              </span>
-            ))}
-          </span>
-        }
-      />
-      {project.credits?.length ? (
-        <MetadataBar
-          className="z-10 absolute bottom-2 px-2.5 h-8 lg:hidden"
-          left={
-            <span className="flex items-center gap-x-2">
-              {project.credits.map((c, i) => (
-                <span key={i}>
-                  {c.role}: {c.name}
-                </span>
-              ))}
-            </span>
-          }
-        />
-      ) : null}
-
       {/* ITEM DETAIL — level 3, inset over the project grid */}
       <motion.div
-        className="absolute inset-0 z-40"
+        className="absolute inset-0  z-40"
         initial={{ opacity: 0, pointerEvents: "none" }}
         animate={{
           opacity: selectedIndex !== null ? 1 : 0,
@@ -169,13 +160,13 @@ export default function ProjectDetail({
       >
         {/* catcher — grid stays visible around the inset, click to close */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 bg-black/10 backdrop-blur-lg"
           onClick={() => setSelectedIndex(null)}
         />
 
         {/* inset card */}
-        <div className="absolute inset-x-2 top-2 lg:inset-x-4 lg:top-4 bottom-2 lg:bottom-4 flex items-center justify-center overflow-hidden bg-background shadow-2xl ">
-          {/* prev / next arrow zones */}
+        <div className="absolute inset-x-0 top-0 bottom-0 flex items-center justify-center overflow-hidden bg-background shadow-2xl ">
+          {/* prev / next zones — the chevron lives in the cursor, not on screen */}
           <div
             className="absolute inset-y-0 left-0 z-10 w-1/2"
             style={{ cursor: arrowCursor("left") }}
@@ -201,19 +192,19 @@ export default function ProjectDetail({
                 setSelectedIndex((selectedIndex + 1) % itemCount);
               };
               return (
-                <>
+                <div className="flex flex-col px-8">
                   {media ? (
                     media.type === "image" ? (
                       <img
                         src={sanityImage(media.url, { w: 1600, q: 80 })}
-                        className="relative z-20 h-[66.6vh] w-auto max-w-xs lg:max-w-3xl object-contain cursor-pointer"
+                        className="relative z-20 h-[50vh] w-auto max-w-xs lg:max-w-3xl object-contain cursor-pointer"
                         alt=""
                         onClick={advance}
                       />
                     ) : (
                       <video
                         src={media.url}
-                        className="relative z-20 h-[66.6vh] w-auto max-w-xs lg:max-w-3xl object-contain cursor-pointer"
+                        className="relative z-20 h-[50vh] w-auto max-w-xs lg:max-w-3xl object-contain cursor-pointer"
                         autoPlay
                         muted
                         loop
@@ -223,11 +214,11 @@ export default function ProjectDetail({
                     )
                   ) : (
                     <div
-                      className={`relative z-20 ${placeholderRatios[selectedIndex]} h-[66.6vh] max-w-xs lg:max-w-3xl ${placeholderColors[selectedIndex]} cursor-pointer`}
+                      className={`relative  z-20 ${placeholderRatios[selectedIndex]} h-[25vh] max-w-xs lg:max-w-3xl ${placeholderColors[selectedIndex]} cursor-pointer`}
                       onClick={advance}
                     />
                   )}
-                </>
+                </div>
               );
             })()}
         </div>

@@ -6,34 +6,36 @@ import { useRegisterModal } from "@/lib/modalStack";
 
 const ease = [0.4, 0, 0.2, 1] as const;
 
-// Inset per depth so each layer reveals the one beneath it around its edges.
+// Three depths, inset further each time so every layer reveals the one beneath
+// it around its edges: 1 browses a category, 2 is a project, 3 is an overlay.
 const INSET: Record<number, string> = {
-  1: "top-2 lg:top-8 inset-x-2 lg:inset-x-2 bottom-10  lg:bottom-8 ",
-  2: " top-4 lg:top-12 inset-x-4 lg:inset-x-6 bottom-12 lg:bottom-12 ",
-  3: "top-6 lg:top-16 inset-x-6 lg:inset-x-10 bottom-14 lg:bottom-16 ",
-  4: "top-8 lg:top-20 inset-x-8 lg:inset-x-14 bottom-16 lg:bottom-20 ",
+  1: "w-full h-dvh ",
+  2: "w-full h-dvh ",
+  3: "w-full h-dvh ",
 };
 
 const Z: Record<number, string> = {
-  1: "z-30",
-  2: "z-40",
-  3: "z-45",
-  4: "z-50",
+  1: "z-50",
+  2: "z-60",
+  3: "z-70",
 };
 
 // A modal layer: a full-screen click-catcher (keeps the layer behind visible,
 // closes on click) plus an inset card. Closing calls router.back(); the shared
-// close button (CloseButton) closes the topmost layer via the modal stack.
+// close button in the nav closes the topmost layer via the modal stack.
 export default function Layer({
   level = 1,
+  closeLabel = "Back",
   children,
 }: {
-  level?: 1 | 2 | 3 | 4;
+  level?: 1 | 2 | 3;
+  // What the nav's shared button calls itself while this layer is on top.
+  closeLabel?: string | null;
   children: React.ReactNode;
 }) {
   const router = useRouter();
 
-  useRegisterModal(true, () => router.back());
+  useRegisterModal(true, () => router.back(), closeLabel);
 
   return (
     <div className={`fixed inset-0 ${Z[level]}`}>
@@ -45,7 +47,7 @@ export default function Layer({
 
       {/* inset card */}
       <motion.div
-        className={`absolute ${INSET[level]} overflow-hidden shadow-2xl`}
+        className={`absolute ${INSET[level]} overflow-hidden`}
         initial={{ y: "100%" }}
         animate={{ y: "0%" }}
         transition={{ duration: 0.5, ease }}

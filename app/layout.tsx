@@ -4,6 +4,7 @@ import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import Nav from "@/components/Nav";
+import Wordmark from "@/components/Wordmark";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -94,6 +95,32 @@ const selecta = localFont({
   variable: "--font-selecta",
 });
 
+const univers = localFont({
+  src: [
+    {
+      path: "../public/fonts/UniversNextPro-MediumCond.ttf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/UniversNextPro-MediumCondIt.ttf",
+      weight: "500",
+      style: "italic",
+    },
+    {
+      path: "../public/fonts/UniversNextPro-XBlackCond.ttf",
+      weight: "900",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/UniversNextPro-XBlackCondIt.ttf",
+      weight: "900",
+      style: "italic",
+    },
+  ],
+  variable: "--font-univers",
+});
+
 export default function RootLayout({
   children,
   view,
@@ -108,7 +135,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${selecta.variable} ${director.variable} antialiased`}
+      className={`${selecta.variable} ${director.variable} ${univers.variable} antialiased`}
     >
       <body className="">
         {children}

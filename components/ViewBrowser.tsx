@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import type { Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { arrowCursor } from "@/lib/cursor";
-import MetadataBar from "./MetadataBar";
+import { usePublishViewChrome } from "@/lib/viewChrome";
+import StepButton from "@/components/StepButton";
 
 const PINK_SHADES = [
   "bg-pink-100",
@@ -67,11 +68,24 @@ export default function ViewBrowser({
     if (current?.slug) router.push(`/${panel}/${current.slug}`);
   };
 
+  usePublishViewChrome(
+    <span className="flex items-center gap-x-2 h-8 px-2  ">
+      {current?.client && (
+        <span className=" uppercase tracking-wider w-full">
+          {current.client}
+        </span>
+      )}
+      <span className="italic tracking-wider hidden lg:block">
+        {current?.title}
+      </span>
+    </span>,
+  );
+
   return (
     <div
-      className={`${panel === "personal" ? "bg-neutral-300" : "bg-neutral-400"} relative flex items-center justify-center w-full h-full overflow-hidden`}
+      className={`${panel === "personal" ? "bg-neutral-200" : "bg-neutral-200"} relative flex items-center justify-center w-full h-full overflow-hidden`}
     >
-      {/* prev / next arrow zones */}
+      {/* prev / next zones — on desktop the chevron lives in the cursor */}
       <div
         className="absolute inset-y-0 left-0 z-10 w-1/2"
         style={{ cursor: arrowCursor("left") }}
@@ -83,36 +97,34 @@ export default function ViewBrowser({
         onClick={() => step(1)}
       />
 
+      {/* Touch has no cursor to carry the chevron, so below lg the marks come
+          on screen. They stack above the zones, so a tap lands on the button
+          alone and steps once. */}
+      <StepButton
+        direction="back"
+        onClick={() => step(-1)}
+        className="lg:hidden absolute left-4 top-1/2 -translate-y-1/2 z-30 text-foreground"
+      />
+      <StepButton
+        direction="next"
+        onClick={() => step(1)}
+        className="lg:hidden absolute right-4 top-1/2 -translate-y-1/2 z-30 text-foreground"
+      />
+
       {/* centered cover — click to open the project */}
       {current?.coverImageUrl ? (
         <img
           src={sanityImage(current.coverImageUrl, { w: 1400 })}
           alt={current.title}
-          className="relative z-20 h-[66.6vh] w-auto max-w-xs lg:max-w-3xl object-cover cursor-pointer"
+          className="relative z-20 h-[50vh] w-auto max-w-xs lg:max-w-3xl object-cover cursor-pointer"
           onClick={openProject}
         />
       ) : (
         <div
-          className={`relative z-20 ${ratio} h-[66.6vh] max-w-xs lg:max-w-3xl ${color} cursor-pointer`}
+          className={`relative z-20 ${ratio} h-[50vh] max-w-xs lg:max-w-3xl ${color} cursor-pointer`}
           onClick={openProject}
         />
       )}
-
-      {/* mobile: client top-left, title bottom-left; desktop: centered at top */}
-      <MetadataBar
-        className="z-30 absolute top-2 px-2.5 h-6"
-        left={<span className="lg:hidden">{current?.client}</span>}
-        center={
-          <span className="hidden lg:flex items-center gap-x-4">
-            {current?.client && <span>{current.client}</span>}
-            <span>{current?.title}</span>
-          </span>
-        }
-      />
-      <MetadataBar
-        className="z-30 absolute bottom-2 px-2.5 h-6 lg:hidden"
-        left={current?.title}
-      />
     </div>
   );
 }

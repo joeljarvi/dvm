@@ -1,17 +1,11 @@
 import HomeClient from "@/components/HomeClient";
-import { fetchFeaturedCoverImage } from "@/sanity/queries";
+import { fetchFeaturedProject } from "@/sanity/queries";
 
 export default async function Home() {
-  const [personalFeaturedCoverImageUrl, commissionedFeaturedCoverImageUrl] =
-    await Promise.all([
-      fetchFeaturedCoverImage("personal"),
-      fetchFeaturedCoverImage("commissioned"),
-    ]);
+  const [personal, commissioned] = await Promise.all([
+    fetchFeaturedProject("personal"),
+    fetchFeaturedProject("commissioned"),
+  ]);
 
-  return (
-    <HomeClient
-      personalFeaturedCoverImageUrl={personalFeaturedCoverImageUrl}
-      commissionedFeaturedCoverImageUrl={commissionedFeaturedCoverImageUrl}
-    />
-  );
+  return <HomeClient personal={personal} commissioned={commissioned} />;
 }

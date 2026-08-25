@@ -1,42 +1,37 @@
-import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
+"use client";
 
+import { cn } from "@/lib/utils";
+import { useMetadata } from "@/lib/viewChrome";
+import { chip } from "@/lib/chip";
+
+// One container, rendered by the nav: the metadata for whichever view is on
+// top. Prev/next belong to the views, not here. See lib/viewChrome.
 export default function MetadataBar({
-  left,
-  center,
-  right,
   className,
-  stackOnMobile = false,
+  textColor,
 }: {
-  left?: ReactNode;
-  center?: ReactNode;
-  right?: ReactNode;
   className?: string;
-  stackOnMobile?: boolean;
+  textColor?: string;
 }) {
+  const content = useMetadata();
+  if (!content) return null;
+
   return (
     <div
       className={cn(
-        "relative left-0 right-0 flex items-center justify-between px-2 h-8 font-selecta text-lg lg:text-xl font-medium lowercase  tracking-wide pointer-events-none mix-blend-difference text-background",
-        stackOnMobile &&
-          "flex-col items-center justify-center lg:flex-row lg:justify-between h-auto lg:h-8 ",
+        "flex items-baseline justify-start lg:justify-center font-selecta w-min  px-0 gap-x-2",
         className,
       )}
     >
-      <span className="flex items-center gap-1">{left}</span>
-      {center != null && (
-        <span
-          className={cn(
-            "flex items-center gap-1",
-            stackOnMobile
-              ? "lg:absolute lg:left-1/2 lg:-translate-x-1/2"
-              : "absolute left-1/2 -translate-x-1/2",
-          )}
-        >
-          {center}
-        </span>
-      )}
-      <span className="flex items-center gap-1">{right}</span>
+      {/* `chip` goes first so twMerge lets the bar's own sizing and fill win
+          over it. The plate stays frosted rather than solid — the cutout still
+          reads through a translucent background, and the metadata sits over
+          artwork often enough that an opaque bar would fight it. */}
+      <span
+        className={`flex-1 flex items-start justify-start lg:justify-center gap-x-3  px-0 text-xl leading-[0.6] tracking-wider text-left w-min lg:w-full whitespace-nowrap pointer-events-none ${textColor}`}
+      >
+        {content}
+      </span>
     </div>
   );
 }

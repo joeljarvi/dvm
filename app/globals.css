@@ -9,6 +9,7 @@
   --color-foreground: var(--foreground);
   --font-selecta: var(--font-selecta);
   --font-director: var(--font-director);
+  --font-univers: var(--font-univers);
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -130,17 +131,68 @@
   }
 }
 
-/* Home panels and nav labels act as one group: hovering a panel tints its
-   matching nav label (and vice-versa). Bridges the layout↔page trees via :has. */
+/* Univers Next Pro Condensed — only two weights exist (500 Medium, 900 XBlack),
+   each with an italic. Use these instead of arbitrary font-weight utilities so
+   the browser never synthesises a weight the family doesn't ship. */
+@utility univers {
+  font-family: var(--font-univers);
+  font-weight: 500;
+  font-style: normal;
+}
+
+@utility univers-italic {
+  font-family: var(--font-univers);
+  font-weight: 500;
+  font-style: italic;
+}
+
+@utility univers-black {
+  font-family: var(--font-univers);
+  font-weight: 900;
+  font-style: normal;
+}
+
+@utility univers-black-italic {
+  font-family: var(--font-univers);
+  font-weight: 900;
+  font-style: italic;
+}
+
+/* Home panels and nav labels act as one group: hovering a panel greys its
+   matching nav label (and vice-versa). Bridges the layout↔page trees via :has.
+   Unlayered, so it beats the `text-foreground` inside the chip utility set. */
 body:has([data-panel="personal"]:hover) [data-nav="personal"],
 body:has([data-nav="personal"]:hover) [data-panel="personal"],
 body:has([data-panel="commissioned"]:hover) [data-nav="commissioned"],
 body:has([data-nav="commissioned"]:hover) [data-panel="commissioned"] {
-  color: var(--color-pink-400, #f472b6);
+  color: var(--color-neutral-300, #d4d4d4);
 }
 
 /* Tint the featured image when its nav label is hovered. */
 body:has([data-nav="personal"]:hover) [data-panel="personal"] img,
 body:has([data-nav="commissioned"]:hover) [data-panel="commissioned"] img {
   opacity: 0.85;
+}
+/* Recessed label chips on the home panels: reads as a hole cut through the
+   featured image, with the cut edge of the image casting inward (light from
+   above, so the top edge is darkest and the bottom lip catches a highlight).
+   Inset shadows only — the element itself must have an opaque background. */
+@utility cutout {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent),
+    inset 0 2px 3px color-mix(in oklch, var(--foreground) 34%, transparent),
+    inset 0 7px 10px -5px
+      color-mix(in oklch, var(--foreground) 28%, transparent),
+    inset 2px 0 4px -2px color-mix(in oklch, var(--foreground) 20%, transparent),
+    inset -2px 0 4px -2px
+      color-mix(in oklch, var(--foreground) 80%, transparent),
+    inset 0 -1px 0 color-mix(in oklch, var(--background) 80%, transparent);
+}
+
+/* Trim the half-leading off a text box so its background hugs the glyphs:
+   top edge at cap height, bottom edge at the baseline. Only takes effect on a
+   block container (add `inline-block` to inline spans). Firefox doesn't support
+   text-box yet and falls back to the line-height box, so keep leading tight. */
+@utility text-trim {
+  text-box: trim-both cap alphabetic;
 }
