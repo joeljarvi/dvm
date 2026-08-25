@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-// Where the select can take you.
+// Where the select can take you. Home is deliberately absent — the wordmark
+// and the panels already lead back there.
 const DESTINATIONS = [
   { label: "Commissioned_", href: "/commissioned" },
   { label: "Personal_", href: "/personal" },
   { label: "Index_", href: "/index" },
   { label: "About_", href: "/about" },
-  { label: "Home_", href: "/" },
 ];
 
 /**

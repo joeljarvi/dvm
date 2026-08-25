@@ -96,8 +96,9 @@ export default function Nav() {
   const inSection = inPersonal || inCommissioned;
   const leaf = crumb ?? (browsing ? slugify(browsing) : null);
 
-  // `short` is the stacked-layout spelling — com / per — where the full word
-  // would crowd the crumbs after it.
+  // `short` is the stacked-layout spelling — com / per / all — where the full
+  // word would crowd the crumbs after it. Hyphens inside a label, since the
+  // underscore is what separates one crumb from the next.
   const trail: {
     label: string;
     short?: string;
@@ -106,7 +107,7 @@ export default function Nav() {
   }[] = inSection
     ? [
         { label: section, short: section.slice(0, 3), href: `/${section}` },
-        { label: "all", href: `/${section}` },
+        { label: "all-projects", short: "all", href: `/${section}` },
         // Stepping back to the project is what closes an open item.
         ...(leaf
           ? [{ label: leaf, onClick: item ? closeItem : undefined }]
@@ -178,7 +179,7 @@ export default function Nav() {
   return (
     <>
       <span
-        className={`fixed top-0 left-0 w-full lg:w-1/2 ${under(false)} flex flex-row items-center ${isHome ? "justify-start" : "justify-center"} justify-center lg:justify-start gap-0 px-2.5 h-8 transition-opacity duration-700 ease-out bg-background lg:bg-transparent ${chrome}`}
+        className={`fixed bottom-0 lg:bottom-auto lg:top-0 left-0 w-full lg:w-1/2 ${under(false)} flex flex-row items-center ${isHome ? "justify-start" : "justify-center"} lg:justify-start gap-0 px-2.5 h-8 transition-opacity duration-700 ease-out bg-background lg:bg-transparent ${chrome}`}
       >
         {/* The corner names the view you are in and opens as the way out of
             it, so it replaces what was a plain link to Personal. */}
@@ -200,10 +201,11 @@ export default function Nav() {
 
       <span
         className={`fixed ${under(inSection)} ${
-          // The trail clears the bottom edge by the height of the About/Index
-          // bar it sits above; the home label keeps its corner instead.
+          // Stacked, the trail takes the top edge and the select drops to the
+          // bottom; side by side they share the top, one corner each. The
+          // home label keeps the right corner at either width.
           inSection
-            ? "bottom-0 left-0 w-full bg-background lg:bg-transparent justify-center lg:bottom-auto lg:top-0 lg:left-auto lg:right-0 lg:w-1/2 lg:justify-end"
+            ? "top-0 left-0 w-full bg-background lg:bg-transparent justify-center lg:left-auto lg:right-0 lg:w-1/2 lg:justify-end"
             : "top-0 right-0 w-1/2 justify-end"
         } flex flex-row items-center gap-0 px-2.5 h-8 transition-opacity duration-700 ease-out ${chrome}`}
       >
