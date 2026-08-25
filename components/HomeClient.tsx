@@ -79,7 +79,7 @@ export default function HomeClient({
       </section>
 
       <span
-        className={` fixed bottom-0 left-0 w-full h-8  flex flex-row items-center transition-opacity duration-700 ease-out `}
+        className={` fixed bottom-0 left-0 w-full h-8 z-20  flex flex-row items-center transition-opacity duration-700 ease-out `}
       >
         <Button
           variant="link"
