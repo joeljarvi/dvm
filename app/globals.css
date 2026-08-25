@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "lenis/dist/lenis.css";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -158,20 +159,29 @@
   font-style: italic;
 }
 
-/* Home panels and nav labels act as one group: hovering a panel greys its
-   matching nav label (and vice-versa). Bridges the layout↔page trees via :has.
-   Unlayered, so it beats the `text-foreground` inside the chip utility set. */
-body:has([data-panel="personal"]:hover) [data-nav="personal"],
-body:has([data-nav="personal"]:hover) [data-panel="personal"],
-body:has([data-panel="commissioned"]:hover) [data-nav="commissioned"],
-body:has([data-nav="commissioned"]:hover) [data-panel="commissioned"] {
-  color: var(--color-neutral-300, #d4d4d4);
+/* A home panel and its label act as one control even though they sit in
+   different trees — the label is rendered by the nav in the layout, the panel
+   by the page. `:has` on the body bridges the two. Unlayered, so it beats the
+   utilities that set the label's own background.
+
+   Hovering or pressing the panel colours its label... */
+body:has([data-panel="personal"]:is(:hover, :active)) [data-nav="personal"],
+body:has([data-panel="commissioned"]:is(:hover, :active))
+  [data-nav="commissioned"] {
+  color: var(--color-blue-700, #1447e6);
+  background-color: transparent;
+  mix-blend-mode: normal;
 }
 
-/* Tint the featured image when its nav label is hovered. */
-body:has([data-nav="personal"]:hover) [data-panel="personal"] img,
-body:has([data-nav="commissioned"]:hover) [data-panel="commissioned"] img {
-  opacity: 0.85;
+/* ...and hovering or pressing the label brings up that panel's cover, the
+   same fade its own `group-hover` raises. */
+body:has([data-nav="personal"]:is(:hover, :active))
+  [data-panel="personal"]
+  [data-cover],
+body:has([data-nav="commissioned"]:is(:hover, :active))
+  [data-panel="commissioned"]
+  [data-cover] {
+  opacity: 1;
 }
 /* Recessed label chips on the home panels: reads as a hole cut through the
    featured image, with the cut edge of the image casting inward (light from

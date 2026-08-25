@@ -4,6 +4,7 @@ import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import Nav from "@/components/Nav";
+import { ReactLenis } from "lenis/react";
 import Wordmark from "@/components/Wordmark";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
@@ -123,25 +124,19 @@ const univers = localFont({
 
 export default function RootLayout({
   children,
-  view,
-  project,
-  overlay,
 }: Readonly<{
   children: React.ReactNode;
-  view: React.ReactNode;
-  project: React.ReactNode;
-  overlay: React.ReactNode;
 }>) {
   return (
     <html
       lang="en"
       className={`${selecta.variable} ${director.variable} ${univers.variable} antialiased`}
     >
+      {/* Lenis drives the page's own scrolling. Views with their own scroll
+          container set up a scoped instance of their own — see ProjectDetail. */}
       <body className="">
+        <ReactLenis root />
         {children}
-        {view}
-        {project}
-        {overlay}
         <Nav />
       </body>
     </html>

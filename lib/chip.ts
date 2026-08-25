@@ -8,4 +8,4 @@
 // hover override neutralises the Button variant's hover fill: the plate does
 // not light up, since the panel or bar underneath owns the hover feedback.
 export const chip =
-  "rounded-none border-0 h-auto bg-background hover:bg-background text-foreground text-xl font-selecta font-medium tracking-wide px-2 cutout";
+  "rounded-none border-0 h-auto bg-background hover:bg-background text-foreground text-base font-selecta font-medium tracking-wide px-2 cutout lowercase";

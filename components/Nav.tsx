@@ -1,18 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { closeTop } from "@/lib/modalStack";
 import { useIntro } from "@/lib/intro";
 import { chip } from "@/lib/chip";
+import { closeItem, useBrowsing, useItem } from "@/lib/crumb";
+import { slugify } from "@/lib/slug";
 import MetadataBar from "@/components/MetadataBar";
-import Breadcrumb from "@/components/Breadcrumb";
+import SectionSelect from "@/components/SectionSelect";
 import Link from "next/link";
 import DvmCard from "@/components/DvmCard";
 
 const ease = [0.4, 0, 0.2, 1] as const;
+
+// The full set, in reading order. Instagram is the only one that leaves the
+// site — swap the placeholder for the real handle.
+const LINKS = [
+  { label: "Home", href: "/" },
+  { label: "Commissioned", href: "/commissioned" },
+  { label: "Personal", href: "/personal" },
+  { label: "About", href: "/about" },
+  { label: "Index", href: "/index" },
+  { label: "Instagram", href: "https://instagram.com/", external: true },
+];
 
 export default function Nav() {
   const pathname = usePathname();
@@ -21,7 +34,7 @@ export default function Nav() {
 
   // Only once the wordmark has landed does the rest of the nav arrive and the
   // button start behaving as a breadcrumb.
-  const { settled, staggered, arrived } = useIntro();
+  const { settled, arrived } = useIntro();
 
   // Nothing in the nav exists until the card has handed the page over. State
   // only — each element declares its own transition, and twMerge keeps the
@@ -45,31 +58,7 @@ export default function Nav() {
   // No site nav over the Sanity Studio.
   if (pathname.startsWith("/studio")) return null;
 
-  const personalActive = pathname.startsWith("/personal");
-  const commissionedActive = pathname.startsWith("/commissioned");
-  const aboutActive = pathname === "/about";
-  const indexActive = pathname === "/index";
-
-  // On mobile the wordmark doubles as a breadcrumb for wherever you are — null
-  // on home, where the name itself is the label. Desktop has room to keep the
-  // full name up at all times, so it never swaps.
-  const crumb = menuOpen
-    ? "Menu"
-    : personalActive
-      ? "Personal"
-      : commissionedActive
-        ? "Commissioned"
-        : aboutActive
-          ? "About"
-          : indexActive
-            ? "Index"
-            : null;
-
-  // One shape everywhere off home: a link back to the root. Escape still pops
-  // a layer at a time, but the button itself always walks all the way home
-  // rather than unwinding the stack.
   const isHome = pathname === "/";
-  const showBack = !isHome;
 
   // Anywhere with metadata worth reading: both section browsers and the
   // project pages under them — /personal, /commissioned, and their slugs.
@@ -78,197 +67,158 @@ export default function Nav() {
     segments.length <= 2 &&
     (segments[0] === "personal" || segments[0] === "commissioned");
 
-  // Each section label stands only inside its own section — home has the two
-  // panels themselves, so a label there would only repeat what you are
-  // already looking at.
-  const showPersonal = segments[0] === "personal";
-  const showCommissioned = segments[0] === "commissioned";
+  // The breadcrumb tails off the Commissioned label: the browser is
+  // `all_projects`, and an open project adds its title after that. Keyed to
+  // the section rather than the exact path, so it survives opening a project.
+  const inCommissioned = segments[0] === "commissioned";
+
+  // The open project's slug, shown verbatim — `kirkeby-x-bjork-and-berries`
+  // rather than its title. It is already in the path, so the breadcrumb reads
+  // it from there and needs nothing published to it.
+  const crumb = segments[1] ? decodeURIComponent(segments[1]) : null;
+
+  const browsing = useBrowsing();
+
+  // Which item of the open project is up, if any — the last link in the trail.
+  const item = useItem();
+
+  // With an item open, its overlay owns the screen. Everything but the
+  // breadcrumb for the section you are in drops beneath it — the overlay sits
+  // at z-40 in ProjectDetail, and its inset card is opaque, so this hides
+  // them rather than merely reordering.
+  const inPersonal = segments[0] === "personal";
+  const under = (mine: boolean) => (item && !mine ? "z-30" : "z-90");
+
+  // The breadcrumb hangs off whichever section label you are inside, so it
+  // grows away from its own corner. Everything after the section reads as a
+  // file name — see lib/slug.
+  const section = segments[0];
+  const inSection = inPersonal || inCommissioned;
+  const leaf = crumb ?? (browsing ? slugify(browsing) : null);
+
+  // `short` is the stacked-layout spelling — com / per — where the full word
+  // would crowd the crumbs after it.
+  const trail: {
+    label: string;
+    short?: string;
+    href?: string;
+    onClick?: () => void;
+  }[] = inSection
+    ? [
+        { label: section, short: section.slice(0, 3), href: `/${section}` },
+        { label: "all_projects", href: `/${section}` },
+        // Stepping back to the project is what closes an open item.
+        ...(leaf
+          ? [{ label: leaf, onClick: item ? closeItem : undefined }]
+          : []),
+        ...(item ? [{ label: `${item.index + 1}_${item.count}` }] : []),
+      ]
+    : [];
+
+  // Only the first crumb carries a short form; the rest read the same at
+  // either width.
+  const crumbText = (c: (typeof trail)[number]) =>
+    c.short ? (
+      <>
+        <span className="lg:hidden">{c.short}</span>
+        <span className="hidden lg:inline">{c.label}</span>
+      </>
+    ) : (
+      c.label
+    );
+
+  const renderTrail = () =>
+    trail.map((c, i) => {
+      const last = i === trail.length - 1;
+      const link =
+        "w-auto h-full text-blue-700 transition-colors duration-300 ease-out";
+      return (
+        <Fragment key={c.label}>
+          {c.onClick ? (
+            <Button variant="link" className={link} onClick={c.onClick}>
+              {crumbText(c)}
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="link"
+                className={link}
+                aria-current={last && !c.href ? "page" : undefined}
+                asChild
+              >
+                {c.href ? (
+                  <Link href={c.href}>{crumbText(c)}</Link>
+                ) : (
+                  <span>{crumbText(c)}</span>
+                )}
+              </Button>
+              <span
+                aria-hidden
+                className="font-selecta text-base text-blue-700"
+              >
+                _
+              </span>
+            </>
+          )}
+        </Fragment>
+      );
+    });
 
   // The menu links navigate on their own; this just dismisses the overlay
   // behind them.
   const closeMenu = () => setMenuOpen(false);
 
-  // Rendered at both breakpoints, so it lives here rather than twice.
-  const backButton = (className: string) =>
-    showBack && (
-      <Button className={className} asChild>
-        <Link href="/">Back</Link>
-      </Button>
-    );
-
   return (
     <>
-      {/* BACK — shows everywhere but home, at every breakpoint: the top-left
-          corner while the layout is stacked, centred along the top edge once
-          the section labels take the corners, so it never lands on either. */}
-      {backButton(
-        `${chip} fixed top-4 left-4 lg:left-1/2 lg:-translate-x-1/2 z-90 transition-[opacity,color] duration-500 ease-out hover:text-neutral-300 ${chrome}`,
-      )}
-
-      {/* SECTIONS — the label for whichever section you are in. Personal is
-          desktop-only: below lg the Back button already owns the top-left
-          corner, and these never render on home where Back is absent.
-          Commissioned has the opposite corner to itself at every width. */}
-      {showPersonal && (
-        <>
-          <Button
-            data-nav="personal"
-            className={`${chip} fixed top-4 left-4 z-90 hidden lg:inline-flex transition-[opacity,color] duration-700 ease-out hover:text-neutral-300 ${chrome} ${
-              staggered > 2 ? "" : "opacity-0 pointer-events-none"
-            }`}
-            asChild
-          >
-            <Link href="/personal">Personal</Link>
-          </Button>
-
-          {/* DESKTOP ONLY BUTTON */}
-          <Button
-            data-nav="commissioned"
-            className={`${chip} hidden lg:fixed top-4 right-4 z-90 transition-[opacity,color] duration-700 ease-out hover:text-neutral-300 ${chrome} ${
-              staggered > 3 ? "" : "opacity-0 pointer-events-none"
-            }`}
-            asChild
-          >
-            <Link href="/commissioned">Commissioned</Link>
-          </Button>
-        </>
-      )}
-
-      {showCommissioned && (
-        <>
-          <Button
-            data-nav="commissioned"
-            className={`${chip} fixed top-4 right-4 z-90 transition-[opacity,color] duration-700 ease-out hover:text-neutral-300 ${chrome} ${
-              staggered > 3 ? "" : "opacity-0 pointer-events-none"
-            }`}
-            asChild
-          >
-            <Link href="/commissioned">Commissioned</Link>
-          </Button>
-
-          <Button
-            data-nav="personal"
-            className={`${chip} hidden lg:fixed top-4 left-4 z-90  lg:inline-flex transition-[opacity,color] duration-700 ease-out hover:text-neutral-300 ${chrome} ${
-              staggered > 2 ? "" : "opacity-0 pointer-events-none"
-            }`}
-            asChild
-          >
-            <Link href="/personal">Personal</Link>
-          </Button>
-        </>
-      )}
-
-      {/* BOTTOM BAR — About and Index bracket the Info slot. One row so
-          nothing overlaps the full-width bar on desktop. */}
-      <div
-        className={`transition-opacity duration-700 ease-out ${chrome} fixed bottom-0 left-0 right-0 p-4 z-90   lg:mb-0 px-4 flex items-center justify-between gap-2 w-full ${settled ? "" : "pointer-events-none"}`}
+      <span
+        className={`fixed top-0 left-0 w-1/2 ${under(false)} flex flex-row items-center justify-start gap-0 px-2.5 h-8 transition-opacity duration-700 ease-out ${chrome}`}
       >
-        <Button
-          className={`${chip} hidden lg:inline-flex transition-colors duration-300 ease-out hover:text-neutral-300`}
-          asChild
-        >
-          <Link href="/about">About</Link>
-        </Button>
-
-        {/* Info takes the slot the metadata line used to hold, and opens it
-            as an overlay instead of keeping it on screen throughout. Out of
-            flow, so About and Index keep the ends of the row to themselves:
-            bottom-left while stacked, centred on the bar from lg up. */}
-        {showInfo ? (
+        {/* The corner names the view you are in and opens as the way out of
+            it, so it replaces what was a plain link to Personal. */}
+        {isHome ? (
           <Button
-            aria-expanded={infoOpen}
-            className={`${chip} absolute bottom-4 left-4 lg:left-1/2 lg:-translate-x-1/2 transition-colors duration-300 ease-out hover:text-neutral-300`}
-            onClick={() => setInfoOpen((o) => !o)}
+            // Paired with the left panel through the data-nav/data-panel
+            // bridge in globals.css: hovering either colours both.
+            data-nav="personal"
+            variant="link"
+            className="justify-start w-auto bg-transparent hover:bg-transparent h-full hover:text-blue-700 active:text-blue-700 active:bg-transparent"
+            asChild
           >
-            Info
+            <Link href="/personal">Personal</Link>
           </Button>
         ) : (
-          <span />
+          <SectionSelect current={pathname} />
         )}
+      </span>
 
-        <Button
-          className={`${chip} hidden lg:inline-flex transition-colors duration-300 ease-ou right-4 hover:text-neutral-300`}
-          asChild
-        >
-          <Link href="/index">Index</Link>
-        </Button>
-      </div>
-
-      <AnimatePresence>
-        {infoOpen && (
-          <motion.div
-            className="fixed inset-0 z-80 bottom-15 left-4 right-4 top-auto  flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, ease }}
-            onClick={() => setInfoOpen(false)}
-          >
-            <DvmCard variant="blank" color="bg-neutral-400">
-              <MetadataBar textColor="text-foreground" />
-            </DvmCard>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* MOBILE — menu button + overlay */}
-      <div className="lg:hidden">
-        {/* Bottom-right, clear of Commissioned in the top corner. At this
-            width the bottom bar carries only the metadata, so nothing collides. */}
-        <span
-          className={`transition-opacity duration-700 ease-out ${chrome} fixed bottom-4 right-4 z-90 flex items-center gap-1 ${settled ? "" : "pointer-events-none"}`}
-        >
-          <Button
-            className={`${chip} inline-flex transition-colors duration-300 ease-out hover:text-neutral-300`}
-            onClick={() => setMenuOpen((o) => !o)}
-          >
-            Menu
-          </Button>
-        </span>
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div
-              className="fixed inset-0 z-50 bg-orange-400 flex flex-col items-center justify-center gap-1   "
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25, ease }}
+      <span
+        className={`fixed ${under(inSection)} ${
+          // The trail clears the bottom edge by the height of the About/Index
+          // bar it sits above; the home label keeps its corner instead.
+          inSection
+            ? "bottom-0 left-0 w-1/2 justify-start lg:bottom-auto lg:top-0 lg:left-auto lg:right-0 lg:w-1/2 lg:justify-end"
+            : "top-0 right-0 w-1/2 justify-end"
+        } flex flex-row items-center gap-0 px-2.5 h-8 transition-opacity duration-700 ease-out ${chrome}`}
+      >
+        {/* Inside a section this corner is the breadcrumb, in either section —
+            the select on the left already names which one, so the trail needs
+            no label of its own. On home it is the Commissioned link instead,
+            which is what pairs with the right-hand panel. */}
+        {inSection ? (
+          <span className="flex flex-row items-center">{renderTrail()}</span>
+        ) : (
+          isHome && (
+            <Button
+              data-nav="commissioned"
+              variant="link"
+              className="justify-end w-auto h-full hover:bg-transparent hover:text-blue-700 active:text-blue-700 active:bg-transparent"
+              asChild
             >
-              <Button size="lg" variant="ghost" className={`  `} asChild>
-                <Link href="/" onClick={closeMenu}>
-                  Home
-                </Link>
-              </Button>
-              <Button variant="ghost" size="lg" className={``} asChild>
-                <Link href="/personal" onClick={closeMenu}>
-                  Personal
-                </Link>
-              </Button>
-              <Button variant="ghost" size="lg" className={``} asChild>
-                <Link href="/commissioned" onClick={closeMenu}>
-                  Commissioned
-                </Link>
-              </Button>
-              <Button variant="ghost" size="lg" className={``} asChild>
-                <Link href="/about" onClick={closeMenu}>
-                  About
-                </Link>
-              </Button>
-              <Button variant="ghost" size="lg" className={``} asChild>
-                <Link href="/index" onClick={closeMenu}>
-                  Index
-                </Link>
-              </Button>
-              <Button variant="ghost" size="lg" className={` `} asChild>
-                <Link href="/studio" onClick={closeMenu}>
-                  {" "}
-                  Log in
-                </Link>
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              <Link href="/commissioned">Commissioned</Link>
+            </Button>
+          )
+        )}
+      </span>
     </>
   );
 }

@@ -6,7 +6,7 @@ const aboutText = `I’m a photographer and creative producer working in adverti
 Driven by craftsmanship — both my own and that of others — my work focuses on portraying designed objects, spaces, and the people behind the craft.
 Alongside commissioned work, an ongoing personal practice focuses on nature, form, and belonging.`;
 
-export default function AboutSection({ onClose }: { onClose?: () => void }) {
+export default function AboutSection() {
   return (
     <div className="relative grid grid-cols-1 lg:grid-cols-2 items-start justify-start w-full h-full   font-selecta font-medium  text-lg lg:text-xl  tracking-wide leading-[1.2]  text-foreground gap-0    lg:tracking-normal  lowercase    ">
       <span className="col-span-1 bg-neutral-600 lg:bg-neutral-400 text-background  w-full h-full p-4    ">

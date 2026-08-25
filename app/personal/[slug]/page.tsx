@@ -2,8 +2,7 @@ import { notFound } from "next/navigation";
 import { fetchProjectBySlug } from "@/sanity/queries";
 import ProjectDetail from "@/components/ProjectDetail";
 
-// Full, linkable page — rendered on direct navigation / refresh of
-// /personal/[slug]. The intercepted modal version lives in app/@modal.
+// /personal/[slug].
 export default async function PersonalProjectPage({
   params,
 }: {

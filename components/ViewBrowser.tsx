@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
-import { arrowCursor } from "@/lib/cursor";
 import { usePublishViewChrome } from "@/lib/viewChrome";
+import { usePublishBrowsing } from "@/lib/crumb";
 import StepButton from "@/components/StepButton";
+import { useStepControls } from "@/lib/step";
 
 const PINK_SHADES = [
   "bg-pink-100",
@@ -64,9 +65,15 @@ export default function ViewBrowser({
     setIndex((i) => (i + delta + list.length) % list.length);
   };
 
+  // Arrow keys anywhere, swipe on touch. The click zones still work.
+  useStepControls(true, step);
+
   const openProject = () => {
     if (current?.slug) router.push(`/${panel}/${current.slug}`);
   };
+
+  // The nav's breadcrumb tails off with whatever cover is up.
+  usePublishBrowsing(current?.client);
 
   usePublishViewChrome(
     <span className="flex items-center gap-x-2 h-8 px-2  ">
@@ -83,17 +90,15 @@ export default function ViewBrowser({
 
   return (
     <div
-      className={`${panel === "personal" ? "bg-neutral-200" : "bg-neutral-200"} relative flex items-center justify-center w-full h-full overflow-hidden`}
+      className={`${panel === "personal" ? "bg-background" : "bg-background"} relative flex items-center justify-center w-full h-full overflow-hidden`}
     >
       {/* prev / next zones — on desktop the chevron lives in the cursor */}
       <div
         className="absolute inset-y-0 left-0 z-10 w-1/2"
-        style={{ cursor: arrowCursor("left") }}
         onClick={() => step(-1)}
       />
       <div
         className="absolute inset-y-0 right-0 z-10 w-1/2"
-        style={{ cursor: arrowCursor("right") }}
         onClick={() => step(1)}
       />
 
@@ -103,12 +108,12 @@ export default function ViewBrowser({
       <StepButton
         direction="back"
         onClick={() => step(-1)}
-        className="lg:hidden absolute left-4 top-1/2 -translate-y-1/2 z-30 text-foreground"
+        className="lg:hidden absolute left-4 top-1/2 -translate-y-1/2 z-30 text-neutral-300 hover:text-blue-700"
       />
       <StepButton
         direction="next"
         onClick={() => step(1)}
-        className="lg:hidden absolute right-4 top-1/2 -translate-y-1/2 z-30 text-foreground"
+        className="lg:hidden absolute right-4 top-1/2 -translate-y-1/2 z-30 text-neutral-300 hover:text-blue-700"
       />
 
       {/* centered cover — click to open the project */}
@@ -116,12 +121,12 @@ export default function ViewBrowser({
         <img
           src={sanityImage(current.coverImageUrl, { w: 1400 })}
           alt={current.title}
-          className="relative z-20 h-[50vh] w-auto max-w-xs lg:max-w-3xl object-cover cursor-pointer"
+          className="relative z-20 h-[66.6dvh] w-auto max-w-xs lg:max-w-3xl object-cover cursor-pointer scale-100 hover:scale-105"
           onClick={openProject}
         />
       ) : (
         <div
-          className={`relative z-20 ${ratio} h-[50vh] max-w-xs lg:max-w-3xl ${color} cursor-pointer`}
+          className={`relative z-20 ${ratio} h-[66.6dvh] max-w-xs lg:max-w-3xl ${color} cursor-pointer`}
           onClick={openProject}
         />
       )}
