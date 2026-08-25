@@ -53,7 +53,7 @@ export default function HomeClient({
           onMouseEnter={() => setHoveredSection("personal")}
           onMouseLeave={() => setHoveredSection(null)}
         >
-          <div className="absolute z-20  h-[50dvh] lg:h-dvh w-full lg:w-full   transition-transform duration-700 ease-out group-hover:scale-[1.015] ">
+          <div className="absolute z-20  h-[50dvh] lg:h-dvh w-full lg:w-full   transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform group-hover:scale-[1.015] ">
             <img src={personalSrc} alt="" className={cover(0)} />
           </div>
         </Link>
@@ -67,7 +67,7 @@ export default function HomeClient({
           onMouseLeave={() => setHoveredSection(null)}
         >
           {commissioned?.coverImageUrl && (
-            <div className="absolute z-20 aspect-video lg:aspect-square h-[50dvh] lg:h-dvh w-full lg:w-full   transition-transform duration-700 ease-out group-hover:scale-[1.015]">
+            <div className="absolute z-20 aspect-video lg:aspect-square h-[50dvh] lg:h-dvh w-full lg:w-full   transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform group-hover:scale-[1.015]">
               <img
                 src={sanityImage(commissioned.coverImageUrl, { w: 1400 })}
                 alt=""

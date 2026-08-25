@@ -146,7 +146,7 @@ export default function ProjectDetail({
             return (
               <div
                 key={index}
-                className={`scale-100 mx-1 hover:mx-3 hover:scale-105 w-full lg:w-auto lg:h-full cursor-pointer overflow-hidden ${
+                className={`scale-100 mx-1 hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform w-full lg:w-auto lg:h-full cursor-pointer overflow-hidden ${
                   !media
                     ? `${placeholderRatios[index]} ${placeholderColors[index]}`
                     : ""
@@ -198,7 +198,7 @@ export default function ProjectDetail({
               commissioned. Above the step zones so it takes the click. */}
           <Button
             variant="link"
-            className="absolute top-0 left-0 px-2.5 z-30"
+            className="absolute top-0 left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 px-2.5 z-30"
             onClick={(e) => {
               e.stopPropagation();
               setSelectedIndex(null);

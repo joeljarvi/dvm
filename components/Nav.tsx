@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -132,8 +132,15 @@ export default function Nav() {
       const last = i === trail.length - 1;
       const link =
         "w-auto h-full text-blue-700 transition-colors duration-300 ease-out";
+      // With an item open there is no room along a stacked edge for the whole
+      // trail, so only its tail stands there — the project and its counter.
+      // The wrapper takes the class so a crumb's separator goes with it.
+      const head = item !== null && i < trail.length - 2;
       return (
-        <Fragment key={c.label}>
+        <span
+          key={c.label}
+          className={`flex flex-row items-center ${head ? "hidden lg:flex" : ""}`}
+        >
           {c.onClick ? (
             <Button variant="link" className={link} onClick={c.onClick}>
               {crumbText(c)}
@@ -160,7 +167,7 @@ export default function Nav() {
               </span>
             </>
           )}
-        </Fragment>
+        </span>
       );
     });
 
@@ -171,7 +178,7 @@ export default function Nav() {
   return (
     <>
       <span
-        className={`fixed top-0 left-0 w-1/2 ${under(false)} flex flex-row items-center justify-start gap-0 px-2.5 h-8 transition-opacity duration-700 ease-out ${chrome}`}
+        className={`fixed top-0 left-0 w-full lg:w-1/2 ${under(false)} flex flex-row items-center ${isHome ? "justify-start" : "justify-center"} justify-center lg:justify-start gap-0 px-2.5 h-8 transition-opacity duration-700 ease-out bg-background lg:bg-transparent ${chrome}`}
       >
         {/* The corner names the view you are in and opens as the way out of
             it, so it replaces what was a plain link to Personal. */}
@@ -196,7 +203,7 @@ export default function Nav() {
           // The trail clears the bottom edge by the height of the About/Index
           // bar it sits above; the home label keeps its corner instead.
           inSection
-            ? "bottom-0 left-0 w-1/2 justify-start lg:bottom-auto lg:top-0 lg:left-auto lg:right-0 lg:w-1/2 lg:justify-end"
+            ? "bottom-0 left-0 w-full bg-background lg:bg-transparent justify-center lg:bottom-auto lg:top-0 lg:left-auto lg:right-0 lg:w-1/2 lg:justify-end"
             : "top-0 right-0 w-1/2 justify-end"
         } flex flex-row items-center gap-0 px-2.5 h-8 transition-opacity duration-700 ease-out ${chrome}`}
       >

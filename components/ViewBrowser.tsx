@@ -121,12 +121,12 @@ export default function ViewBrowser({
         <img
           src={sanityImage(current.coverImageUrl, { w: 1400 })}
           alt={current.title}
-          className="relative z-20 h-[66.6dvh] w-auto max-w-xs lg:max-w-3xl object-cover cursor-pointer scale-100 hover:scale-105"
+          className="relative z-20 h-[50dvh] lg:h-[66.6dvh] w-auto max-w-xs lg:max-w-3xl object-cover cursor-pointer scale-100 hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform"
           onClick={openProject}
         />
       ) : (
         <div
-          className={`relative z-20 ${ratio} h-[66.6dvh] max-w-xs lg:max-w-3xl ${color} cursor-pointer`}
+          className={`relative z-20 ${ratio} h-[50dvh] lg:h-[66.6dvh] max-w-xs lg:max-w-3xl ${color} cursor-pointer`}
           onClick={openProject}
         />
       )}

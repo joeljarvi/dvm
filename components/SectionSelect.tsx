@@ -1,11 +1,10 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { DropdownMenu } from "radix-ui";
 import { Button } from "@/components/ui/button";
 
-// Where the select can take you. Home is deliberately absent — the wordmark
-// and the panels already lead back there.
+// Where the select can take you.
 const DESTINATIONS = [
   { label: "Commissioned_", href: "/commissioned" },
   { label: "Personal_", href: "/personal" },
@@ -15,8 +14,14 @@ const DESTINATIONS = [
 ];
 
 /**
- * The top-left corner: reads as the view you are in, opens as a way out of it.
- * `current` is matched against the hrefs above to mark and label the open one.
+ * The corner: reads as the view you are in, opens as a way out of it.
+ * `current` is matched against the hrefs above to label the open one.
+ *
+ * The destinations render inline beside the trigger rather than in a floating
+ * layer, so opening widens this element and the flex row it sits in re-centres
+ * the whole group. A portalled menu — Radix's or otherwise — is out of flow and
+ * would leave the trigger pinned where it was, with the list hanging off one
+ * side of centre.
  */
 export default function SectionSelect({
   current,
@@ -26,52 +31,61 @@ export default function SectionSelect({
   current: string;
   className?: string;
 }) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
+
   const here = DESTINATIONS.find(
     (d) => current === d.href || current.startsWith(`${d.href}/`),
   );
 
   // The trigger already names where you are, so the menu offers only the ways
-  // out of it. On home nothing matches and all four stand.
+  // out of it. On home nothing matches and all of them stand.
   const elsewhere = DESTINATIONS.filter((d) => d !== here);
 
-  return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
-        <Button
-          variant="link"
-          // aria-expanded is set by Radix, so the caret can follow it.
-          className={`justify-start w-auto h-full cursor-pointer  hover:text-blue-700 active:text-blue-700 bg-transparent active:bg-transparent ${
-            here ? "text-blue-700" : ""
-          } ${className}`}
-        >
-          {here?.label ?? "menu"}
-        </Button>
-      </DropdownMenu.Trigger>
+  // Arriving somewhere is the end of choosing where to go.
+  useEffect(() => setOpen(false), [current]);
 
-      <DropdownMenu.Portal>
-        {/* Opens sideways rather than down: the corner sits in an h-8 bar, so
-            the destinations read as a continuation of it. `side="right"` puts
-            them after the trigger, `align="center"` keeps them on its
-            baseline. */}
-        <DropdownMenu.Content
-          side="right"
-          align="center"
-          sideOffset={0}
-          // Above the nav's own z-90 so it clears the chrome it opens over.
-          className="z-100 flex flex-row items-center gap-0 font-selecta text-base font-medium lowercase tracking-wide"
-        >
-          {elsewhere.map((d) => (
-            <DropdownMenu.Item key={d.href} asChild>
-              <Link
-                href={d.href}
-                className="flex px-0 whitespace-nowrap outline-none cursor-pointer transition-colors text-neutral-400 bg-transparent duration-200 ease-out data-highlighted:text-blue-700 data-highlighted:bg-transparent"
-              >
-                {d.label}
-              </Link>
-            </DropdownMenu.Item>
-          ))}
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <span ref={root} className="flex flex-row items-center gap-0">
+      <Button
+        variant="link"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className={`justify-center lg:justify-start w-auto h-full cursor-pointer hover:text-blue-700 active:text-blue-700 bg-transparent active:bg-transparent ${
+          here ? "text-blue-700" : ""
+        } ${className}`}
+      >
+        {here?.label ?? "menu"}
+      </Button>
+
+      {open &&
+        elsewhere.map((d) => (
+          <Button
+            key={d.href}
+            variant="link"
+            onClick={() => setOpen(false)}
+            className="w-auto h-full whitespace-nowrap cursor-pointer text-neutral-400 bg-transparent hover:text-blue-700 hover:bg-transparent transition-colors duration-200 ease-out"
+            asChild
+          >
+            <Link href={d.href}>{d.label}</Link>
+          </Button>
+        ))}
+    </span>
   );
 }
