@@ -198,7 +198,7 @@ export default function ProjectDetail({
               commissioned. Above the step zones so it takes the click. */}
           <Button
             variant="link"
-            className="absolute top-0 left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 px-2.5 z-30"
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 lg:bottom-auto lg:top-0 lg:left-0 lg:translate-x-0 px-2.5 z-30"
             onClick={(e) => {
               e.stopPropagation();
               setSelectedIndex(null);
