@@ -179,7 +179,7 @@ export default function Nav() {
   return (
     <>
       <span
-        className={`fixed bottom-0 lg:bottom-auto lg:top-0 left-0 w-full lg:w-1/2 ${under(false)} flex flex-row items-center ${isHome ? "justify-start" : "justify-center"} lg:justify-start gap-0 px-5.5 pt-3 pb-3  transition-opacity duration-700 ease-out bg-background lg:bg-transparent ${chrome}`}
+        className={`fixed bottom-0 lg:bottom-auto lg:top-0 left-0 w-full lg:w-1/2 ${under(false)} flex flex-row items-center ${isHome ? "justify-start" : "justify-center"} lg:justify-start gap-0 px-5.5 pt-3 pb-3  transition-opacity duration-700 ease-out bg-transparent ${chrome}`}
       >
         {/* The corner names the view you are in and opens as the way out of
             it, so it replaces what was a plain link to Personal. */}
@@ -205,7 +205,7 @@ export default function Nav() {
           // bottom; side by side they share the top, one corner each. The
           // home label keeps the right corner at either width.
           inSection
-            ? "top-0 left-0 w-full bg-background lg:bg-transparent justify-center lg:left-auto lg:right-0 lg:w-1/2 lg:justify-end"
+            ? "top-0 left-0 w-full bg-transparent justify-center lg:left-auto lg:right-0 lg:w-1/2 lg:justify-end"
             : "top-0 right-0 w-1/2 justify-end"
         } flex flex-row items-center gap-0 px-5.5 pt-3 pb-3  transition-opacity duration-700 ease-out ${chrome}`}
       >
