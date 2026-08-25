@@ -108,12 +108,12 @@ export default function ViewBrowser({
       <StepButton
         direction="back"
         onClick={() => step(-1)}
-        className="lg:hidden absolute left-4 top-1/2 -translate-y-1/2 z-30 text-neutral-300 hover:text-blue-700"
+        className="hidden absolute left-4 top-1/2 -translate-y-1/2 z-30 text-neutral-300 hover:text-blue-700"
       />
       <StepButton
         direction="next"
         onClick={() => step(1)}
-        className="lg:hidden absolute right-4 top-1/2 -translate-y-1/2 z-30 text-neutral-300 hover:text-blue-700"
+        className="hidden absolute right-4 top-1/2 -translate-y-1/2 z-30 text-neutral-300 hover:text-blue-700"
       />
 
       {/* centered cover — click to open the project */}

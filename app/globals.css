@@ -173,15 +173,13 @@ body:has([data-panel="commissioned"]:is(:hover, :active))
   mix-blend-mode: normal;
 }
 
-/* ...and hovering or pressing the label brings up that panel's cover, the
-   same fade its own `group-hover` raises. */
-body:has([data-nav="personal"]:is(:hover, :active))
-  [data-panel="personal"]
-  [data-cover],
+/* ...and hovering or pressing the label colours that panel, the same blue its
+   own `hover:text-blue-700` raises. Covers are always up now, so this is the
+   only thing the label still has to reach for. */
+body:has([data-nav="personal"]:is(:hover, :active)) [data-panel="personal"],
 body:has([data-nav="commissioned"]:is(:hover, :active))
-  [data-panel="commissioned"]
-  [data-cover] {
-  opacity: 1;
+  [data-panel="commissioned"] {
+  color: var(--color-blue-700, #1447e6);
 }
 /* Recessed label chips on the home panels: reads as a hole cut through the
    featured image, with the cut edge of the image casting inward (light from
