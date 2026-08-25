@@ -106,7 +106,7 @@ export default function Nav() {
   }[] = inSection
     ? [
         { label: section, short: section.slice(0, 3), href: `/${section}` },
-        { label: "all_projects", href: `/${section}` },
+        { label: "all", href: `/${section}` },
         // Stepping back to the project is what closes an open item.
         ...(leaf
           ? [{ label: leaf, onClick: item ? closeItem : undefined }]
