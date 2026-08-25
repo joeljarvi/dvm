@@ -132,7 +132,7 @@ export default function Nav() {
     trail.map((c, i) => {
       const last = i === trail.length - 1;
       const link =
-        "w-auto h-full text-blue-700 transition-colors duration-300 ease-out";
+        "w-auto px-0 h-full text-blue-700 transition-colors duration-300 ease-out";
       // With an item open there is no room along a stacked edge for the whole
       // trail, so only its tail stands there — the project and its counter.
       // The wrapper takes the class so a crumb's separator goes with it.
@@ -140,7 +140,7 @@ export default function Nav() {
       return (
         <span
           key={c.label}
-          className={`flex flex-row items-center ${head ? "hidden lg:flex" : ""}`}
+          className={`flex flex-row gap-0 items-center ${head ? "hidden lg:flex" : ""}`}
         >
           {c.onClick ? (
             <Button variant="link" className={link} onClick={c.onClick}>
@@ -179,7 +179,7 @@ export default function Nav() {
   return (
     <>
       <span
-        className={`fixed bottom-0 lg:bottom-auto lg:top-0 left-0 w-full lg:w-1/2 ${under(false)} flex flex-row items-center ${isHome ? "justify-start" : "justify-center"} lg:justify-start gap-0 px-2.5 h-8 transition-opacity duration-700 ease-out bg-background lg:bg-transparent ${chrome}`}
+        className={`fixed bottom-0 lg:bottom-auto lg:top-0 left-0 w-full lg:w-1/2 ${under(false)} flex flex-row items-center ${isHome ? "justify-start" : "justify-center"} lg:justify-start gap-0 px-5.5 pt-3 pb-3  transition-opacity duration-700 ease-out bg-background lg:bg-transparent ${chrome}`}
       >
         {/* The corner names the view you are in and opens as the way out of
             it, so it replaces what was a plain link to Personal. */}
@@ -189,7 +189,7 @@ export default function Nav() {
             // bridge in globals.css: hovering either colours both.
             data-nav="personal"
             variant="link"
-            className="justify-start w-auto bg-transparent hover:bg-transparent h-full hover:text-blue-700 active:text-blue-700 active:bg-transparent"
+            className="justify-start px-0 w-auto bg-transparent hover:bg-transparent h-full hover:text-blue-700 active:text-blue-700 active:bg-transparent"
             asChild
           >
             <Link href="/personal">Personal</Link>
@@ -207,20 +207,22 @@ export default function Nav() {
           inSection
             ? "top-0 left-0 w-full bg-background lg:bg-transparent justify-center lg:left-auto lg:right-0 lg:w-1/2 lg:justify-end"
             : "top-0 right-0 w-1/2 justify-end"
-        } flex flex-row items-center gap-0 px-2.5 h-8 transition-opacity duration-700 ease-out ${chrome}`}
+        } flex flex-row items-center gap-0 px-5.5 pt-3 pb-3  transition-opacity duration-700 ease-out ${chrome}`}
       >
         {/* Inside a section this corner is the breadcrumb, in either section —
             the select on the left already names which one, so the trail needs
             no label of its own. On home it is the Commissioned link instead,
             which is what pairs with the right-hand panel. */}
         {inSection ? (
-          <span className="flex flex-row items-center">{renderTrail()}</span>
+          <span className="flex flex-row items-center gap-0">
+            {renderTrail()}
+          </span>
         ) : (
           isHome && (
             <Button
               data-nav="commissioned"
               variant="link"
-              className="justify-end w-auto h-full hover:bg-transparent hover:text-blue-700 active:text-blue-700 active:bg-transparent"
+              className="justify-end px-0 w-auto h-full hover:bg-transparent hover:text-blue-700 active:text-blue-700 active:bg-transparent"
               asChild
             >
               <Link href="/commissioned">Commissioned</Link>

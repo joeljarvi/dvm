@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-// Where the select can take you. Home is deliberately absent — the wordmark
-// and the panels already lead back there.
+// Where the select can take you. Home is desktop-only: stacked, the row has
+// no width to spare, and the wordmark and panels already lead back there.
 const DESTINATIONS = [
   { label: "Commissioned_", href: "/commissioned" },
   { label: "Personal_", href: "/personal" },
   { label: "Index_", href: "/index" },
   { label: "About_", href: "/about" },
+  { label: "Home_", href: "/", desktopOnly: true },
 ];
 
 /**
@@ -67,7 +68,7 @@ export default function SectionSelect({
         variant="link"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`justify-center lg:justify-start w-auto h-full cursor-pointer hover:text-blue-700 active:text-blue-700 bg-transparent active:bg-transparent ${
+        className={`justify-center px-0 lg:justify-start w-auto h-full cursor-pointer hover:text-blue-700 active:text-blue-700 bg-transparent active:bg-transparent ${
           here ? "text-blue-700" : ""
         } ${className}`}
       >
@@ -80,7 +81,9 @@ export default function SectionSelect({
             key={d.href}
             variant="link"
             onClick={() => setOpen(false)}
-            className="w-auto h-full whitespace-nowrap cursor-pointer text-neutral-400 bg-transparent hover:text-blue-700 hover:bg-transparent transition-colors duration-200 ease-out"
+            className={`w-auto px-0 h-full whitespace-nowrap cursor-pointer text-neutral-400 bg-transparent hover:text-blue-700 hover:bg-transparent transition-colors duration-200 ease-out ${
+              d.desktopOnly ? "hidden lg:inline-flex" : ""
+            }`}
             asChild
           >
             <Link href={d.href}>{d.label}</Link>

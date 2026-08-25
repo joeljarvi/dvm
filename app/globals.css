@@ -204,3 +204,17 @@ body:has([data-nav="commissioned"]:is(:hover, :active))
 @utility text-trim {
   text-box: trim-both cap alphabetic;
 }
+
+/* The page's own scrollbar. Every view is a fixed viewport with its own
+   scroller, and Lenis drives the window, so the native bar is chrome the
+   layout never accounts for. Scoped to the document rather than `*` — the
+   Studio at /studio has real scrollers that need visible bars. */
+html,
+body {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}

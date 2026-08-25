@@ -146,7 +146,7 @@ export default function ProjectDetail({
             return (
               <div
                 key={index}
-                className={`scale-100 mx-1 hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform w-full lg:w-auto lg:h-full cursor-pointer overflow-hidden ${
+                className={`scale-100 mx-1 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform w-full lg:w-auto lg:h-full cursor-pointer overflow-hidden ${
                   !media
                     ? `${placeholderRatios[index]} ${placeholderColors[index]}`
                     : ""
