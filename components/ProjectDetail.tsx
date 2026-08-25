@@ -140,7 +140,7 @@ export default function ProjectDetail({
           gestureOrientation: "both",
         }}
       >
-        <div className="flex flex-wrap lg:flex-nowrap lg:flex-row gap-x-0 w-full lg:w-max px-8 pb-8 pt-16 lg:py-8 gap-y-16 items-center justify-center lg:justify-center-safe lg:h-[66.6dvh]">
+        <div className="flex flex-wrap lg:flex-nowrap lg:flex-row gap-x-0 w-full lg:w-max px-16 pb-16 pt-16 lg:py-8 gap-y-16 items-center justify-center lg:justify-center-safe lg:h-[66.6dvh]">
           {items.map((item, index) => {
             const media = hasImages ? project.images![index] : null;
             return (
