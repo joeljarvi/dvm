@@ -21,7 +21,12 @@ export default function Nav() {
 
   // Only once the wordmark has landed does the rest of the nav arrive and the
   // button start behaving as a breadcrumb.
-  const { settled, staggered } = useIntro();
+  const { settled, staggered, arrived } = useIntro();
+
+  // Nothing in the nav exists until the card has handed the page over. State
+  // only — each element declares its own transition, and twMerge keeps the
+  // last `transition-*` in the string, so a shared one here would be dropped.
+  const chrome = arrived ? "" : "opacity-0 pointer-events-none";
 
   // The metadata belongs to the project you were on, so leaving folds it away.
   useEffect(() => setInfoOpen(false), [pathname]);
@@ -97,7 +102,7 @@ export default function Nav() {
           corner while the layout is stacked, centred along the top edge once
           the section labels take the corners, so it never lands on either. */}
       {backButton(
-        `${chip} fixed top-4 left-4 lg:left-1/2 lg:-translate-x-1/2 z-90 transition-colors duration-300 ease-out hover:text-neutral-300`,
+        `${chip} fixed top-4 left-4 lg:left-1/2 lg:-translate-x-1/2 z-90 transition-[opacity,color] duration-500 ease-out hover:text-neutral-300 ${chrome}`,
       )}
 
       {/* SECTIONS — the label for whichever section you are in. Personal is
@@ -105,33 +110,58 @@ export default function Nav() {
           corner, and these never render on home where Back is absent.
           Commissioned has the opposite corner to itself at every width. */}
       {showPersonal && (
-        <Button
-          data-nav="personal"
-          className={`${chip} fixed top-4 left-4 z-90 hidden lg:inline-flex transition-[opacity,color] duration-700 ease-out hover:text-neutral-300 ${
-            staggered > 2 ? "" : "opacity-0 pointer-events-none"
-          }`}
-          asChild
-        >
-          <Link href="/personal">Personal</Link>
-        </Button>
+        <>
+          <Button
+            data-nav="personal"
+            className={`${chip} fixed top-4 left-4 z-90 hidden lg:inline-flex transition-[opacity,color] duration-700 ease-out hover:text-neutral-300 ${chrome} ${
+              staggered > 2 ? "" : "opacity-0 pointer-events-none"
+            }`}
+            asChild
+          >
+            <Link href="/personal">Personal</Link>
+          </Button>
+
+          {/* DESKTOP ONLY BUTTON */}
+          <Button
+            data-nav="commissioned"
+            className={`${chip} hidden lg:fixed top-4 right-4 z-90 transition-[opacity,color] duration-700 ease-out hover:text-neutral-300 ${chrome} ${
+              staggered > 3 ? "" : "opacity-0 pointer-events-none"
+            }`}
+            asChild
+          >
+            <Link href="/commissioned">Commissioned</Link>
+          </Button>
+        </>
       )}
 
       {showCommissioned && (
-        <Button
-          data-nav="commissioned"
-          className={`${chip} fixed top-4 right-4 z-90 transition-[opacity,color] duration-700 ease-out hover:text-neutral-300 ${
-            staggered > 3 ? "" : "opacity-0 pointer-events-none"
-          }`}
-          asChild
-        >
-          <Link href="/commissioned">Commissioned</Link>
-        </Button>
+        <>
+          <Button
+            data-nav="commissioned"
+            className={`${chip} fixed top-4 right-4 z-90 transition-[opacity,color] duration-700 ease-out hover:text-neutral-300 ${chrome} ${
+              staggered > 3 ? "" : "opacity-0 pointer-events-none"
+            }`}
+            asChild
+          >
+            <Link href="/commissioned">Commissioned</Link>
+          </Button>
+
+          <Button
+            data-nav="personal"
+            className={`${chip} hidden lg:fixed top-4 left-4 z-90  lg:inline-flex transition-[opacity,color] duration-700 ease-out hover:text-neutral-300 ${chrome} ${
+              staggered > 2 ? "" : "opacity-0 pointer-events-none"
+            }`}
+            asChild
+          >
+            <Link href="/personal">Personal</Link>
+          </Button>
+        </>
       )}
 
       {/* BOTTOM BAR — About and Index bracket the Info slot. One row so
           nothing overlaps the full-width bar on desktop. */}
       <div
-        className={`fixed bottom-0 left-0 right-0 p-4 z-90   lg:mb-0 px-4 flex items-center justify-between gap-2 w-full ${settled ? "" : "pointer-events-none"}`}
+        className={`transition-opacity duration-700 ease-out ${chrome} fixed bottom-0 left-0 right-0 p-4 z-90   lg:mb-0 px-4 flex items-center justify-between gap-2 w-full ${settled ? "" : "pointer-events-none"}`}
       >
         <Button
           className={`${chip} hidden lg:inline-flex transition-colors duration-300 ease-out hover:text-neutral-300`}
@@ -186,7 +216,7 @@ export default function Nav() {
         {/* Bottom-right, clear of Commissioned in the top corner. At this
             width the bottom bar carries only the metadata, so nothing collides. */}
         <span
-          className={`fixed bottom-4 right-4 z-90 flex items-center gap-1 ${settled ? "" : "pointer-events-none"}`}
+          className={`transition-opacity duration-700 ease-out ${chrome} fixed bottom-4 right-4 z-90 flex items-center gap-1 ${settled ? "" : "pointer-events-none"}`}
         >
           <Button
             className={`${chip} inline-flex transition-colors duration-300 ease-out hover:text-neutral-300`}
