@@ -1,35 +1,166 @@
 "use client";
 
-import { useEffect } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import { ReactLenis } from "lenis/react";
 import type { Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { useIntro } from "@/lib/intro";
-import { setHoveredSection } from "@/lib/hover";
+import { setHoveredSection, type Section } from "@/lib/hover";
+import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import DvmCard from "@/components/DvmCard";
-import { Button } from "@/components/ui/button";
+import InfoLayout from "@/components/InfoLayout";
+import SectionOverlay from "./SectionOverlay";
+
+// One project in a column. Clicking it steps through that project's own
+// images rather than navigating, so the index has to live per project — a
+// single index on the column would reset every neighbour.
+function Cover({
+  project,
+  section,
+  fallbackSrc,
+  active,
+}: {
+  project: Project;
+  section: Exclude<Section, null>;
+  fallbackSrc: string;
+  /** Whether this cover's column already holds the width. */
+  active: boolean;
+}) {
+  const [frame, setFrame] = useState(0);
+
+  // A project with no images of its own still has one thing to show, so the
+  // counter reads 1/1 rather than disappearing.
+  const images = project.images?.length
+    ? project.images.map((m) => m.url)
+    : [project.coverImageUrl ?? fallbackSrc];
+
+  const src = images[frame];
+
+  return (
+    <div className="relative shrink-0 w-full ">
+      <button
+        type="button"
+        aria-label={`Next image of ${project.title}`}
+        // Explicitly a top-aligned column: a button centres its contents
+        // vertically by default, which parked the shorter image box in the
+        // middle of this taller one no matter what object-position said.
+        className="flex flex-col items-start justify-start h-dvh w-full cursor-pointer"
+        // The click bubbles: every click inside a column hands it the width,
+        // this one included. Stepping is held back until the column already
+        // has it, so the first click on a narrow column only widens it
+        // rather than also jumping the image out from under you.
+        onClick={() => {
+          if (active) setFrame((f) => (f + 1) % images.length);
+        }}
+      >
+        {/* `contain` fits the whole image without cropping; `object-top`
+            keeps any spare height inside the box underneath it. */}
+        <img
+          src={src.startsWith("/") ? src : sanityImage(src, { w: 1400 })}
+          alt=""
+          className="w-full h-[50dvh] object-contain object-top pointer-events-none"
+        />
+      </button>
+
+      <div className="absolute top-[66.6dvh] w-full px-0 pt-2 pointer-events-none">
+        <InfoLayout
+          title={project.title}
+          model={section === "personal" ? project.client : undefined}
+          client={section === "commissioned" ? project.client : undefined}
+          agency={project.agency}
+          counter={`${frame + 1}/${images.length}`}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Each section is its own vertical scroller — side by side once there is
+// width for it, stacked below. The two run independently: scrolling through
+// the commissioned work leaves the personal column where it was.
+function Strip({
+  section,
+  projects,
+  fallbackSrc,
+  background = "",
+  opened,
+  onOpen,
+}: {
+  section: Exclude<Section, null>;
+  projects: Project[];
+  /** Stands in for a project with no cover of its own. */
+  fallbackSrc: string;
+  /** Ground the covers sit on, and what shows between them. */
+  background?: string;
+  /** Which column has been chosen while stacked; null means neither yet. */
+  opened: Section;
+  onOpen: () => void;
+}) {
+  // The two columns split the width until one is chosen, and then it takes
+  // all of it — but the other keeps a sliver rather than collapsing to
+  // nothing, so there is still something to click to hand the width back.
+  // Same at every breakpoint: stacked you tap the overlay, on desktop the
+  // column itself, since the overlay is not there.
+  const width =
+    opened === null ? "w-[50vw]" : opened === section ? "w-screen" : "w-0";
+
+  return (
+    <div
+      data-panel={section}
+      // A cover's own click navigates and this fires too, but the page is
+      // leaving anyway — so it only takes effect on the ground around them.
+      onClick={onOpen}
+      className={`group relative h-auto ${width} overflow-hidden transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-blue-700 ${background}`}
+      onMouseEnter={() => setHoveredSection(section)}
+      onMouseLeave={() => setHoveredSection(null)}
+    >
+      <SectionOverlay
+        section={section}
+        dismissed={opened !== null}
+        onClick={onOpen}
+      />
+      {/* Lenis owns this scroller rather than the page. The wrapper is what
+          scrolls; the column inside is h-max so it overflows and has
+          somewhere to scroll to. */}
+
+      <ReactLenis
+        className="w-full h-full overflow-y-auto overflow-x-hidden scrollbar-none [&::-webkit-scrollbar]:hidden"
+        options={{ orientation: "vertical", gestureOrientation: "both" }}
+      >
+        <div className="flex flex-col items-start h-dvh w-full gap-y-2 px-5.5 py-5.5">
+          {projects.map((p, i) => (
+            <Cover
+              key={p.slug ?? `${p.title}-${i}`}
+              project={p}
+              section={section}
+              fallbackSrc={fallbackSrc}
+              active={opened === section}
+            />
+          ))}
+        </div>
+      </ReactLenis>
+
+      {/* `px-5.5` is the nav corners' own inset, so this shares a left edge
+          with the buttons above and below it. */}
+      {/* Pinned to the column rather than scrolling with it, so the caption
+          stays put while the covers move under it. */}
+    </div>
+  );
+}
 
 export default function HomeClient({
   personal,
   commissioned,
 }: {
-  personal: Project | null;
-  commissioned: Project | null;
+  personal: Project[];
+  commissioned: Project[];
 }) {
-  const { staggered, arrived, rows } = useIntro();
-  // Covers stay up once their intro slot has come round; the slot is the only
-  // thing that ever hides them.
-  const cover = (slot: number) =>
-    `w-full h-full object-cover pointer-events-none transition-opacity duration-1000 ease-out ${
-      staggered > slot ? "" : "opacity-0"
-    }`;
+  // `rows` still drives the intro card below, hidden though it currently is.
+  const { rows } = useIntro();
 
-  // The panels fade up as a unit once the card has finished, over the
-  // neutral ground the section holds from the first frame. Their images and
-  // labels then take their stagger slots on top of that.
-  const panel = `transition-opacity duration-700 ease-out ${
-    arrived ? "" : "opacity-0 pointer-events-none"
-  }`;
+  // Held in a store rather than state: the nav's own section buttons set it
+  // too, and they render in the layout.
+  const opened = useOpenedSection();
 
   // The card's own rows, one beat apart, coming in as the name fades out.
   const row = (n: number) =>
@@ -37,65 +168,26 @@ export default function HomeClient({
 
   useEffect(() => () => setHoveredSection(null), []);
 
-  const personalSrc = personal?.coverImageUrl
-    ? sanityImage(personal.coverImageUrl, { w: 1400 })
-    : "/personal_placeholder.png";
-
   return (
     <>
-      <section className="font-selecta relative flex flex-col lg:flex-row w-screen h-full overflow-hidden p-0 bg-background">
-        {/* LEFT (PERSONAL) */}
-
-        <Link
-          href="/personal"
-          data-panel="personal"
-          className={`group relative flex flex-1 items-start h-[50dvh] w-full lg:w-1/2 lg:h-dvh hover:text-blue-700 cursor-pointer ${panel}`}
-          onMouseEnter={() => setHoveredSection("personal")}
-          onMouseLeave={() => setHoveredSection(null)}
-        >
-          <div className="absolute z-20  h-[50dvh] lg:h-dvh w-full lg:w-full   transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform group-hover:scale-[1.015] ">
-            <img src={personalSrc} alt="" className={cover(0)} />
-          </div>
-        </Link>
-
-        {/* RIGHT (COMMISSIONED) */}
-        <Link
-          href="/commissioned"
-          data-panel="commissioned"
-          className={`group relative flex flex-1 items-end w-full lg:w-1/2 justify-start lg:items-start lg:justify-end h-[50dvh] lg:h-dvh cursor-pointer  hover:text-blue-700 `}
-          onMouseEnter={() => setHoveredSection("commissioned")}
-          onMouseLeave={() => setHoveredSection(null)}
-        >
-          {commissioned?.coverImageUrl && (
-            <div className="absolute z-20 aspect-video lg:aspect-square h-[50dvh] lg:h-dvh w-full lg:w-full   transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform group-hover:scale-[1.015]">
-              <img
-                src={sanityImage(commissioned.coverImageUrl, { w: 1400 })}
-                alt=""
-                className={cover(1)}
-              />
-            </div>
-          )}
-        </Link>
+      <section className="font-selecta relative flex  flex-row w-screen h-dvh overflow-hidden">
+        <Strip
+          section="personal"
+          projects={personal}
+          fallbackSrc="/personal_placeholder.png"
+          background="bg-neutral-100"
+          opened={opened}
+          onOpen={() => setOpenedSection("personal")}
+        />
+        <Strip
+          section="commissioned"
+          projects={commissioned}
+          fallbackSrc="/personal_placeholder.png"
+          opened={opened}
+          onOpen={() => setOpenedSection("commissioned")}
+        />
       </section>
 
-      <span
-        className={` fixed bottom-0 left-0 w-full h-8 z-20  flex flex-row items-center transition-opacity duration-700 ease-out `}
-      >
-        <Button
-          variant="link"
-          className="justify-start items-center transition-colors duration-300  ease-out hover:text-blue-700 w-1/2 h-full py-1 px-2.5 bg-transparent"
-          asChild
-        >
-          <Link href="/about">About</Link>
-        </Button>
-        <Button
-          variant="link"
-          className="justify-end items-center transition-colors duration-300 ease-out w-1/2 hover:text-blue-700 h-full py-1 px-2.5 bg-transparent"
-          asChild
-        >
-          <Link href="/index">Index</Link>
-        </Button>
-      </span>
       <div className="hidden fixed inset-0 z-20  items-center justify-center p-4 pointer-events-none w-full">
         <DvmCard color="bg-green-900" variant="animation">
           <span className="flex flex-col items-start justify-center   gap-y-0 p-0 text-orange-400 font-selecta text-base font-medium text-left tracking-wider w-full ">

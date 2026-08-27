@@ -2,30 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { closeTop } from "@/lib/modalStack";
 import { useIntro } from "@/lib/intro";
-import { chip } from "@/lib/chip";
 import { closeItem, useBrowsing, useItem } from "@/lib/crumb";
+import { setOpenedSection } from "@/lib/section";
 import { slugify } from "@/lib/slug";
-import MetadataBar from "@/components/MetadataBar";
-import SectionSelect from "@/components/SectionSelect";
 import Link from "next/link";
-import DvmCard from "@/components/DvmCard";
-
-const ease = [0.4, 0, 0.2, 1] as const;
-
-// The full set, in reading order. Instagram is the only one that leaves the
-// site — swap the placeholder for the real handle.
-const LINKS = [
-  { label: "Home", href: "/" },
-  { label: "Commissioned", href: "/commissioned" },
-  { label: "Personal", href: "/personal" },
-  { label: "About", href: "/about" },
-  { label: "Index", href: "/index" },
-  { label: "Instagram", href: "https://instagram.com/", external: true },
-];
 
 export default function Nav() {
   const pathname = usePathname();
@@ -34,7 +17,7 @@ export default function Nav() {
 
   // Only once the wordmark has landed does the rest of the nav arrive and the
   // button start behaving as a breadcrumb.
-  const { settled, arrived } = useIntro();
+  const { arrived } = useIntro();
 
   // Nothing in the nav exists until the card has handed the page over. State
   // only — each element declares its own transition, and twMerge keeps the
@@ -58,18 +41,10 @@ export default function Nav() {
   // No site nav over the Sanity Studio.
   if (pathname.startsWith("/studio")) return null;
 
-  const isHome = pathname === "/";
-
-  // Anywhere with metadata worth reading: both section browsers and the
-  // project pages under them — /personal, /commissioned, and their slugs.
   const segments = pathname.split("/").filter(Boolean);
-  const showInfo =
-    segments.length <= 2 &&
-    (segments[0] === "personal" || segments[0] === "commissioned");
 
-  // The breadcrumb tails off the Commissioned label: the browser is
-  // `all_projects`, and an open project adds its title after that. Keyed to
-  // the section rather than the exact path, so it survives opening a project.
+  // Keyed to the section rather than the exact path, so the breadcrumb
+  // survives opening a project.
   const inCommissioned = segments[0] === "commissioned";
 
   // The open project's slug, shown verbatim — `kirkeby-x-bjork-and-berries`
@@ -172,63 +147,66 @@ export default function Nav() {
       );
     });
 
-  // The menu links navigate on their own; this just dismisses the overlay
-  // behind them.
-  const closeMenu = () => setMenuOpen(false);
+  // One shape for all four corners, identical at both breakpoints.
+  const corner = (place: string, lift: boolean) =>
+    `fixed ${place} ${under(lift)} flex flex-row items-center gap-0 px-5.5 pt-3 pb-3 transition-opacity duration-700 ease-out ${chrome}`;
+
+  const cornerLink =
+    "px-0 w-auto h-full bg-transparent hover:bg-transparent hover:text-blue-700 active:text-blue-700 active:bg-transparent";
 
   return (
     <>
-      <span
-        className={`fixed bottom-0 lg:bottom-auto lg:top-0 left-0 w-full lg:w-1/2 ${under(false)} flex flex-row items-center ${isHome ? "justify-start" : "justify-center"} lg:justify-start gap-0 px-5.5 pt-3 pb-3  transition-opacity duration-700 ease-out bg-transparent ${chrome}`}
-      >
-        {/* The corner names the view you are in and opens as the way out of
-            it, so it replaces what was a plain link to Personal. */}
-        {isHome ? (
-          <Button
-            // Paired with the left panel through the data-nav/data-panel
-            // bridge in globals.css: hovering either colours both.
-            data-nav="personal"
-            variant="link"
-            className="justify-start px-0 w-auto bg-transparent hover:bg-transparent h-full hover:text-blue-700 active:text-blue-700 active:bg-transparent"
-            asChild
-          >
-            <Link href="/personal">Personal</Link>
-          </Button>
-        ) : (
-          <SectionSelect current={pathname} />
-        )}
+      {/* The two sections hold the top corners, About and Index the bottom
+          ones. The section pair are controls rather than links: each hands
+          the width to its own column on home — see lib/section. Each section label carries the breadcrumb when you are inside
+          it, so the trail grows inward from its own corner. `data-nav` pairs
+          the top two with the home panels through globals.css. */}
+      <span className={corner("top-0 left-0 justify-start", inPersonal)}>
+        <Button
+          data-nav="personal"
+          variant="link"
+          size="sm"
+          className={`justify-start ${cornerLink}`}
+          onClick={() => setOpenedSection("personal")}
+        >
+          personal
+        </Button>
+        {inPersonal && renderTrail()}
       </span>
 
-      <span
-        className={`fixed ${under(inSection)} ${
-          // Stacked, the trail takes the top edge and the select drops to the
-          // bottom; side by side they share the top, one corner each. The
-          // home label keeps the right corner at either width.
-          inSection
-            ? "top-0 left-0 w-full bg-transparent justify-center lg:left-auto lg:right-0 lg:w-1/2 lg:justify-end"
-            : "top-0 right-0 w-1/2 justify-end"
-        } flex flex-row items-center gap-0 px-5.5 pt-3 pb-3  transition-opacity duration-700 ease-out ${chrome}`}
-      >
-        {/* Inside a section this corner is the breadcrumb, in either section —
-            the select on the left already names which one, so the trail needs
-            no label of its own. On home it is the Commissioned link instead,
-            which is what pairs with the right-hand panel. */}
-        {inSection ? (
-          <span className="flex flex-row items-center gap-0">
-            {renderTrail()}
-          </span>
-        ) : (
-          isHome && (
-            <Button
-              data-nav="commissioned"
-              variant="link"
-              className="justify-end px-0 w-auto h-full hover:bg-transparent hover:text-blue-700 active:text-blue-700 active:bg-transparent"
-              asChild
-            >
-              <Link href="/commissioned">Commissioned</Link>
-            </Button>
-          )
-        )}
+      <span className={corner("top-0 right-0 justify-end", inCommissioned)}>
+        <Button
+          data-nav="commissioned"
+          variant="link"
+          size="sm"
+          className={`justify-end ${cornerLink}`}
+          onClick={() => setOpenedSection("commissioned")}
+        >
+          commissioned
+        </Button>
+        {inCommissioned && renderTrail()}
+      </span>
+
+      <span className={corner("bottom-0 left-0 justify-start", false)}>
+        <Button
+          variant="link"
+          size="sm"
+          className={`justify-start ${cornerLink}`}
+          asChild
+        >
+          <Link href="/about">about</Link>
+        </Button>
+      </span>
+
+      <span className={corner("bottom-0 right-0 justify-end", false)}>
+        <Button
+          variant="link"
+          size="sm"
+          className={`justify-end ${cornerLink}`}
+          asChild
+        >
+          <Link href="/index">index</Link>
+        </Button>
       </span>
     </>
   );
