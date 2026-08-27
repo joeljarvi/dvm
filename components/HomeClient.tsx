@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ReactLenis } from "lenis/react";
+import { useEffect, useRef, useState } from "react";
+import { ReactLenis, type LenisRef } from "lenis/react";
 import type { Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { useIntro } from "@/lib/intro";
-import { setHoveredSection, type Section } from "@/lib/hover";
+import {
+  setHoveredSection,
+  useHoveredSection,
+  type Section,
+} from "@/lib/hover";
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
+import { useInView } from "@/lib/inView";
 import DvmCard from "@/components/DvmCard";
 import InfoLayout from "@/components/InfoLayout";
+import Counter from "@/components/Counter";
 import SectionOverlay from "./SectionOverlay";
 
 // One project in a column. Clicking it steps through that project's own
@@ -36,15 +42,27 @@ function Cover({
 
   const src = images[frame];
 
+  // The cover the column is parked on lights its own title, with no pointer
+  // involved — so scrolling reads as moving through the work.
+  const box = useRef<HTMLButtonElement>(null);
+  const inView = useInView(box);
+
   return (
-    <div className="relative shrink-0 w-full ">
+    // Eight equal rows over the wrapper's height. Each part names the row it
+    // starts on rather than being flowed into the next free one, so moving
+    // one leaves the others where they are: the image takes 1–5, the counter
+    // 6, the metadata 7, and row 8 is trailing space. The grid has to live
+    // here — the counter and metadata are siblings of the button, so a grid
+    // on the button could never place them.
+    <div className="relative shrink-0 grid grid-rows-8 gap-y-3 pt-8 w-full h-[calc(100dvh-2.75rem)] lg:h-[calc(100dvh-3rem)]">
       <button
+        ref={box}
         type="button"
         aria-label={`Next image of ${project.title}`}
-        // Explicitly a top-aligned column: a button centres its contents
-        // vertically by default, which parked the shorter image box in the
-        // middle of this taller one no matter what object-position said.
-        className="flex flex-col items-start justify-start h-dvh w-full cursor-pointer"
+        // `min-h-0` lets this shrink into its five rows: a grid item's
+        // default `min-height: auto` refuses to go below its content, so the
+        // image would push past them and overflow the wrapper.
+        className="row-start-1 row-span-5 min-h-0 w-full cursor-pointer"
         // The click bubbles: every click inside a column hands it the width,
         // this one included. Stepping is held back until the column already
         // has it, so the first click on a narrow column only widens it
@@ -54,21 +72,25 @@ function Cover({
         }}
       >
         {/* `contain` fits the whole image without cropping; `object-top`
-            keeps any spare height inside the box underneath it. */}
+            keeps the spare height underneath it rather than centring it. */}
         <img
           src={src.startsWith("/") ? src : sanityImage(src, { w: 1400 })}
           alt=""
-          className="w-full h-[50dvh] object-contain object-top pointer-events-none"
+          className="w-full h-full object-contain object-top pointer-events-none"
         />
       </button>
 
-      <div className="absolute top-[66.6dvh] w-full px-0 pt-2 pointer-events-none">
+      <div className="row-start-6 flex justify-center items-start pointer-events-none">
+        <Counter frame={frame + 1} total={images.length} />
+      </div>
+
+      <div className="row-start-7 row-span-2 w-full pointer-events-none">
         <InfoLayout
           title={project.title}
           model={section === "personal" ? project.client : undefined}
           client={section === "commissioned" ? project.client : undefined}
           agency={project.agency}
-          counter={`${frame + 1}/${images.length}`}
+          highlight={inView}
         />
       </div>
     </div>
@@ -96,6 +118,31 @@ function Strip({
   opened: Section;
   onOpen: () => void;
 }) {
+  // Space and the arrow keys page this column, but only when it is the one
+  // being read: the chosen column, or — before either has been chosen — the
+  // one under the pointer. Lenis owns the scroll position, so it does the
+  // moving rather than the browser.
+  const lenisRef = useRef<LenisRef>(null);
+  const pointerOver = useHoveredSection();
+  const listens =
+    opened === section || (opened === null && pointerOver === section);
+
+  useEffect(() => {
+    if (!listens) return;
+    const onKey = (e: KeyboardEvent) => {
+      const lenis = lenisRef.current?.lenis;
+      if (!lenis) return;
+      const page = window.innerHeight * 0.9;
+      const back = e.key === "ArrowUp" || (e.key === " " && e.shiftKey);
+      const on = e.key === "ArrowDown" || (e.key === " " && !e.shiftKey);
+      if (!back && !on) return;
+      e.preventDefault();
+      lenis.scrollTo(lenis.scroll + (back ? -page : page));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [listens]);
+
   // The two columns split the width until one is chosen, and then it takes
   // all of it — but the other keeps a sliver rather than collapsing to
   // nothing, so there is still something to click to hand the width back.
@@ -110,7 +157,7 @@ function Strip({
       // A cover's own click navigates and this fires too, but the page is
       // leaving anyway — so it only takes effect on the ground around them.
       onClick={onOpen}
-      className={`group relative h-auto ${width} overflow-hidden transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-blue-700 ${background}`}
+      className={`group relative h-auto ${width} overflow-hidden pb-5.5 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
       onMouseLeave={() => setHoveredSection(null)}
     >
@@ -124,10 +171,11 @@ function Strip({
           somewhere to scroll to. */}
 
       <ReactLenis
+        ref={lenisRef}
         className="w-full h-full overflow-y-auto overflow-x-hidden scrollbar-none [&::-webkit-scrollbar]:hidden"
         options={{ orientation: "vertical", gestureOrientation: "both" }}
       >
-        <div className="flex flex-col items-start h-dvh w-full gap-y-2 px-5.5 py-5.5">
+        <div className="flex flex-col items-start h-dvh w-full gap-y-5.5 px-5.5 py-5.5">
           {projects.map((p, i) => (
             <Cover
               key={p.slug ?? `${p.title}-${i}`}

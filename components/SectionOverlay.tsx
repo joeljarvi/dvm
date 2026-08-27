@@ -18,7 +18,7 @@ export default function SectionOverlay({
       type="button"
       onClick={onClick}
       aria-label={`Show ${section}`}
-      className={`group/overlay  absolute z-80 inset-0 bg-foreground/10 backdrop-blur-lg transition-opacity duration-700 ease-out flex items-center justify-center ${
+      className={`group/overlay  absolute z-900 inset-0 bg-background/20 hover:bg-background/10 backdrop-blur-md transition-all duration-700 ease-out flex items-center justify-center ${
         dismissed ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >

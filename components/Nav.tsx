@@ -152,7 +152,7 @@ export default function Nav() {
     `fixed ${place} ${under(lift)} flex flex-row items-center gap-0 px-5.5 pt-3 pb-3 transition-opacity duration-700 ease-out ${chrome}`;
 
   const cornerLink =
-    "px-0 w-auto h-full bg-transparent hover:bg-transparent hover:text-blue-700 active:text-blue-700 active:bg-transparent";
+    "px-0 w-auto h-full bg-transparent hover:bg-transparent hover:text-neutral-400 active:text-blue-700 active:bg-transparent";
 
   return (
     <>
@@ -161,7 +161,7 @@ export default function Nav() {
           the width to its own column on home — see lib/section. Each section label carries the breadcrumb when you are inside
           it, so the trail grows inward from its own corner. `data-nav` pairs
           the top two with the home panels through globals.css. */}
-      <span className={corner("top-0 left-0 justify-start", inPersonal)}>
+      <span className={corner("top-1 left-0 justify-start", inPersonal)}>
         <Button
           data-nav="personal"
           variant="link"
@@ -169,12 +169,12 @@ export default function Nav() {
           className={`justify-start ${cornerLink}`}
           onClick={() => setOpenedSection("personal")}
         >
-          personal
+          Personal
         </Button>
         {inPersonal && renderTrail()}
       </span>
 
-      <span className={corner("top-0 right-0 justify-end", inCommissioned)}>
+      <span className={corner("top-1 right-0 justify-end", inCommissioned)}>
         <Button
           data-nav="commissioned"
           variant="link"
@@ -182,30 +182,34 @@ export default function Nav() {
           className={`justify-end ${cornerLink}`}
           onClick={() => setOpenedSection("commissioned")}
         >
-          commissioned
+          Commissioned
         </Button>
         {inCommissioned && renderTrail()}
       </span>
 
-      <span className={corner("bottom-0 left-0 justify-start", false)}>
+      <span
+        className={corner("bottom-1 lg:bottom-2 left-0 justify-start", false)}
+      >
         <Button
           variant="link"
           size="sm"
           className={`justify-start ${cornerLink}`}
           asChild
         >
-          <Link href="/about">about</Link>
+          <Link href="/about">About</Link>
         </Button>
       </span>
 
-      <span className={corner("bottom-0 right-0 justify-end", false)}>
+      <span
+        className={corner("bottom-1 lg:bottom-2 right-0 justify-end", false)}
+      >
         <Button
           variant="link"
           size="sm"
-          className={`justify-end ${cornerLink}`}
+          className={`justify-end  ${cornerLink}`}
           asChild
         >
-          <Link href="/index">index</Link>
+          <Link href="/index">Index</Link>
         </Button>
       </span>
     </>
