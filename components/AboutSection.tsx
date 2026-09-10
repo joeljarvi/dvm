@@ -21,8 +21,8 @@ export default function AboutSection() {
         <h3>Email</h3>
         <h3>Instagram</h3>
       </span>
-      <span className="mt-[33.3vh] lg:mt-0 col-span-1   w-full h-full  row-start-2   ">
-        <h1 className="lg:hidden text-blue-700 mb-2">Daniel von Malmborg</h1>
+      <span className="mt-28 lg:mt-0 col-span-1   w-full h-full  row-start-2   ">
+        <h1 className="lg:hidden text-blue-700 mb-0">Daniel von Malmborg</h1>
         <h2 className="text-neutral-300 hover:text-blue-700 cursor-pointer">
           +46708247484{" "}
         </h2>

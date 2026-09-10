@@ -278,7 +278,7 @@ export default function HomeClient({
           section="personal"
           projects={personal}
           fallbackSrc="/personal_placeholder.png"
-          background="bg-neutral-100"
+          background="bg-background"
           opened={opened}
           onOpen={() => setHash("personal")}
         />
@@ -297,7 +297,7 @@ export default function HomeClient({
         <AboutSection />
       </InfoOverlay>
       <InfoOverlay open={hash === "index"} onDismiss={() => setHash("")}>
-        <IndexSection />
+        <IndexSection personal={personal} commissioned={commissioned} />
       </InfoOverlay>
 
       <div className="hidden fixed inset-0 z-20  items-center justify-center p-4 pointer-events-none w-full">

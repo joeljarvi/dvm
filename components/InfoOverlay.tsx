@@ -21,7 +21,7 @@ export default function InfoOverlay({
 
   return (
     <div
-      className={`fixed inset-0 z-999 ${open ? "" : "pointer-events-none"}`}
+      className={`fixed inset-0 z-[40] ${open ? "" : "pointer-events-none"}`}
       aria-hidden={!open}
     >
       <button
@@ -38,7 +38,12 @@ export default function InfoOverlay({
           open ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        <div className="h-full w-full overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden">
+        {/* `data-lenis-prevent` so the sheet scrolls natively — the root Lenis
+            would otherwise capture the wheel and touch and this would sit stuck. */}
+        <div
+          data-lenis-prevent
+          className="h-full w-full overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden"
+        >
           {children}
         </div>
       </div>
