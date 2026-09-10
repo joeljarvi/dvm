@@ -7,6 +7,7 @@ import { closeTop } from "@/lib/modalStack";
 import { useIntro } from "@/lib/intro";
 import { closeItem, useBrowsing, useItem } from "@/lib/crumb";
 import { setOpenedSection } from "@/lib/section";
+import { setHash, useHash } from "@/lib/hash";
 import { slugify } from "@/lib/slug";
 import Link from "next/link";
 
@@ -18,6 +19,10 @@ export default function Nav() {
   // Only once the wordmark has landed does the rest of the nav arrive and the
   // button start behaving as a breadcrumb.
   const { arrived } = useIntro();
+
+  // The home overlays live in the hash — `#about` / `#index` — so the nav reads
+  // it back to light the corner that raised the sheet.
+  const hash = useHash();
 
   // Nothing in the nav exists until the card has handed the page over. State
   // only — each element declares its own transition, and twMerge keeps the
@@ -41,6 +46,17 @@ export default function Nav() {
   // No site nav over the Sanity Studio.
   if (pathname.startsWith("/studio")) return null;
 
+  // On home the four corners drive state through the URL hash rather than
+  // navigating: `#personal` / `#commissioned` hand a column the width, and
+  // `#about` / `#index` raise that page in a sheet over both — see HomeClient.
+  // Everywhere else they are plain links to the full pages.
+  const onHome = pathname === "/";
+
+  // About and Index read as chosen both on their own pages and while their
+  // home sheet is raised — so the corner that opened one stays lit blue.
+  const aboutActive = pathname === "/about" || (onHome && hash === "about");
+  const indexActive = pathname === "/archive" || (onHome && hash === "index");
+
   const segments = pathname.split("/").filter(Boolean);
 
   // Keyed to the section rather than the exact path, so the breadcrumb
@@ -57,12 +73,7 @@ export default function Nav() {
   // Which item of the open project is up, if any — the last link in the trail.
   const item = useItem();
 
-  // With an item open, its overlay owns the screen. Everything but the
-  // breadcrumb for the section you are in drops beneath it — the overlay sits
-  // at z-40 in ProjectDetail, and its inset card is opaque, so this hides
-  // them rather than merely reordering.
   const inPersonal = segments[0] === "personal";
-  const under = (mine: boolean) => (item && !mine ? "z-30" : "z-90");
 
   // The breadcrumb hangs off whichever section label you are inside, so it
   // grows away from its own corner. Everything after the section reads as a
@@ -147,12 +158,15 @@ export default function Nav() {
       );
     });
 
-  // One shape for all four corners, identical at both breakpoints.
-  const corner = (place: string, lift: boolean) =>
-    `fixed ${place} ${under(lift)} flex flex-row items-center gap-0 px-5.5 pt-3 pb-3 transition-opacity duration-700 ease-out ${chrome}`;
+  // One shape for all four corners, identical at both breakpoints. `z-1000`
+  // clears every overlay on the site — the About/Index sheets, the stacked
+  // section plates, the project reader — so the nav is always there to leave
+  // by, whatever is open over the page.
+  const corner = (place: string) =>
+    `fixed ${place} z-1000 flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${chrome}`;
 
   const cornerLink =
-    "px-0 w-auto h-full bg-transparent hover:bg-transparent hover:text-neutral-400 active:text-blue-700 active:bg-transparent";
+    "px-5.5 py-4 w-auto h-full bg-transparent h-14 hover:bg-transparent hover:text-neutral-400 active:text-blue-700 active:bg-transparent ";
 
   return (
     <>
@@ -161,56 +175,80 @@ export default function Nav() {
           the width to its own column on home — see lib/section. Each section label carries the breadcrumb when you are inside
           it, so the trail grows inward from its own corner. `data-nav` pairs
           the top two with the home panels through globals.css. */}
-      <span className={corner("top-1 left-0 justify-start", inPersonal)}>
+      <span className={corner("top-0 left-0 justify-start")}>
         <Button
           data-nav="personal"
           variant="link"
           size="sm"
           className={`justify-start ${cornerLink}`}
-          onClick={() => setOpenedSection("personal")}
+          onClick={() => {
+            setOpenedSection("personal");
+            if (onHome) setHash("personal");
+          }}
         >
           Personal
         </Button>
         {inPersonal && renderTrail()}
       </span>
 
-      <span className={corner("top-1 right-0 justify-end", inCommissioned)}>
+      <span className={corner("top-0 right-0 justify-end")}>
         <Button
           data-nav="commissioned"
           variant="link"
           size="sm"
           className={`justify-end ${cornerLink}`}
-          onClick={() => setOpenedSection("commissioned")}
+          onClick={() => {
+            setOpenedSection("commissioned");
+            if (onHome) setHash("commissioned");
+          }}
         >
           Commissioned
         </Button>
         {inCommissioned && renderTrail()}
       </span>
 
-      <span
-        className={corner("bottom-1 lg:bottom-2 left-0 justify-start", false)}
-      >
-        <Button
-          variant="link"
-          size="sm"
-          className={`justify-start ${cornerLink}`}
-          asChild
-        >
-          <Link href="/about">About</Link>
-        </Button>
+      <span className={corner("bottom-0 lg:bottom-0 left-0 justify-start")}>
+        {onHome ? (
+          <Button
+            variant="link"
+            size="sm"
+            className={`justify-start ${cornerLink} ${aboutActive ? "text-blue-700" : ""}`}
+            onClick={() => setHash("about")}
+          >
+            About
+          </Button>
+        ) : (
+          <Button
+            variant="link"
+            size="sm"
+            className={`justify-start ${cornerLink} ${aboutActive ? "text-blue-700" : ""}`}
+            asChild
+          >
+            <Link href="/about">About</Link>
+          </Button>
+        )}
       </span>
 
-      <span
-        className={corner("bottom-1 lg:bottom-2 right-0 justify-end", false)}
-      >
-        <Button
-          variant="link"
-          size="sm"
-          className={`justify-end  ${cornerLink}`}
-          asChild
-        >
-          <Link href="/index">Index</Link>
-        </Button>
+      <span className={corner("bottom-0 lg:bottom-0 right-0 justify-end")}>
+        {onHome ? (
+          <Button
+            variant="link"
+            size="sm"
+            className={`justify-end  ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
+            onClick={() => setHash("index")}
+          >
+            Index
+          </Button>
+        ) : (
+          <Button
+            variant="link"
+            size="sm"
+            className={`justify-end  ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
+            asChild
+          >
+            <Link href="/archive">Index</Link>
+          </Button>
+        )}
       </span>
     </>
   );

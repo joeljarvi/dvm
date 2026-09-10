@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ReactLenis, type LenisRef } from "lenis/react";
 import type { Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
@@ -11,49 +11,64 @@ import {
   type Section,
 } from "@/lib/hover";
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
+import { setHash, useHash } from "@/lib/hash";
 import { useInView } from "@/lib/inView";
 import DvmCard from "@/components/DvmCard";
 import InfoLayout from "@/components/InfoLayout";
 import Counter from "@/components/Counter";
 import SectionOverlay from "./SectionOverlay";
+import InfoOverlay from "./InfoOverlay";
+import AboutSection from "./AboutSection";
+import IndexSection from "./IndexSection";
 
-// One project in a column. Clicking it steps through that project's own
-// images rather than navigating, so the index has to live per project — a
-// single index on the column would reset every neighbour.
-function Cover({
-  project,
-  section,
-  fallbackSrc,
-  active,
-}: {
-  project: Project;
-  section: Exclude<Section, null>;
-  fallbackSrc: string;
-  /** Whether this cover's column already holds the width. */
-  active: boolean;
-}) {
-  const [frame, setFrame] = useState(0);
-
-  // A project with no images of its own still has one thing to show, so the
-  // counter reads 1/1 rather than disappearing.
-  const images = project.images?.length
+// The images one project steps through. A project with none of its own still
+// shows its cover — or, failing that, the section's placeholder — so the
+// counter reads 1 (1) rather than nothing.
+function coverImages(project: Project, fallbackSrc: string) {
+  return project.images?.length
     ? project.images.map((m) => m.url)
     : [project.coverImageUrl ?? fallbackSrc];
+}
 
+// One project in a column: just its current image. Stepping through a
+// project's images and the caption that names it now both belong to the
+// column — see Strip — so a cover only reports when it scrolls into view.
+function Cover({
+  project,
+  images,
+  frame,
+  index,
+  columnOpen,
+  onStep,
+  onEnter,
+}: {
+  project: Project;
+  images: string[];
+  /** Which of the project's images is up. */
+  frame: number;
+  index: number;
+  /** The column holds the width, so a click steps rather than only widening. */
+  columnOpen: boolean;
+  onStep: (index: number) => void;
+  onEnter: (index: number) => void;
+}) {
   const src = images[frame];
 
-  // The cover the column is parked on lights its own title, with no pointer
-  // involved — so scrolling reads as moving through the work.
+  // The cover in view is the one being looked at, so the column's pinned
+  // caption follows it. This only ever names a newer cover — the gaps between
+  // full-height covers leave the last one standing rather than clearing it.
+  // Half visible is the handoff point: full-height covers mean only one can
+  // clear it at a time, so the caption swaps cleanly as one gives way to the
+  // next.
   const box = useRef<HTMLButtonElement>(null);
-  const inView = useInView(box);
+  const inView = useInView(box, 0.5);
+  useEffect(() => {
+    if (inView) onEnter(index);
+  }, [inView, index, onEnter]);
 
   return (
-    // Eight equal rows over the wrapper's height. Each part names the row it
-    // starts on rather than being flowed into the next free one, so moving
-    // one leaves the others where they are: the image takes 1–5, the counter
-    // 6, the metadata 7, and row 8 is trailing space. The grid has to live
-    // here — the counter and metadata are siblings of the button, so a grid
-    // on the button could never place them.
+    // Eight equal rows over the wrapper's height: the image takes 1–5 and the
+    // rest is the clearance the column's caption is pinned over.
     <div className="relative shrink-0 grid grid-rows-8 gap-y-3 pt-8 w-full h-[calc(100dvh-2.75rem)] lg:h-[calc(100dvh-3rem)]">
       <button
         ref={box}
@@ -68,7 +83,7 @@ function Cover({
         // has it, so the first click on a narrow column only widens it
         // rather than also jumping the image out from under you.
         onClick={() => {
-          if (active) setFrame((f) => (f + 1) % images.length);
+          if (columnOpen) onStep(index);
         }}
       >
         {/* `contain` fits the whole image without cropping; `object-top`
@@ -79,20 +94,6 @@ function Cover({
           className="w-full h-full object-contain object-top pointer-events-none"
         />
       </button>
-
-      <div className="row-start-6 flex justify-center items-start pointer-events-none">
-        <Counter frame={frame + 1} total={images.length} />
-      </div>
-
-      <div className="row-start-7 row-span-2 w-full pointer-events-none">
-        <InfoLayout
-          title={project.title}
-          model={section === "personal" ? project.client : undefined}
-          client={section === "commissioned" ? project.client : undefined}
-          agency={project.agency}
-          highlight={inView}
-        />
-      </div>
     </div>
   );
 }
@@ -143,6 +144,28 @@ function Strip({
     return () => window.removeEventListener("keydown", onKey);
   }, [listens]);
 
+  // The images each project steps through, resolved once for the column.
+  const columnImages = useMemo(
+    () => projects.map((p) => coverImages(p, fallbackSrc)),
+    [projects, fallbackSrc],
+  );
+
+  // Which cover is in view, and where each project sits in its own images.
+  // Both belong to the column, not a cover: the caption that reads them is
+  // pinned to the column and outlives any one cover scrolling past.
+  const [active, setActive] = useState(0);
+  const [frames, setFrames] = useState<number[]>(() => projects.map(() => 0));
+
+  const step = useCallback(
+    (i: number) =>
+      setFrames((prev) => {
+        const next = prev.slice();
+        next[i] = (next[i] + 1) % columnImages[i].length;
+        return next;
+      }),
+    [columnImages],
+  );
+
   // The two columns split the width until one is chosen, and then it takes
   // all of it — but the other keeps a sliver rather than collapsing to
   // nothing, so there is still something to click to hand the width back.
@@ -150,6 +173,8 @@ function Strip({
   // column itself, since the overlay is not there.
   const width =
     opened === null ? "w-[50vw]" : opened === section ? "w-screen" : "w-0";
+
+  const shown = projects[active] ?? projects[0];
 
   return (
     <div
@@ -180,18 +205,38 @@ function Strip({
             <Cover
               key={p.slug ?? `${p.title}-${i}`}
               project={p}
-              section={section}
-              fallbackSrc={fallbackSrc}
-              active={opened === section}
+              images={columnImages[i]}
+              frame={frames[i] ?? 0}
+              index={i}
+              columnOpen={opened === section}
+              onStep={step}
+              onEnter={setActive}
             />
           ))}
         </div>
       </ReactLenis>
 
-      {/* `px-5.5` is the nav corners' own inset, so this shares a left edge
-          with the buttons above and below it. */}
-      {/* Pinned to the column rather than scrolling with it, so the caption
-          stays put while the covers move under it. */}
+      {/* The caption, pinned to the column rather than the scroller so it holds
+          still while the covers move under it. It names whichever cover is in
+          view and ticks with that project's images. `px-5.5` shares the covers'
+          own inset — the same edge the nav corners keep. `pointer-events-none`
+          lets hover and clicks fall through to the column behind it. */}
+      {shown && (
+        <div className="pointer-events-none absolute inset-x-0 top-[66.6vh] z-10 flex flex-col gap-y-2 px-5.5 pb-5.5">
+          <div className="flex justify-center">
+            <Counter
+              frame={(frames[active] ?? 0) + 1}
+              total={columnImages[active]?.length}
+            />
+          </div>
+          <InfoLayout
+            title={shown.title}
+            model={section === "personal" ? shown.client : undefined}
+            client={section === "commissioned" ? shown.client : undefined}
+            agency={shown.agency}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -210,6 +255,16 @@ export default function HomeClient({
   // too, and they render in the layout.
   const opened = useOpenedSection();
 
+  // The URL carries the current view: `#personal` / `#commissioned` for which
+  // column holds the width, `#about` / `#index` for the sheet over both. The
+  // nav's corner buttons write it; here it is read back so a deep link or the
+  // back button lands on the same state.
+  const hash = useHash();
+
+  useEffect(() => {
+    if (hash === "personal" || hash === "commissioned") setOpenedSection(hash);
+  }, [hash]);
+
   // The card's own rows, one beat apart, coming in as the name fades out.
   const row = (n: number) =>
     `transition-opacity duration-500 ease-out ${rows > n ? "" : "opacity-0"}`;
@@ -225,16 +280,25 @@ export default function HomeClient({
           fallbackSrc="/personal_placeholder.png"
           background="bg-neutral-100"
           opened={opened}
-          onOpen={() => setOpenedSection("personal")}
+          onOpen={() => setHash("personal")}
         />
         <Strip
           section="commissioned"
           projects={commissioned}
           fallbackSrc="/personal_placeholder.png"
           opened={opened}
-          onOpen={() => setOpenedSection("commissioned")}
+          onOpen={() => setHash("commissioned")}
         />
       </section>
+
+      {/* Both sheets stay mounted so each keeps its own content while it slides
+          back down — only one is ever raised, since the hash holds one value. */}
+      <InfoOverlay open={hash === "about"} onDismiss={() => setHash("")}>
+        <AboutSection />
+      </InfoOverlay>
+      <InfoOverlay open={hash === "index"} onDismiss={() => setHash("")}>
+        <IndexSection />
+      </InfoOverlay>
 
       <div className="hidden fixed inset-0 z-20  items-center justify-center p-4 pointer-events-none w-full">
         <DvmCard color="bg-green-900" variant="animation">
