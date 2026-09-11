@@ -10,10 +10,18 @@ export default function InfoOverlay({
   open,
   onDismiss,
   children,
+  panelClassName = "inset-x-0 h-dvh",
+  shadow = true,
 }: {
   open: boolean;
   onDismiss: () => void;
   children: React.ReactNode;
+  /** Position + size of the sliding panel itself. Defaults to the full-width,
+   * full-height sheet About and the full index use; a smaller overlay (e.g.
+   * the commissioned/Home client index) passes its own. */
+  panelClassName?: string;
+  /** The panel's drop shadow — off for the index's slimmer sidebar. */
+  shadow?: boolean;
 }) {
   // Joins the modal stack while open, so the nav's shared Escape handling pops
   // it like any other layer. No label — it carries no close button of its own.
@@ -29,12 +37,12 @@ export default function InfoOverlay({
         tabIndex={open ? 0 : -1}
         aria-label="Close"
         onClick={onDismiss}
-        className={`absolute inset-0 bg-background/30 backdrop-blur-sm transition-opacity duration-500 ease-out ${
+        className={`absolute inset-0 bg-background/30 transition-opacity duration-500 ease-out ${
           open ? "opacity-100" : "opacity-0"
         }`}
       />
       <div
-        className={`absolute inset-x-0 h-dvh  bg-background shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`absolute ${panelClassName} bg-background ${shadow ? "shadow-2xl" : ""} transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           open ? "translate-y-0" : "translate-y-full"
         }`}
       >

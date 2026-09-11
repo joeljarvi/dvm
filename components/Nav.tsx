@@ -8,6 +8,7 @@ import { useIntro } from "@/lib/intro";
 import { closeItem, useBrowsing, useItem } from "@/lib/crumb";
 import { setOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
+import { closeIndex, openIndex, useIndexOpen } from "@/lib/indexOverlay";
 import { slugify } from "@/lib/slug";
 import Link from "next/link";
 
@@ -23,6 +24,11 @@ export default function Nav() {
   // The home overlays live in the hash — `#about` / `#index` — so the nav reads
   // it back to light the corner that raised the sheet.
   const hash = useHash();
+
+  // On a browser page the Index corner raises a floating overlay over the
+  // carousel instead of navigating to /archive — see lib/indexOverlay.
+  const indexOpen = useIndexOpen();
+  const onBrowser = pathname === "/commissioned" || pathname === "/personal";
 
   // Nothing in the nav exists until the card has handed the page over. State
   // only — each element declares its own transition, and twMerge keeps the
@@ -55,7 +61,10 @@ export default function Nav() {
   // About and Index read as chosen both on their own pages and while their
   // home sheet is raised — so the corner that opened one stays lit blue.
   const aboutActive = pathname === "/about" || (onHome && hash === "about");
-  const indexActive = pathname === "/archive" || (onHome && hash === "index");
+  const indexActive =
+    pathname === "/archive" ||
+    (onHome && hash === "index") ||
+    (onBrowser && indexOpen);
 
   const segments = pathname.split("/").filter(Boolean);
 
@@ -235,7 +244,16 @@ export default function Nav() {
             variant="link"
             size="sm"
             className={`justify-end  ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
-            onClick={() => setHash("index")}
+            onClick={() => setHash(hash === "index" ? "" : "index")}
+          >
+            Index
+          </Button>
+        ) : onBrowser ? (
+          <Button
+            variant="link"
+            size="sm"
+            className={`justify-end  ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
+            onClick={() => (indexOpen ? closeIndex() : openIndex())}
           >
             Index
           </Button>

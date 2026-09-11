@@ -68,8 +68,13 @@ function Cover({
 
   return (
     // Eight equal rows over the wrapper's height: the image takes 1–5 and the
-    // rest is the clearance the column's caption is pinned over.
-    <div className="relative shrink-0 grid grid-rows-8 gap-y-3 pt-8 w-full h-[calc(100dvh-2.75rem)] lg:h-[calc(100dvh-3rem)]">
+    // rest is the clearance the column's caption is pinned over. `data-slug`
+    // is how the Index overlay's jump-to-project finds this cover to scroll
+    // to — see Strip's scrollToSlug.
+    <div
+      data-slug={project.slug ?? project.title}
+      className="relative shrink-0 grid grid-rows-8 gap-y-3 pt-8 w-full h-[calc(100dvh-2.75rem)] lg:h-[calc(100dvh-3rem)]"
+    >
       <button
         ref={box}
         type="button"
@@ -108,6 +113,8 @@ function Strip({
   background = "",
   opened,
   onOpen,
+  scrollToSlug,
+  onScrolled,
 }: {
   section: Exclude<Section, null>;
   projects: Project[];
@@ -118,15 +125,33 @@ function Strip({
   /** Which column has been chosen while stacked; null means neither yet. */
   opened: Section;
   onOpen: () => void;
+  /** A project handed down from the Index overlay to scroll to, once. */
+  scrollToSlug?: string | null;
+  onScrolled?: () => void;
 }) {
   // Space and the arrow keys page this column, but only when it is the one
   // being read: the chosen column, or — before either has been chosen — the
   // one under the pointer. Lenis owns the scroll position, so it does the
   // moving rather than the browser.
   const lenisRef = useRef<LenisRef>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const pointerOver = useHoveredSection();
   const listens =
     opened === section || (opened === null && pointerOver === section);
+
+  // Picking a project in the Index overlay lands here as a slug to bring
+  // into view — scoped to this column's own container so a same-named
+  // project in the other section can never be matched instead. Both columns
+  // get the same slug; only the one that actually holds it moves.
+  useEffect(() => {
+    if (!scrollToSlug) return;
+    const lenis = lenisRef.current?.lenis;
+    const el = containerRef.current?.querySelector<HTMLElement>(
+      `[data-slug="${CSS.escape(scrollToSlug)}"]`,
+    );
+    if (lenis && el) lenis.scrollTo(el);
+    onScrolled?.();
+  }, [scrollToSlug, onScrolled]);
 
   useEffect(() => {
     if (!listens) return;
@@ -178,6 +203,7 @@ function Strip({
 
   return (
     <div
+      ref={containerRef}
       data-panel={section}
       // A cover's own click navigates and this fires too, but the page is
       // leaving anyway — so it only takes effect on the ground around them.
@@ -265,6 +291,14 @@ export default function HomeClient({
     if (hash === "personal" || hash === "commissioned") setOpenedSection(hash);
   }, [hash]);
 
+  // A project picked in the Index sheet, handed down to both columns to
+  // scroll to — only the one that actually holds it will move; cleared once
+  // acted on. Which category the Index itself shows follows whichever column
+  // is currently raised, defaulting to commissioned when neither is.
+  const [jumpSlug, setJumpSlug] = useState<string | null>(null);
+  const indexCategory: "personal" | "commissioned" =
+    opened === "personal" ? "personal" : "commissioned";
+
   // The card's own rows, one beat apart, coming in as the name fades out.
   const row = (n: number) =>
     `transition-opacity duration-500 ease-out ${rows > n ? "" : "opacity-0"}`;
@@ -281,6 +315,8 @@ export default function HomeClient({
           background="bg-background"
           opened={opened}
           onOpen={() => setHash("personal")}
+          scrollToSlug={jumpSlug}
+          onScrolled={() => setJumpSlug(null)}
         />
         <Strip
           section="commissioned"
@@ -288,6 +324,8 @@ export default function HomeClient({
           fallbackSrc="/personal_placeholder.png"
           opened={opened}
           onOpen={() => setHash("commissioned")}
+          scrollToSlug={jumpSlug}
+          onScrolled={() => setJumpSlug(null)}
         />
       </section>
 
@@ -296,8 +334,23 @@ export default function HomeClient({
       <InfoOverlay open={hash === "about"} onDismiss={() => setHash("")}>
         <AboutSection />
       </InfoOverlay>
-      <InfoOverlay open={hash === "index"} onDismiss={() => setHash("")}>
-        <IndexSection personal={personal} commissioned={commissioned} />
+      <InfoOverlay
+        open={hash === "index"}
+        onDismiss={() => setHash("")}
+        panelClassName="inset-x-0 bottom-0 h-[66.6vh] lg:inset-x-auto lg:bottom-auto lg:top-0 lg:right-0 lg:h-dvh lg:w-[50vw]"
+        shadow={false}
+      >
+        <IndexSection
+          projects={indexCategory === "personal" ? personal : commissioned}
+          category={indexCategory}
+          onSelect={(project) => {
+            // Raise that column and scroll it to this project, then drop the
+            // sheet — same shape as picking a section corner.
+            setOpenedSection(indexCategory);
+            setJumpSlug(project.slug ?? project.title);
+            setHash("");
+          }}
+        />
       </InfoOverlay>
 
       <div className="hidden fixed inset-0 z-20  items-center justify-center p-4 pointer-events-none w-full">

@@ -6,7 +6,12 @@ import type { Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { usePublishViewChrome } from "@/lib/viewChrome";
 import { usePublishBrowsing } from "@/lib/crumb";
+import { closeIndex, useIndexOpen } from "@/lib/indexOverlay";
+import { useProjectVisibility } from "@/lib/projectVisibility";
+import { extraProjects } from "@/lib/data";
 import StepButton from "@/components/StepButton";
+import InfoOverlay from "@/components/InfoOverlay";
+import IndexSection from "@/components/IndexSection";
 import { useStepControls } from "@/lib/step";
 
 const PINK_SHADES = [
@@ -57,12 +62,21 @@ export default function ViewBrowser({
     setRatio(pick(RATIOS));
   }, []);
 
-  const current = list[index];
+  // "All projects" (Index's own toggle) mixes this panel's placeholder
+  // projects into the carousel too, so there is something to reveal and step
+  // through.
+  const visibility = useProjectVisibility();
+  const effectiveList =
+    visibility === "all" ? [...list, ...extraProjects[panel]] : list;
+
+  const current = effectiveList[index] ?? effectiveList[0];
 
   const step = (delta: number) => {
     setColor(pick(palette));
     setRatio(pick(RATIOS));
-    setIndex((i) => (i + delta + list.length) % list.length);
+    setIndex(
+      (i) => (i + delta + effectiveList.length) % effectiveList.length,
+    );
   };
 
   // Arrow keys anywhere, swipe on touch. The click zones still work.
@@ -70,6 +84,21 @@ export default function ViewBrowser({
 
   const openProject = () => {
     if (current?.slug) router.push(`/${panel}/${current.slug}`);
+  };
+
+  // The index floats over this browser rather than navigating away —
+  // picking a project jumps the carousel straight to it in place.
+  const indexOpen = useIndexOpen();
+
+  const jumpToProject = (project: Project) => {
+    const key = project.slug ?? project.title;
+    const i = effectiveList.findIndex((p) => (p.slug ?? p.title) === key);
+    if (i >= 0) {
+      setColor(pick(palette));
+      setRatio(pick(RATIOS));
+      setIndex(i);
+    }
+    closeIndex();
   };
 
   // The nav's breadcrumb tails off with whatever cover is up.
@@ -89,47 +118,57 @@ export default function ViewBrowser({
   );
 
   return (
-    <div
-      className={`${panel === "personal" ? "bg-background" : "bg-background"} relative flex items-center justify-center w-full h-full overflow-hidden`}
-    >
-      {/* prev / next zones — on desktop the chevron lives in the cursor */}
+    <>
       <div
-        className="absolute inset-y-0 left-0 z-10 w-1/2"
-        onClick={() => step(-1)}
-      />
-      <div
-        className="absolute inset-y-0 right-0 z-10 w-1/2"
-        onClick={() => step(1)}
-      />
-
-      {/* Touch has no cursor to carry the chevron, so below lg the marks come
-          on screen. They stack above the zones, so a tap lands on the button
-          alone and steps once. */}
-      <StepButton
-        direction="back"
-        onClick={() => step(-1)}
-        className="hidden absolute left-4 top-1/2 -translate-y-1/2 z-30 text-neutral-300 hover:text-blue-700"
-      />
-      <StepButton
-        direction="next"
-        onClick={() => step(1)}
-        className="hidden absolute right-4 top-1/2 -translate-y-1/2 z-30 text-neutral-300 hover:text-blue-700"
-      />
-
-      {/* centered cover — click to open the project */}
-      {current?.coverImageUrl ? (
-        <img
-          src={sanityImage(current.coverImageUrl, { w: 1400 })}
-          alt={current.title}
-          className="relative z-20 h-[50dvh] lg:h-[66.6dvh] w-auto max-w-xs lg:max-w-3xl object-cover cursor-pointer scale-100 hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform"
-          onClick={openProject}
-        />
-      ) : (
+        className={`${panel === "personal" ? "bg-background" : "bg-background"} relative flex items-center justify-center w-full h-full overflow-hidden`}
+      >
+        {/* prev / next zones — on desktop the chevron lives in the cursor */}
         <div
-          className={`relative z-20 ${ratio} h-[50dvh] lg:h-[66.6dvh] max-w-xs lg:max-w-3xl ${color} cursor-pointer`}
-          onClick={openProject}
+          className="absolute inset-y-0 left-0 z-10 w-1/2"
+          onClick={() => step(-1)}
         />
-      )}
-    </div>
+        <div
+          className="absolute inset-y-0 right-0 z-10 w-1/2"
+          onClick={() => step(1)}
+        />
+
+        {/* Touch has no cursor to carry the chevron, so below lg the marks
+            come on screen. They stack above the zones, so a tap lands on the
+            button alone and steps once. */}
+        <StepButton
+          direction="back"
+          onClick={() => step(-1)}
+          className="hidden absolute left-4 top-1/2 -translate-y-1/2 z-30 text-neutral-300 hover:text-blue-700"
+        />
+        <StepButton
+          direction="next"
+          onClick={() => step(1)}
+          className="hidden absolute right-4 top-1/2 -translate-y-1/2 z-30 text-neutral-300 hover:text-blue-700"
+        />
+
+        {/* centered cover — click to open the project */}
+        {current?.coverImageUrl ? (
+          <img
+            src={sanityImage(current.coverImageUrl, { w: 1400 })}
+            alt={current.title}
+            className="relative z-20 h-[50dvh] lg:h-[66.6dvh] w-auto max-w-xs lg:max-w-3xl object-cover cursor-pointer scale-100 hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform"
+            onClick={openProject}
+          />
+        ) : (
+          <div
+            className={`relative z-20 ${ratio} h-[50dvh] lg:h-[66.6dvh] max-w-xs lg:max-w-3xl ${color} cursor-pointer`}
+            onClick={openProject}
+          />
+        )}
+      </div>
+      <InfoOverlay
+        open={indexOpen}
+        onDismiss={closeIndex}
+        panelClassName="inset-x-0 bottom-0 h-[66.6vh] lg:inset-x-auto lg:bottom-auto lg:top-0 lg:right-0 lg:h-dvh lg:w-[50vw]"
+        shadow={false}
+      >
+        <IndexSection projects={list} category={panel} onSelect={jumpToProject} />
+      </InfoOverlay>
+    </>
   );
 }
