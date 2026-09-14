@@ -59,13 +59,27 @@ export const project = defineType({
       title: 'Images & Videos',
       type: 'array',
       of: [
-        { type: 'image', options: { hotspot: true } },
-        { type: 'file', options: { accept: 'video/*' } },
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            defineField({ name: 'caption', title: 'Caption', type: 'string' }),
+          ],
+        },
+        {
+          type: 'file',
+          options: { accept: 'video/*' },
+          fields: [
+            defineField({ name: 'caption', title: 'Caption', type: 'string' }),
+          ],
+        },
       ],
     }),
     defineField({
       name: 'featured',
-      title: 'Featured on Home Page',
+      title: 'Selected Projects',
+      description:
+        'Include this project in the curated "Selected Projects" index. Unselected projects only appear once "Show All" is clicked.',
       type: 'boolean',
       initialValue: false,
     }),

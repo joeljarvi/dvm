@@ -157,7 +157,7 @@ export default function ProjectDetail({
                   <img
                     src={sanityImage(media.url, { w: 800 })}
                     className="h-full w-full lg:w-auto object-contain "
-                    alt=""
+                    alt={media.caption ?? ""}
                   />
                 )}
                 {media?.type === "file" && (
@@ -168,6 +168,7 @@ export default function ProjectDetail({
                     muted
                     loop
                     playsInline
+                    aria-label={media.caption}
                   />
                 )}
               </div>
@@ -237,7 +238,7 @@ export default function ProjectDetail({
                       <img
                         src={sanityImage(media.url, { w: 1600, q: 80 })}
                         className="relative z-20 h-[66.6dvh] w-auto max-w-xs lg:max-w-3xl object-contain cursor-pointer"
-                        alt=""
+                        alt={media.caption ?? ""}
                         onClick={advance}
                       />
                     ) : (
@@ -248,6 +249,7 @@ export default function ProjectDetail({
                         muted
                         loop
                         playsInline
+                        aria-label={media.caption}
                         onClick={advance}
                       />
                     )
@@ -256,6 +258,11 @@ export default function ProjectDetail({
                       className={`relative  z-20 ${placeholderRatios[selectedIndex]} h-[25vh] max-w-xs lg:max-w-3xl ${placeholderColors[selectedIndex]} cursor-pointer`}
                       onClick={advance}
                     />
+                  )}
+                  {media?.caption && (
+                    <span className="relative z-20 mt-2 text-center text-sm text-neutral-300">
+                      {media.caption}
+                    </span>
                   )}
                 </div>
               );

@@ -49,9 +49,13 @@ export default function IndexSection({
   // the same degradation as the rest of the site. "All projects" mixes in
   // the placeholder ones so a fuller list — and the carousel behind it,
   // which reads the same toggle — can be visualized without real content.
-  const base = projects.length ? projects : FALLBACK[category];
+  const all = projects.length ? projects : FALLBACK[category];
+  // "Selected Projects" is the curated subset — only projects marked
+  // `featured` in Studio. The fallback list has no such field, so it's
+  // treated as fully curated (it's already hand-picked placeholder data).
+  const selected = projects.length ? projects.filter((p) => p.featured) : FALLBACK[category];
   const entries = [
-    ...(visibility === "all" ? [...base, ...extraProjects[category]] : base),
+    ...(visibility === "all" ? [...all, ...extraProjects[category]] : selected),
   ].sort(byName);
 
   const select = (project: Project) => {
@@ -62,9 +66,13 @@ export default function IndexSection({
     if (project.slug) router.push(`/${category}/${project.slug}`);
   };
 
-  // Desktop only — hovering a row previews that project's first/cover image
-  // in the second column. Touch has no hover, so mobile never sets this.
-  const previewImage = hovered?.images?.[0]?.url ?? hovered?.coverImageUrl ?? null;
+  // Desktop only — hovering a row previews that project's first still (never
+  // video, since this renders as a plain <img>) or its cover image in the
+  // second column. Touch has no hover, so mobile never sets this.
+  const previewImage =
+    hovered?.images?.find((m) => m.type === "image")?.url ??
+    hovered?.coverImageUrl ??
+    null;
 
   return (
     <div className="h-[66.6dvh] lg:h-full flex flex-col items-start w-full font-selecta font-medium text-lg lg:text-xl tracking-wide text-neutral-300">

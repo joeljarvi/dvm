@@ -1,5 +1,5 @@
 import { client } from "@/sanity/client";
-import type { Project } from "@/lib/types";
+import type { About, Project } from "@/lib/types";
 
 export type Category = "personal" | "commissioned";
 
@@ -10,9 +10,11 @@ export const PROJECT_FIELDS = `
   client,
   agency,
   year,
+  featured,
   "images": images[]{
     "url": asset->url,
-    "type": _type
+    "type": _type,
+    caption
   },
   "credits": credits[]{ role, name }
 `;
@@ -43,6 +45,24 @@ export async function fetchFeaturedProject(
       }`,
       { category },
       { next: { tags: ["project"] } },
+    );
+    return result ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchAbout(): Promise<About | null> {
+  try {
+    const result = await client.fetch<About | null>(
+      `*[_type == "about"][0]{
+        bio,
+        phone,
+        email,
+        links[]{ url, description }
+      }`,
+      {},
+      { next: { tags: ["about"] } },
     );
     return result ?? null;
   } catch {

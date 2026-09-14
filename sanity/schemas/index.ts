@@ -1,5 +1,4 @@
 import { project } from './project'
-import { biography } from './biography'
-import { cv } from './cv'
+import { about } from './about'
 
-export const schemaTypes = [project, biography, cv]
+export const schemaTypes = [project, about]

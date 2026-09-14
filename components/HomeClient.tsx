@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ReactLenis, type LenisRef } from "lenis/react";
-import type { Project } from "@/lib/types";
+import type { About, Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { useIntro } from "@/lib/intro";
 import {
@@ -21,12 +21,15 @@ import InfoOverlay from "./InfoOverlay";
 import AboutSection from "./AboutSection";
 import IndexSection from "./IndexSection";
 
-// The images one project steps through. A project with none of its own still
-// shows its cover — or, failing that, the section's placeholder — so the
-// counter reads 1 (1) rather than nothing.
+// The images one project steps through. This carousel only ever shows
+// stills — video lives in the full project page — so video media is
+// filtered out here rather than handed to an <img>. A project with no
+// stills of its own still shows its cover — or, failing that, the
+// section's placeholder — so the counter reads 1 (1) rather than nothing.
 function coverImages(project: Project, fallbackSrc: string) {
-  return project.images?.length
-    ? project.images.map((m) => m.url)
+  const stills = project.images?.filter((m) => m.type === "image") ?? [];
+  return stills.length
+    ? stills.map((m) => m.url)
     : [project.coverImageUrl ?? fallbackSrc];
 }
 
@@ -270,9 +273,11 @@ function Strip({
 export default function HomeClient({
   personal,
   commissioned,
+  about,
 }: {
   personal: Project[];
   commissioned: Project[];
+  about: About | null;
 }) {
   // `rows` still drives the intro card below, hidden though it currently is.
   const { rows } = useIntro();
@@ -332,7 +337,7 @@ export default function HomeClient({
       {/* Both sheets stay mounted so each keeps its own content while it slides
           back down — only one is ever raised, since the hash holds one value. */}
       <InfoOverlay open={hash === "about"} onDismiss={() => setHash("")}>
-        <AboutSection />
+        <AboutSection about={about} />
       </InfoOverlay>
       <InfoOverlay
         open={hash === "index"}
