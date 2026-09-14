@@ -24,6 +24,7 @@ export async function fetchProjects(category: Category): Promise<Project[]> {
         ${PROJECT_FIELDS}
       }`,
       { category },
+      { next: { tags: ["project"] } },
     );
   } catch {
     return [];
@@ -41,6 +42,7 @@ export async function fetchFeaturedProject(
         ${PROJECT_FIELDS}
       }`,
       { category },
+      { next: { tags: ["project"] } },
     );
     return result ?? null;
   } catch {
@@ -57,6 +59,7 @@ export async function fetchProjectSlugs(category: Category): Promise<string[]> {
         "slug": slug.current
       }`,
       { category },
+      { next: { tags: ["project"] } },
     );
     return rows.map((r) => r.slug).filter((s): s is string => !!s);
   } catch {
@@ -74,6 +77,7 @@ export async function fetchProjectBySlug(
         ${PROJECT_FIELDS}
       }`,
       { category, slug },
+      { next: { tags: ["project"] } },
     );
     return result ?? null;
   } catch {
