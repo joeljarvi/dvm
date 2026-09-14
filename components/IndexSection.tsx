@@ -85,7 +85,7 @@ export default function IndexSection({
     null;
 
   return (
-    <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-selecta font-medium text-lg lg:text-xl tracking-wide text-neutral-300 pt-18 lg:pt-0">
+    <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-selecta font-medium text-lg lg:text-xl tracking-wide text-neutral-300 pt-30 lg:pt-0">
       <span className="hidden lg:block col-start-2 ">
         {" "}
         <Button
@@ -97,7 +97,7 @@ export default function IndexSection({
         </Button>
       </span>
       <div className="flex justify-between items-center w-full lg:contents">
-        <span className="col-start-2 lg:hidden">
+        <span className="col-start-2 hidden ">
           <Button
             variant="link"
             size="sm"
@@ -110,10 +110,10 @@ export default function IndexSection({
           value={visibility}
           onValueChange={(v) => setProjectVisibility(v as Visibility)}
         >
-          <SelectTrigger className="lg:hidden h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-fit border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
+          <SelectTrigger className="lg:hidden h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="z-1010 font-selecta text-[0.8rem] text-neutral-300 ring-transparent bg-background">
+          <SelectContent className="z-1010 font-selecta text-[0.8rem] text-neutral-300 ring-transparent bg-background rounded-none">
             <SelectItem value="selected">Selected Work</SelectItem>
             <SelectItem value="all">Show All</SelectItem>
           </SelectContent>
@@ -140,7 +140,7 @@ export default function IndexSection({
           />
         )}
       </div>
-      <ul className="flex flex-col items-start justify-start w-full gap-y-0 pt-0 h-auto lg:h-[33.3dvh] lg:overflow-y-auto lg:grid  lg:gap-y-0 lg:space-y-0 lg:grid-cols-2 lg:col-start-3 lg:col-span-2 lg:row-start-2">
+      <ul className="flex flex-col items-start justify-start w-full gap-y-0 pt-0 h-auto lg:h-[33.3dvh] lg:overflow-y-auto lg:grid  lg:gap-y-0 lg:space-y-0 lg:grid-cols-2 lg:col-start-3 lg:col-span-2 lg:row-start-2 mt-16 lg:mt-0 ">
         {entries.map((project, i) => (
           <li
             key={projectKey(project, i)}

@@ -69,7 +69,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
   return (
     <div
       data-lenis-prevent
-      className="relative flex flex-col lg:grid pt-18 lg:pt-0 overflow-y-auto  grid-rows-[auto_auto_auto] lg:grid-cols-4 items-start justify-start w-full h-full   font-selecta font-normal  text-sm  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-4 lg:gap-y-16  lg:tracking-normal px-5.5 text-blue-700 lg:text-neutral-300      "
+      className="relative flex flex-col lg:grid pt-30 lg:pt-0 overflow-y-auto  grid-rows-[auto_auto_auto] lg:grid-cols-4 items-start justify-start w-full h-full   font-selecta font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-16  lg:tracking-normal px-5.5 text-blue-700 lg:text-neutral-300      "
     >
       <Button
         variant="link"
@@ -85,9 +85,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
       >
         Daniel von Malmborg
       </Button>
-      <h1 className={`lg:hidden mb-4 text-sm ${color("bio")}`}>
-        Daniel von Malmborg
-      </h1>
+      <h1 className={`lg:hidden   ${color("bio")}`}>Daniel von Malmborg</h1>
 
       <div
         ref={bioRef}
