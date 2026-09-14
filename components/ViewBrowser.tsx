@@ -164,7 +164,7 @@ export default function ViewBrowser({
       <InfoOverlay
         open={indexOpen}
         onDismiss={closeIndex}
-        panelClassName="inset-x-0 bottom-0 h-[66.6vh] lg:inset-x-auto lg:bottom-auto lg:top-0 lg:right-0 lg:h-dvh lg:w-[50vw]"
+        panelClassName="inset-x-0 bottom-0 h-dvh lg:bottom-auto lg:top-0"
         shadow={false}
       >
         <IndexSection projects={list} category={panel} onSelect={jumpToProject} />
