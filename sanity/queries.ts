@@ -54,17 +54,33 @@ export async function fetchFeaturedProject(
 
 export async function fetchAbout(): Promise<About | null> {
   try {
-    const result = await client.fetch<About | null>(
-      `*[_type == "about"][0]{
-        bio,
-        phone,
-        email,
-        links[]{ url, description }
+    const result = await client.fetch<{
+      about:
+        | (Omit<About, "bioImageUrl"> & { bioImageUrl?: string | null })
+        | null;
+      latestCommissionedCoverUrl: string | null;
+    }>(
+      `{
+        "about": *[_type == "about"][0]{
+          bio,
+          phone,
+          email,
+          links[]{ title, url, description },
+          "bioImageUrl": bioImage.asset->url
+        },
+        "latestCommissionedCoverUrl": *[_type == "project" && category == "commissioned"] | order(dateAdded desc)[0].coverImage.asset->url
       }`,
       {},
-      { next: { tags: ["about"] } },
+      { next: { tags: ["about", "project"] } },
     );
-    return result ?? null;
+
+    if (!result.about) return null;
+
+    return {
+      ...result.about,
+      bioImageUrl:
+        result.about.bioImageUrl ?? result.latestCommissionedCoverUrl ?? undefined,
+    };
   } catch {
     return null;
   }

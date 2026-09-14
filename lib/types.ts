@@ -14,12 +14,14 @@ export type Credit = {
 import type { PortableTextBlock } from "@portabletext/types";
 
 export type AboutLink = {
+  title: string;
   url: string;
   description: string;
 };
 
 export type About = {
   bio?: PortableTextBlock[];
+  bioImageUrl?: string;
   phone?: string;
   email?: string;
   links?: AboutLink[];

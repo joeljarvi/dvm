@@ -29,7 +29,7 @@ export default function InfoOverlay({
 
   return (
     <div
-      className={`fixed inset-0 z-[40] ${open ? "" : "pointer-events-none"}`}
+      className={`fixed inset-0 z-[950] ${open ? "" : "pointer-events-none"}`}
       aria-hidden={!open}
     >
       <button

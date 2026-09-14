@@ -172,7 +172,7 @@ export default function Nav() {
   // section plates, the project reader — so the nav is always there to leave
   // by, whatever is open over the page.
   const corner = (place: string) =>
-    `fixed ${place} z-[50] flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${chrome}`;
+    `fixed ${place} z-[1000] flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${chrome}`;
 
   const cornerLink =
     "px-5.5 py-4 w-auto h-full bg-transparent h-14 hover:bg-transparent hover:text-neutral-400 active:text-blue-700 active:bg-transparent ";
