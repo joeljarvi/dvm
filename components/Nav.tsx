@@ -222,7 +222,7 @@ export default function Nav() {
             variant="link"
             size="sm"
             className={`justify-start ${cornerLink} ${aboutActive ? "text-blue-700" : ""}`}
-            onClick={() => setHash("about")}
+            onClick={() => setHash(hash === "about" ? "" : "about")}
           >
             About
           </Button>

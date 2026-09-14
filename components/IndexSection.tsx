@@ -86,24 +86,34 @@ export default function IndexSection({
 
   return (
     <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-selecta font-medium text-lg lg:text-xl tracking-wide text-neutral-300 pt-18 lg:pt-0">
+      <span className="hidden lg:block col-start-2 ">
+        {" "}
+        <Button
+          variant="link"
+          size="sm"
+          className={` text-blue-700 col-start-3 `}
+        >
+          Index
+        </Button>
+      </span>
       <div className="flex justify-between items-center w-full lg:contents">
-        <span className="col-start-2">
+        <span className="col-start-2 lg:hidden">
           <Button
             variant="link"
             size="sm"
             className={` text-blue-700 col-start-3 `}
           >
-            Index
+            {LABEL[category]}
           </Button>
         </span>
         <Select
           value={visibility}
           onValueChange={(v) => setProjectVisibility(v as Visibility)}
         >
-          <SelectTrigger className="lg:hidden h-14 gap-1 font-normal text-sm px-5.5 text-[0.8rem] w-fit border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
+          <SelectTrigger className="lg:hidden h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-fit border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="z-1010 font-selecta text-neutral-300">
+          <SelectContent className="z-1010 font-selecta text-[0.8rem] text-neutral-300 ring-transparent bg-background">
             <SelectItem value="selected">Selected Work</SelectItem>
             <SelectItem value="all">Show All</SelectItem>
           </SelectContent>

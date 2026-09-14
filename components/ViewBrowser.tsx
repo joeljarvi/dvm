@@ -111,7 +111,7 @@ export default function ViewBrowser({
           {current.client}
         </span>
       )}
-      <span className="italic tracking-wider hidden lg:block">
+      <span className="italic tracking-wider text-blue-700 lg:text-inherit">
         {current?.title}
       </span>
     </span>,

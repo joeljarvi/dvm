@@ -91,7 +91,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
 
       <div
         ref={bioRef}
-        className={`row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full mb-0 lg:mb-0 text-sm font-normal leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full ${color("bio")}`}
+        className={`row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full mb-0 lg:mb-0 lg:text-[0.8] font-normal leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full ${color("bio")}`}
       >
         {about?.bio?.length ? (
           <PortableText value={about.bio} components={bioComponents} />
@@ -103,11 +103,11 @@ export default function AboutSection({ about }: { about?: About | null }) {
           ))
         )}
       </div>
-      <span className="col-start-1 lg:col-start-2  row-start-2 flex lg:flex-col flex-wrap gap-x-4 text-sm font-normal justify-start">
+      <span className="col-start-1 lg:col-start-2  row-start-2 flex lg:flex-col flex-wrap gap-x-4  font-normal justify-start">
         <Button
           variant="link"
           size="sm"
-          className="text-blue-700 lg:text-neutral-300 hover:text-blue-700 cursor-pointer w-min text-left text-sm lg:px-0 lg:h-auto  justify-start"
+          className="text-blue-700 lg:text-neutral-300 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto  justify-start"
           asChild
         >
           <Link href={`tel:${phone}`} className=" ">
@@ -117,7 +117,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
         <Button
           variant="link"
           size="sm"
-          className="text-blue-700 lg:text-neutral-300 hover:text-blue-700 cursor-pointer w-min text-sm text-left lg:px-0 lg:h-auto  justify-start"
+          className="text-blue-700 lg:text-neutral-300 hover:text-blue-700 cursor-pointer w-min  text-left lg:px-0 lg:h-auto  justify-start"
           asChild
         >
           <Link href={`mailto:${email}`}>Email</Link>
@@ -125,7 +125,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
         <Button
           variant="link"
           size="sm"
-          className="text-blue-700 lg:text-neutral-300 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto  text-sm justify-start"
+          className="text-blue-700 lg:text-neutral-300 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto   justify-start"
           asChild
         >
           <Link
@@ -156,12 +156,12 @@ export default function AboutSection({ about }: { about?: About | null }) {
         <Button
           variant="link"
           size="sm"
-          className={`hidden lg:flex col-start-1 lg:col-start-2 col-span-2 ${color("links")} hover:text-blue-700 cursor-pointer w-min text-left text-sm px-0 lg:h-auto  mb-4  justify-start`}
+          className={`hidden lg:flex col-start-1 lg:col-start-1 lg:col-span-2 ${color("links")} hover:text-blue-700 cursor-pointer w-min text-left  px-0 lg:h-auto  mb-4  justify-start`}
         >
           Links
         </Button>
         {links.map((link) => (
-          <div key={link.url} className="group contents">
+          <div key={link.url} className="group contents row-span-1">
             <Button
               variant="link"
               size="sm"
@@ -172,7 +172,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
                 {link.title}
               </Link>
             </Button>
-            <p className=" hidden lg:block mb-0 text-blue-700 lg:text-neutral-300 hover:text-blue-700 group-hover:text-blue-700">
+            <p className=" hidden lg:block mb-0 text-blue-700 lg:text-neutral-300 text-[0.8rem] hover:text-blue-700 group-hover:text-blue-700">
               {link.description}
             </p>
           </div>
