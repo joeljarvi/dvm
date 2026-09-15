@@ -140,7 +140,7 @@ export default function IndexSection({
           />
         )}
       </div>
-      <ul className="flex flex-col items-start justify-start w-full gap-y-0 pt-0 h-auto lg:h-[33.3dvh] lg:overflow-y-auto lg:grid  lg:gap-y-0 lg:space-y-0 lg:grid-cols-2 lg:col-start-3 lg:col-span-2 lg:row-start-2 mt-16 lg:mt-0 ">
+      <ul className="flex flex-col items-start justify-start w-full gap-y-0 pt-0 h-auto lg:h-[33.3dvh] lg:overflow-y-auto lg:grid  lg:content-start lg:gap-0 lg:space-y-0 lg:grid-cols-2 lg:col-start-3 lg:col-span-2 lg:row-start-2 mt-16 lg:mt-0 ">
         {entries.map((project, i) => (
           <li
             key={projectKey(project, i)}
