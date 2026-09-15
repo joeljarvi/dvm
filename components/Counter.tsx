@@ -20,9 +20,9 @@ export default function Counter({
     <Button
       variant="link"
       size="sm"
-      className="font-selecta font-normal tracking-wide h-14 tabular-nums text-neutral-400"
+      className="font-selecta font-normal tracking-wide h-auto tabular-nums  px-0"
     >
-      {frame} <span className="text-neutral-400">({total})</span>
+      {frame} <span className="">({total})</span>
     </Button>
   );
 }

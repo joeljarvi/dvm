@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ReactLenis, type LenisRef } from "lenis/react";
-import type { About, Project } from "@/lib/types";
+import { motion } from "motion/react";
+import type { About, Project, ProjectMedia } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { useIntro } from "@/lib/intro";
 import {
@@ -12,10 +12,8 @@ import {
 } from "@/lib/hover";
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
-import { useInView } from "@/lib/inView";
 import DvmCard from "@/components/DvmCard";
 import InfoLayout from "@/components/InfoLayout";
-import Counter from "@/components/Counter";
 import SectionOverlay from "./SectionOverlay";
 import InfoOverlay from "./InfoOverlay";
 import AboutSection from "./AboutSection";
@@ -28,87 +26,81 @@ import IndexSection from "./IndexSection";
 // stills — a still that happens to duplicate the cover isn't repeated. A
 // project with no stills or cover of its own falls back to the section's
 // placeholder, so the counter reads 1 (1) rather than nothing.
-function coverImages(project: Project, fallbackSrc: string) {
+function coverImages(project: Project, fallbackSrc: string): ProjectMedia[] {
   const stills = project.images?.filter((m) => m.type === "image") ?? [];
-  const urls = stills.map((m) => m.url);
 
   if (project.coverImageUrl) {
-    return [project.coverImageUrl, ...urls.filter((u) => u !== project.coverImageUrl)];
+    const cover =
+      stills.find((m) => m.url === project.coverImageUrl) ??
+      ({ url: project.coverImageUrl, type: "image" } as ProjectMedia);
+    return [cover, ...stills.filter((m) => m.url !== project.coverImageUrl)];
   }
-  return urls.length ? urls : [fallbackSrc];
+  return stills.length ? stills : [{ url: fallbackSrc, type: "image" }];
 }
 
-// One project in a column: just its current image. Stepping through a
-// project's images and the caption that names it now both belong to the
-// column — see Strip — so a cover only reports when it scrolls into view.
+// One project in a column: just its current image, fixed in place. The
+// column steps to a new project on scroll/swipe/arrow input rather than
+// scrolling to it — see Strip — so this only ever shows the one that's
+// currently active.
 function Cover({
   project,
-  images,
-  frame,
-  index,
+  media,
   columnOpen,
-  onStep,
-  onEnter,
+  onStepImage,
+  reveal,
 }: {
   project: Project;
-  images: string[];
-  /** Which of the project's images is up. */
-  frame: number;
-  index: number;
+  media: ProjectMedia;
   /** The column holds the width, so a click steps rather than only widening. */
   columnOpen: boolean;
-  onStep: (index: number) => void;
-  onEnter: (index: number) => void;
+  onStepImage: (delta: number) => void;
+  /** Which way the reveal runs, and which edge of that axis it grows from —
+   * scaleY top/bottom for a project step (scroll/swipe/arrows), scaleX
+   * left/right for an in-project image step (tap/click next/prev). */
+  reveal: { axis: "x" | "y"; origin: "top" | "bottom" | "left" | "right" };
 }) {
-  const src = images[frame];
-
-  // The cover in view is the one being looked at, so the column's pinned
-  // caption follows it. This only ever names a newer cover — the gaps between
-  // full-height covers leave the last one standing rather than clearing it.
-  // Half visible is the handoff point: full-height covers mean only one can
-  // clear it at a time, so the caption swaps cleanly as one gives way to the
-  // next.
-  const box = useRef<HTMLButtonElement>(null);
-  const inView = useInView(box, 0.5);
-  useEffect(() => {
-    if (inView) onEnter(index);
-  }, [inView, index, onEnter]);
+  const src = media.url;
 
   return (
-    // Full-bleed: the image now fills the whole slot edge-to-edge, and the
-    // column's pinned caption (see Strip) overlays its lower third instead of
-    // sitting in space reserved below it. `data-slug` is how the Index
-    // overlay's jump-to-project finds this cover to scroll to — see Strip's
-    // scrollToSlug.
-    <div
-      data-slug={project.slug ?? project.title}
-      className="relative shrink-0 w-full h-screen"
-    >
-      <button
-        ref={box}
-        type="button"
-        aria-label={`Next image of ${project.title}`}
-        className="w-full h-dvh pt-5.5 lg:h-[calc(100vh-8rem)] cursor-pointer"
-        // The click bubbles: every click inside a column hands it the width,
-        // this one included. Stepping is held back until the column already
-        // has it, so the first click on a narrow column only widens it
-        // rather than also jumping the image out from under you.
-        onClick={() => {
-          if (columnOpen) onStep(index);
-        }}
-      >
-        {/* `contain` fits the whole image without cropping; `object-top`
-            keeps the spare height underneath it rather than centring it. */}
-        <img
-          src={src.startsWith("/") ? src : sanityImage(src, { w: 1400 })}
-          alt=""
-          className="w-full h-full object-contain object-top pointer-events-none"
+    // Fixed in place: this slot never moves, only which image fills it
+    // changes. `pt-5.5 pb-5.5` matches the column's own edge inset.
+    <div className="relative shrink-0 w-full h-screen pt-6 pb-6 flex flex-col">
+      <div className="relative w-full h-full">
+        {/* prev / next zones — split the image itself since stepping
+            through a project's own gallery has both directions, same as
+            the project-level scroll/swipe does. The click still bubbles up
+            so a narrow column widens first, same as before. */}
+        <button
+          type="button"
+          aria-label={`Previous image of ${project.title}`}
+          className="absolute inset-y-0 left-0 z-10 w-1/2 cursor-pointer"
+          onClick={() => {
+            if (columnOpen) onStepImage(-1);
+          }}
         />
-      </button>
-      {/* Attached to this cover rather than the column's pinned caption, so
-          it ticks over with the image it's counting rather than staying put. */}
-      <div className="pointer-events-none absolute bottom-0 inset-x-0 flex justify-center items-center">
-        <Counter frame={frame + 1} total={images.length} />
+        <button
+          type="button"
+          aria-label={`Next image of ${project.title}`}
+          className="absolute inset-y-0 right-0 z-10 w-1/2 cursor-pointer"
+          onClick={() => {
+            if (columnOpen) onStepImage(1);
+          }}
+        />
+        {/* `contain` fits the whole image without cropping; `object-top`
+            keeps the spare height underneath it rather than centring it.
+            `key={src}` remounts on every image change (project step or
+            in-project image step alike), replaying the 0→1 reveal along
+            whichever axis and edge `reveal` currently says. */}
+        <motion.img
+          key={src}
+          src={src.startsWith("/") ? src : sanityImage(src, { w: 1400 })}
+          alt={media.caption ?? ""}
+          initial={reveal.axis === "x" ? { scaleX: 0 } : { scaleY: 0 }}
+          animate={reveal.axis === "x" ? { scaleX: 1 } : { scaleY: 1 }}
+          transition={{ duration: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformOrigin: reveal.origin }}
+          className="w-full h-full object-contain object-center pointer-events-none"
+        />
       </div>
     </div>
   );
@@ -140,45 +132,15 @@ function Strip({
   scrollToSlug?: string | null;
   onScrolled?: () => void;
 }) {
-  // Space and the arrow keys page this column, but only when it is the one
-  // being read: the chosen column, or — before either has been chosen — the
-  // one under the pointer. Lenis owns the scroll position, so it does the
-  // moving rather than the browser.
-  const lenisRef = useRef<LenisRef>(null);
+  // Scroll, swipe, and the arrow keys all step to the next/previous project
+  // rather than scrolling to it — there's nothing to scroll to any more, one
+  // fixed slot just swaps which project fills it — but only when this is the
+  // column being read: the chosen one, or — before either has been chosen —
+  // the one under the pointer.
   const containerRef = useRef<HTMLDivElement>(null);
   const pointerOver = useHoveredSection();
   const listens =
     opened === section || (opened === null && pointerOver === section);
-
-  // Picking a project in the Index overlay lands here as a slug to bring
-  // into view — scoped to this column's own container so a same-named
-  // project in the other section can never be matched instead. Both columns
-  // get the same slug; only the one that actually holds it moves.
-  useEffect(() => {
-    if (!scrollToSlug) return;
-    const lenis = lenisRef.current?.lenis;
-    const el = containerRef.current?.querySelector<HTMLElement>(
-      `[data-slug="${CSS.escape(scrollToSlug)}"]`,
-    );
-    if (lenis && el) lenis.scrollTo(el);
-    onScrolled?.();
-  }, [scrollToSlug, onScrolled]);
-
-  useEffect(() => {
-    if (!listens) return;
-    const onKey = (e: KeyboardEvent) => {
-      const lenis = lenisRef.current?.lenis;
-      if (!lenis) return;
-      const page = window.innerHeight * 0.9;
-      const back = e.key === "ArrowUp" || (e.key === " " && e.shiftKey);
-      const on = e.key === "ArrowDown" || (e.key === " " && !e.shiftKey);
-      if (!back && !on) return;
-      e.preventDefault();
-      lenis.scrollTo(lenis.scroll + (back ? -page : page));
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [listens]);
 
   // The images each project steps through, resolved once for the column.
   const columnImages = useMemo(
@@ -186,21 +148,99 @@ function Strip({
     [projects, fallbackSrc],
   );
 
-  // Which cover is in view, and where each project sits in its own images.
-  // Both belong to the column, not a cover: the caption that reads them is
-  // pinned to the column and outlives any one cover scrolling past.
+  // Which project is shown, where it sits in its own images, and which way
+  // the next reveal runs — scaleY for a project step (scroll/swipe/arrows),
+  // scaleX for an in-project image step (tap/click next/prev).
   const [active, setActive] = useState(0);
   const [frames, setFrames] = useState<number[]>(() => projects.map(() => 0));
+  const [reveal, setReveal] = useState<{
+    axis: "x" | "y";
+    origin: "top" | "bottom" | "left" | "right";
+  }>({ axis: "y", origin: "top" });
 
-  const step = useCallback(
-    (i: number) =>
+  const stepProject = useCallback(
+    (delta: number) => {
+      setReveal({ axis: "y", origin: delta > 0 ? "top" : "bottom" });
+      setActive((a) => (a + delta + projects.length) % projects.length);
+    },
+    [projects.length],
+  );
+
+  const stepImage = useCallback(
+    (delta: number) => {
+      setReveal({ axis: "x", origin: delta > 0 ? "left" : "right" });
       setFrames((prev) => {
         const next = prev.slice();
-        next[i] = (next[i] + 1) % columnImages[i].length;
+        const total = columnImages[active]?.length ?? 1;
+        next[active] = ((next[active] ?? 0) + delta + total) % total;
         return next;
-      }),
-    [columnImages],
+      });
+    },
+    [columnImages, active],
   );
+
+  // Picking a project in the Index overlay jumps straight to it — no
+  // scrolling involved any more, just swap which one is shown.
+  useEffect(() => {
+    if (!scrollToSlug) return;
+    const i = projects.findIndex((p) => (p.slug ?? p.title) === scrollToSlug);
+    if (i >= 0) setActive(i);
+    onScrolled?.();
+  }, [scrollToSlug, onScrolled, projects]);
+
+  useEffect(() => {
+    if (!listens) return;
+    const el = containerRef.current;
+    if (!el) return;
+
+    // A step every so often rather than one per wheel/touchmove tick — those
+    // fire many times per physical gesture.
+    let cooling = false;
+    const COOLDOWN = 500;
+    const go = (delta: number) => {
+      if (cooling) return;
+      cooling = true;
+      stepProject(delta);
+      setTimeout(() => {
+        cooling = false;
+      }, COOLDOWN);
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (Math.abs(e.deltaY) < 10) return;
+      go(e.deltaY > 0 ? 1 : -1);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      const back = e.key === "ArrowUp" || (e.key === " " && e.shiftKey);
+      const on = e.key === "ArrowDown" || (e.key === " " && !e.shiftKey);
+      if (!back && !on) return;
+      e.preventDefault();
+      go(back ? -1 : 1);
+    };
+    let touchStart: number | null = null;
+    const onTouchStart = (e: TouchEvent) => {
+      touchStart = e.touches[0]?.clientY ?? null;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (touchStart === null) return;
+      const travelled = touchStart - (e.touches[0]?.clientY ?? touchStart);
+      if (Math.abs(travelled) < 40) return;
+      touchStart = null;
+      go(travelled > 0 ? 1 : -1);
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("keydown", onKey);
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKey);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [listens, stepProject]);
 
   // The two columns split the width until one is chosen, and then it takes
   // all of it — but the other keeps a sliver rather than collapsing to
@@ -211,6 +251,8 @@ function Strip({
     opened === null ? "w-[50vw]" : opened === section ? "w-screen" : "w-0";
 
   const shown = projects[active] ?? projects[0];
+  const shownImages = columnImages[active] ?? [];
+  const shownMedia = shownImages[frames[active] ?? 0] ?? shownImages[0];
 
   return (
     <div
@@ -228,44 +270,32 @@ function Strip({
         dismissed={opened !== null}
         onClick={onOpen}
       />
-      {/* Lenis owns this scroller rather than the page. The wrapper is what
-          scrolls; the column inside is h-max so it overflows and has
-          somewhere to scroll to. */}
-
-      <ReactLenis
-        ref={lenisRef}
-        className="w-full h-full overflow-y-auto overflow-x-hidden scrollbar-none [&::-webkit-scrollbar]:hidden"
-        options={{ orientation: "vertical", gestureOrientation: "both" }}
-      >
-        <div className="flex flex-col items-start h-dvh w-full gap-y-5.5 px-5.5 ">
-          {projects.map((p, i) => (
-            <Cover
-              key={p.slug ?? `${p.title}-${i}`}
-              project={p}
-              images={columnImages[i]}
-              frame={frames[i] ?? 0}
-              index={i}
-              columnOpen={opened === section}
-              onStep={step}
-              onEnter={setActive}
-            />
-          ))}
+      {shown && shownMedia && (
+        <div className="w-full h-full px-5.5">
+          <Cover
+            project={shown}
+            media={shownMedia}
+            columnOpen={opened === section}
+            onStepImage={stepImage}
+            reveal={reveal}
+          />
         </div>
-      </ReactLenis>
+      )}
 
-      {/* The caption, pinned to the column rather than the scroller so it holds
-          still while the covers move under it. It names whichever cover is in
-          view. `px-5.5` shares the covers' own inset — the same edge the nav
-          corners keep. `pointer-events-none` lets hover and clicks fall
-          through to the column behind it. The image counter travels with its
-          own cover instead — see Cover. */}
+      {/* The caption, pinned to the column rather than to any one cover, so
+          it names whichever project is currently shown. `px-5.5` shares the
+          cover's own inset — the same edge the nav corners keep.
+          `pointer-events-none` lets hover and clicks fall through to the
+          column behind it. */}
       {shown && (
-        <div className="pointer-events-none absolute inset-x-0 top-[66.6vh] z-10 flex flex-col gap-y-2 px-5.5 pb-5.5">
+        <div className="pointer-events-none absolute inset-x-0 top-[50vh] z-10 flex flex-col gap-y-2 px-5.5 pb-6">
           <InfoLayout
             title={shown.title}
             model={section === "personal" ? shown.client : undefined}
             client={section === "commissioned" ? shown.client : undefined}
             agency={shown.agency}
+            frame={(frames[active] ?? 0) + 1}
+            total={shownImages.length}
           />
         </div>
       )}
@@ -351,6 +381,10 @@ export default function HomeClient({
         <IndexSection
           projects={indexCategory === "personal" ? personal : commissioned}
           category={indexCategory}
+          // Home already holds both categories' projects, so swap which one
+          // is showing in place rather than navigating away and losing the
+          // open sheet.
+          onCategoryChange={(next) => setOpenedSection(next)}
           onSelect={(project) => {
             // Raise that column and scroll it to this project, then drop the
             // sheet — same shape as picking a section corner.

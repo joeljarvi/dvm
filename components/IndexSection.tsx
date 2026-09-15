@@ -14,7 +14,9 @@ import { Button } from "./ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
@@ -44,14 +46,24 @@ export default function IndexSection({
   projects = [],
   category,
   onSelect,
+  onCategoryChange,
 }: {
   projects?: Project[];
   category: Category;
   onSelect?: (project: Project) => void;
+  /** The caller already holds both categories' state (e.g. Home's opened
+   * section) — let it swap in the other one instead of navigating away. */
+  onCategoryChange?: (category: Category) => void;
 }) {
   const router = useRouter();
   const visibility = useProjectVisibility();
   const [hovered, setHovered] = useState<Project | null>(null);
+
+  const switchCategory = (next: Category) => {
+    if (next === category) return;
+    if (onCategoryChange) onCategoryChange(next);
+    else router.push(`/${next}`);
+  };
 
   // Real projects when Sanity answered, the name-only fallback otherwise —
   // the same degradation as the rest of the site. "All projects" mixes in
@@ -86,48 +98,69 @@ export default function IndexSection({
 
   return (
     <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-selecta font-medium text-lg lg:text-xl tracking-wide text-neutral-300 pt-30 lg:pt-0">
+      {/* Personal / Commissioned — a toggle like Selected/Show All below,
+          not just a label naming whichever one is already showing. Each its
+          own column rather than a shared flex row. */}
       <span className="hidden lg:block col-start-2 ">
-        {" "}
         <Button
           variant="link"
           size="sm"
-          className={` text-blue-700 col-start-3 `}
+          className={`hover:text-blue-700 ${category === "personal" ? "text-blue-700" : ""}`}
+          onClick={() => switchCategory("personal")}
         >
-          Personal Work
+          {LABEL.personal}
         </Button>
       </span>
+      <span className="hidden lg:block col-start-3 ">
+        <Button
+          variant="link"
+          size="sm"
+          className={`hover:text-blue-700 ${category === "commissioned" ? "text-blue-700" : ""}`}
+          onClick={() => switchCategory("commissioned")}
+        >
+          {LABEL.commissioned}
+        </Button>
+      </span>
+      {/* Mobile: one select for both category and visibility together,
+          rather than two separate ones — "Personal Work / Selected",
+          "Personal Work / All", and the same for Commissioned. */}
       <div className="flex justify-between items-center w-full lg:contents">
-        <span className="col-start-2 hidden ">
-          <Button
-            variant="link"
-            size="sm"
-            className={` text-blue-700 col-start-3 `}
-          >
-            {LABEL[category]}
-          </Button>
-        </span>
         <Select
-          value={visibility}
-          onValueChange={(v) => setProjectVisibility(v as Visibility)}
+          value={`${category}:${visibility}`}
+          onValueChange={(v) => {
+            const [nextCategory, nextVisibility] = v.split(":") as [
+              Category,
+              Visibility,
+            ];
+            switchCategory(nextCategory);
+            setProjectVisibility(nextVisibility);
+          }}
         >
           <SelectTrigger className="lg:hidden h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="z-1010 font-selecta text-[0.8rem] text-neutral-300 ring-transparent bg-background rounded-none">
-            <SelectItem value="selected">Selected Work</SelectItem>
-            <SelectItem value="all">Show All</SelectItem>
+            <SelectGroup>
+              <SelectLabel>{LABEL.personal}</SelectLabel>
+              <SelectItem value="personal:selected">
+                {LABEL.personal} – Selected
+              </SelectItem>
+              <SelectItem value="personal:all">
+                {LABEL.personal} – All
+              </SelectItem>
+            </SelectGroup>
+            <SelectGroup>
+              <SelectLabel>{LABEL.commissioned}</SelectLabel>
+              <SelectItem value="commissioned:selected">
+                {LABEL.commissioned} – Selected
+              </SelectItem>
+              <SelectItem value="commissioned:all">
+                {LABEL.commissioned} – All
+              </SelectItem>
+            </SelectGroup>
           </SelectContent>
         </Select>
       </div>
-      <span className="col-start-3 hidden lg:block">
-        <Button
-          variant="link"
-          size="sm"
-          className={` text-blue-700 col-start-3  `}
-        >
-          {LABEL[category]}
-        </Button>
-      </span>
       {/* Selected is the real, curated index; All mixes in the placeholder
         projects so a fuller list — and the carousel behind it, which reads
         the same toggle — can be visualized without real content. */}
@@ -158,7 +191,7 @@ export default function IndexSection({
           </li>
         ))}
       </ul>
-      <div className="hidden lg:flex absolute bottom-0 left-0 lg:col-start-3 justify-start items-start gap-x-4 px-5.5 text-sm">
+      <div className="hidden lg:flex absolute bottom-0 left-0 lg:col-start-2 justify-start items-start gap-x-4 px-5.5 text-sm">
         <Button
           variant="link"
           size="sm"
