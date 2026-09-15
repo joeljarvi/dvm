@@ -74,9 +74,7 @@ export default function ViewBrowser({
   const step = (delta: number) => {
     setColor(pick(palette));
     setRatio(pick(RATIOS));
-    setIndex(
-      (i) => (i + delta + effectiveList.length) % effectiveList.length,
-    );
+    setIndex((i) => (i + delta + effectiveList.length) % effectiveList.length);
   };
 
   // Arrow keys anywhere, swipe on touch. The click zones still work.
@@ -105,8 +103,8 @@ export default function ViewBrowser({
   usePublishBrowsing(current?.client);
 
   usePublishViewChrome(
-    <span className="flex items-center gap-x-2 h-8 px-2  ">
-      {current?.client && (
+    <span className=" items-center gap-x-2 h-8 px-2 hidden  ">
+      {current?.client && current.client !== current.title && (
         <span className=" uppercase tracking-wider w-full">
           {current.client}
         </span>
@@ -149,14 +147,14 @@ export default function ViewBrowser({
         {/* centered cover — click to open the project */}
         {current?.coverImageUrl ? (
           <img
-            src={sanityImage(current.coverImageUrl, { w: 1400 })}
+            src={sanityImage(current.coverImageUrl, { h: 1600 })}
             alt={current.title}
-            className="relative z-20 h-[50dvh] lg:h-[66.6dvh] w-auto max-w-xs lg:max-w-3xl object-cover cursor-pointer scale-100 hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform"
+            className="relative z-20 h-dvh w-auto max-w-xs lg:max-w-full object-cover cursor-pointer scale-100 hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] transform-gpu will-change-transform"
             onClick={openProject}
           />
         ) : (
           <div
-            className={`relative z-20 ${ratio} h-[50dvh] lg:h-[66.6dvh] max-w-xs lg:max-w-3xl ${color} cursor-pointer`}
+            className={`relative z-20 ${ratio} h-[50dvh] lg:h-dvh max-w-xs lg:max-w-3xl ${color} cursor-pointer`}
             onClick={openProject}
           />
         )}
@@ -167,7 +165,11 @@ export default function ViewBrowser({
         panelClassName="inset-x-0 bottom-0 h-dvh lg:bottom-auto lg:top-0"
         shadow={false}
       >
-        <IndexSection projects={list} category={panel} onSelect={jumpToProject} />
+        <IndexSection
+          projects={list}
+          category={panel}
+          onSelect={jumpToProject}
+        />
       </InfoOverlay>
     </>
   );

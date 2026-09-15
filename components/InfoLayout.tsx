@@ -31,8 +31,8 @@ export default function InfoLayout({
       </h3>
 
       <div className="justify-self-end flex flex-col items-end text-right">
-        {model && <h3>{model}</h3>}
-        {client && (
+        {model && model !== title && <h3>{model}</h3>}
+        {client && client !== title && (
           <h3
             className={`transition-colors duration-300  ease-out group-hover:text-blue-700 ${
               highlight ? "text-blue-700" : ""

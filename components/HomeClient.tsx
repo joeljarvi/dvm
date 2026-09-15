@@ -23,14 +23,19 @@ import IndexSection from "./IndexSection";
 
 // The images one project steps through. This carousel only ever shows
 // stills — video lives in the full project page — so video media is
-// filtered out here rather than handed to an <img>. A project with no
-// stills of its own still shows its cover — or, failing that, the
-// section's placeholder — so the counter reads 1 (1) rather than nothing.
+// filtered out here rather than handed to an <img>. The dedicated cover
+// leads (frame 0 is what the column opens on), followed by the rest of the
+// stills — a still that happens to duplicate the cover isn't repeated. A
+// project with no stills or cover of its own falls back to the section's
+// placeholder, so the counter reads 1 (1) rather than nothing.
 function coverImages(project: Project, fallbackSrc: string) {
   const stills = project.images?.filter((m) => m.type === "image") ?? [];
-  return stills.length
-    ? stills.map((m) => m.url)
-    : [project.coverImageUrl ?? fallbackSrc];
+  const urls = stills.map((m) => m.url);
+
+  if (project.coverImageUrl) {
+    return [project.coverImageUrl, ...urls.filter((u) => u !== project.coverImageUrl)];
+  }
+  return urls.length ? urls : [fallbackSrc];
 }
 
 // One project in a column: just its current image. Stepping through a
@@ -70,22 +75,20 @@ function Cover({
   }, [inView, index, onEnter]);
 
   return (
-    // Eight equal rows over the wrapper's height: the image takes 1–5 and the
-    // rest is the clearance the column's caption is pinned over. `data-slug`
-    // is how the Index overlay's jump-to-project finds this cover to scroll
-    // to — see Strip's scrollToSlug.
+    // Full-bleed: the image now fills the whole slot edge-to-edge, and the
+    // column's pinned caption (see Strip) overlays its lower third instead of
+    // sitting in space reserved below it. `data-slug` is how the Index
+    // overlay's jump-to-project finds this cover to scroll to — see Strip's
+    // scrollToSlug.
     <div
       data-slug={project.slug ?? project.title}
-      className="relative shrink-0 grid grid-rows-8 gap-y-3 pt-8 w-full h-[calc(100dvh-2.75rem)] lg:h-[calc(100dvh-3rem)]"
+      className="relative shrink-0 w-full h-screen"
     >
       <button
         ref={box}
         type="button"
         aria-label={`Next image of ${project.title}`}
-        // `min-h-0` lets this shrink into its five rows: a grid item's
-        // default `min-height: auto` refuses to go below its content, so the
-        // image would push past them and overflow the wrapper.
-        className="row-start-1 row-span-5 min-h-0 w-full cursor-pointer"
+        className="w-full h-dvh pt-5.5 lg:h-[calc(100vh-8rem)] cursor-pointer"
         // The click bubbles: every click inside a column hands it the width,
         // this one included. Stepping is held back until the column already
         // has it, so the first click on a narrow column only widens it
@@ -102,6 +105,11 @@ function Cover({
           className="w-full h-full object-contain object-top pointer-events-none"
         />
       </button>
+      {/* Attached to this cover rather than the column's pinned caption, so
+          it ticks over with the image it's counting rather than staying put. */}
+      <div className="pointer-events-none absolute bottom-0 inset-x-0 flex justify-center items-center">
+        <Counter frame={frame + 1} total={images.length} />
+      </div>
     </div>
   );
 }
@@ -211,7 +219,7 @@ function Strip({
       // A cover's own click navigates and this fires too, but the page is
       // leaving anyway — so it only takes effect on the ground around them.
       onClick={onOpen}
-      className={`group relative h-auto ${width} overflow-hidden pb-5.5 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-blue-700 ${background}`}
+      className={`group relative h-auto ${width} overflow-hidden pb-0 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
       onMouseLeave={() => setHoveredSection(null)}
     >
@@ -229,7 +237,7 @@ function Strip({
         className="w-full h-full overflow-y-auto overflow-x-hidden scrollbar-none [&::-webkit-scrollbar]:hidden"
         options={{ orientation: "vertical", gestureOrientation: "both" }}
       >
-        <div className="flex flex-col items-start h-dvh w-full gap-y-5.5 px-5.5 py-5.5">
+        <div className="flex flex-col items-start h-dvh w-full gap-y-5.5 px-5.5 ">
           {projects.map((p, i) => (
             <Cover
               key={p.slug ?? `${p.title}-${i}`}
@@ -247,17 +255,12 @@ function Strip({
 
       {/* The caption, pinned to the column rather than the scroller so it holds
           still while the covers move under it. It names whichever cover is in
-          view and ticks with that project's images. `px-5.5` shares the covers'
-          own inset — the same edge the nav corners keep. `pointer-events-none`
-          lets hover and clicks fall through to the column behind it. */}
+          view. `px-5.5` shares the covers' own inset — the same edge the nav
+          corners keep. `pointer-events-none` lets hover and clicks fall
+          through to the column behind it. The image counter travels with its
+          own cover instead — see Cover. */}
       {shown && (
         <div className="pointer-events-none absolute inset-x-0 top-[66.6vh] z-10 flex flex-col gap-y-2 px-5.5 pb-5.5">
-          <div className="flex justify-center">
-            <Counter
-              frame={(frames[active] ?? 0) + 1}
-              total={columnImages[active]?.length}
-            />
-          </div>
           <InfoLayout
             title={shown.title}
             model={section === "personal" ? shown.client : undefined}

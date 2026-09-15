@@ -93,7 +93,7 @@ export default function IndexSection({
           size="sm"
           className={` text-blue-700 col-start-3 `}
         >
-          Index
+          Personal Work
         </Button>
       </span>
       <div className="flex justify-between items-center w-full lg:contents">
@@ -131,7 +131,7 @@ export default function IndexSection({
       {/* Selected is the real, curated index; All mixes in the placeholder
         projects so a fuller list — and the carousel behind it, which reads
         the same toggle — can be visualized without real content. */}
-      <div className="hidden lg:flex lg:items-start lg:col-start-1 lg:row-start-2 h-[33.3dvh] px-5.5">
+      <div className="hidden lg:flex lg:items-start lg:col-start-2 pt-16 h-[33.3dvh] px-5.5">
         {previewImage && (
           <img
             src={sanityImage(previewImage, { w: 800 })}
@@ -140,7 +140,7 @@ export default function IndexSection({
           />
         )}
       </div>
-      <ul className="flex flex-col items-start justify-start w-full gap-y-0 pt-0 h-auto lg:h-[33.3dvh] lg:overflow-y-auto lg:grid  lg:content-start lg:gap-0 lg:space-y-0 lg:grid-cols-2 lg:col-start-3 lg:col-span-2 lg:row-start-2 mt-16 lg:mt-0 ">
+      <ul className="flex flex-col items-start justify-start w-full gap-y-0 pt-0 h-auto lg:h-auto lg:overflow-y-auto lg:grid  lg:content-start lg:gap-0 lg:space-y-0 lg:grid-cols-1 lg:col-start-3 lg:col-span-2  mt-16 lg:mt-0 ">
         {entries.map((project, i) => (
           <li
             key={projectKey(project, i)}
