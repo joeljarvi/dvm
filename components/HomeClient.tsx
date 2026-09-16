@@ -39,6 +39,12 @@ import IndexSection from "./IndexSection";
 function coverImages(project: Project, fallbackSrc: string): ProjectMedia[] {
   const stills = project.images?.filter((m) => m.type === "image") ?? [];
 
+  // A video cover takes precedence over an image one — same rule the studio
+  // description states — and, unlike a still, is never also one of the
+  // gallery's own images, so it's just prepended rather than deduped.
+  if (project.coverVideoUrl) {
+    return [{ url: project.coverVideoUrl, type: "file" }, ...stills];
+  }
   if (project.coverImageUrl) {
     const cover =
       stills.find((m) => m.url === project.coverImageUrl) ??
@@ -141,13 +147,27 @@ function Cover({
           className={`absolute inset-y-0 right-0 z-10 w-1/2 ${cursor}`}
           onClick={() => handleClick(1)}
         />
-        {/* `contain` fits the whole image without cropping; `object-top`
-            keeps the spare height underneath it rather than centring it. */}
-        <img
-          src={src.startsWith("/") ? src : sanityImage(src, { w: 1400 })}
-          alt={media.caption ?? ""}
-          className="w-full h-full object-contain object-center pointer-events-none"
-        />
+        {/* `contain` fits the whole thing without cropping; `object-center`
+            keeps it centered rather than pinned to an edge. A video cover
+            (see coverImages) plays muted and on loop, same as the gallery
+            grid's own video items in ProjectDetail. */}
+        {media.type === "file" ? (
+          <video
+            src={src}
+            className="w-full h-full object-contain object-center pointer-events-none"
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-label={media.caption}
+          />
+        ) : (
+          <img
+            src={src.startsWith("/") ? src : sanityImage(src, { w: 1400 })}
+            alt={media.caption ?? ""}
+            className="w-full h-full object-contain object-center pointer-events-none"
+          />
+        )}
       </div>
     </motion.div>
   );

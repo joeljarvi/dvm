@@ -7,6 +7,7 @@ export const PROJECT_FIELDS = `
   title,
   "slug": slug.current,
   "coverImageUrl": coverImage.asset->url,
+  "coverVideoUrl": coverVideo.asset->url,
   client,
   agency,
   year,
@@ -68,7 +69,7 @@ export async function fetchAbout(): Promise<About | null> {
           links[]{ title, url, description },
           "bioImageUrl": bioImage.asset->url
         },
-        "latestCommissionedCoverUrl": *[_type == "project" && category == "commissioned"] | order(dateAdded desc)[0].coverImage.asset->url
+        "latestCommissionedCoverUrl": *[_type == "project" && category == "commissioned" && defined(coverImage)] | order(dateAdded desc)[0].coverImage.asset->url
       }`,
       {},
       { next: { tags: ["about", "project"] } },

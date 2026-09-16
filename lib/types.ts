@@ -31,6 +31,8 @@ export type Project = {
   title: string;
   slug?: string;
   coverImageUrl?: string;
+  /** A video cover takes precedence over `coverImageUrl` when both are set. */
+  coverVideoUrl?: string;
   client?: string;
   agency?: string;
   year?: number;

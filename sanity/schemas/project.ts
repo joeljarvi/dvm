@@ -50,9 +50,17 @@ export const project = defineType({
     defineField({
       name: 'coverImage',
       title: 'Cover Image',
+      description:
+        'Ignored when a Cover Video is set below — one or the other should be filled in.',
       type: 'image',
       options: { hotspot: true },
-      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'coverVideo',
+      title: 'Cover Video',
+      description: 'Takes precedence over Cover Image when both are set.',
+      type: 'file',
+      options: { accept: 'video/*' },
     }),
     defineField({
       name: 'images',
@@ -124,4 +132,9 @@ export const project = defineType({
       by: [{ field: 'year', direction: 'desc' }],
     },
   ],
+  validation: (Rule) =>
+    Rule.custom((doc) => {
+      if (doc?.coverImage || doc?.coverVideo) return true
+      return 'Set a Cover Image or a Cover Video'
+    }),
 })
