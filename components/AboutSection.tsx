@@ -59,7 +59,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
   return (
     <div
       data-lenis-prevent
-      className="relative flex flex-col lg:grid pt-30 lg:pt-0 overflow-y-auto  grid-rows-[auto_auto_auto] lg:grid-cols-4 items-start justify-start w-full h-full   font-selecta font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-0  lg:tracking-normal px-5.5 text-blue-700 lg:text-neutral-300      "
+      className="relative flex flex-col lg:grid pt-30 lg:pt-0 overflow-y-auto  grid-rows-[auto_auto_auto] lg:grid-cols-4 items-start justify-start w-full h-full   font-selecta font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-0  lg:tracking-normal  text-blue-700 lg:text-neutral-300      "
     >
       <Button
         variant="link"
@@ -80,7 +80,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
       {/* Mobile: the same toggle as a Select, matching IndexSection's
           category/visibility one. */}
       <Select value={active} onValueChange={(v) => setActive(v as Section)}>
-        <SelectTrigger className="lg:hidden h-14 gap-1 font-normal text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
+        <SelectTrigger className="lg:hidden h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="z-1010 font-selecta text-[0.8rem] text-neutral-300 ring-transparent bg-background rounded-none">
@@ -91,7 +91,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
 
       {active === "bio" && (
         <>
-          <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full mb-0 lg:mb-0 lg:text-[0.8] font-normal leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full text-blue-700">
+          <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full mb-0 lg:mb-0 lg:text-[0.8] font-normal px-5.5 leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full text-blue-700">
             {about?.bio?.length ? (
               <PortableText value={about.bio} components={bioComponents} />
             ) : (
@@ -138,7 +138,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
             </Button>
           </span>
           {bioImageUrl && (
-            <div className="row-start-2 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start">
+            <div className="row-start-2 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start px-5.5 pb-14">
               <img
                 src={sanityImage(bioImageUrl, { w: 800 })}
                 alt=""
