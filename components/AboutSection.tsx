@@ -91,7 +91,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
 
       {active === "bio" && (
         <>
-          <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full mb-0 lg:mb-0 lg:text-[0.8] font-normal px-5.5 leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full text-blue-700">
+          <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full mb-0 lg:mb-0 lg:text-[0.8] font-normal px-5.5  lg:px-0 leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full text-blue-700">
             {about?.bio?.length ? (
               <PortableText value={about.bio} components={bioComponents} />
             ) : (
@@ -138,7 +138,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
             </Button>
           </span>
           {bioImageUrl && (
-            <div className="row-start-2 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start px-5.5 pb-14">
+            <div className="row-start-2 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start px-5.5 lg:px-0 lg:pb-0 pb-14">
               <img
                 src={sanityImage(bioImageUrl, { w: 800 })}
                 alt=""
@@ -158,14 +158,14 @@ export default function AboutSection({ about }: { about?: About | null }) {
               <Button
                 variant="link"
                 size="sm"
-                className="text-blue-700 lg:text-neutral-300 group-hover:text-blue-700 cursor-pointer lg:w-min text-left hover:text-blue-700 lg:px-0 lg:h-min justify-start"
+                className="text-blue-700 group-hover:text-blue-700 cursor-pointer lg:w-min text-left hover:text-blue-700 lg:px-0 lg:h-min justify-start"
                 asChild
               >
                 <Link href={link.url} target="_blank" rel="noopener noreferrer">
                   {link.title}
                 </Link>
               </Button>
-              <p className=" hidden lg:block mb-0 text-blue-700 lg:text-neutral-300 text-[0.8rem] hover:text-blue-700 group-hover:text-blue-700">
+              <p className=" hidden lg:block mb-0 text-blue-700 text-[0.8rem] hover:text-blue-700 group-hover:text-blue-700">
                 {link.description}
               </p>
             </div>
