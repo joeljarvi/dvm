@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { sanityImage } from "@/lib/image";
 import type { About } from "@/lib/types";
 
@@ -39,143 +46,132 @@ export default function AboutSection({ about }: { about?: About | null }) {
   const links = about?.links?.length ? about.links : FALLBACK_LINKS;
   const bioImageUrl = about?.bioImageUrl;
 
-  // Whichever of these two sits centered in the viewport reads blue; the
-  // other falls back to neutral. A zero-height line at the viewport's
-  // vertical center (via rootMargin) is what "centered" means here.
+  // Which panel is showing — a click-driven toggle like IndexSection's
+  // Personal/Commissioned, not a passive scrollspy: only one of the two
+  // ever renders at a time.
   const [active, setActive] = useState<Section>("bio");
-  const bioRef = useRef<HTMLDivElement>(null);
-  const linksRef = useRef<HTMLSpanElement>(null);
-  // Below lg everything just reads blue-700 — the scrollspy toggle between
-  // blue and neutral only applies once there's room for it to mean anything.
+  // Below lg everything just reads blue-700 — the toggle between blue and
+  // neutral only applies once there's room for both labels to sit side by
+  // side and mean something.
   const color = (section: Section) =>
     `text-blue-700 lg:${active === section ? "text-blue-700" : "text-neutral-300"}`;
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActive(entry.target === linksRef.current ? "links" : "bio");
-          }
-        }
-      },
-      { threshold: 0, rootMargin: "-50% 0px -50% 0px" },
-    );
-    if (bioRef.current) observer.observe(bioRef.current);
-    if (linksRef.current) observer.observe(linksRef.current);
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <div
       data-lenis-prevent
-      className="relative flex flex-col lg:grid pt-30 lg:pt-0 overflow-y-auto  grid-rows-[auto_auto_auto] lg:grid-cols-4 items-start justify-start w-full h-full   font-selecta font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-16  lg:tracking-normal px-5.5 text-blue-700 lg:text-neutral-300      "
+      className="relative flex flex-col lg:grid pt-30 lg:pt-0 overflow-y-auto  grid-rows-[auto_auto_auto] lg:grid-cols-4 items-start justify-start w-full h-full   font-selecta font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-0  lg:tracking-normal px-5.5 text-blue-700 lg:text-neutral-300      "
     >
       <Button
         variant="link"
         size="sm"
-        className={`hidden lg:flex col-start-2 w-min h-14  items-center px-0   font-normal ${color("bio")} `}
+        className={`hidden lg:flex col-start-2 w-min h-14  items-center px-0   font-normal ${color("links")} `}
+        onClick={() => setActive("links")}
       >
-        About
+        CV & Links
       </Button>
       <Button
         variant="link"
         size="sm"
         className={`hidden lg:flex col-start-3 w-min h-14  items-center px-0   font-normal ${color("bio")} `}
+        onClick={() => setActive("bio")}
       >
         Daniel von Malmborg
       </Button>
-      <h1 className={`lg:hidden   ${color("bio")}`}>Daniel von Malmborg</h1>
+      {/* Mobile: the same toggle as a Select, matching IndexSection's
+          category/visibility one. */}
+      <Select value={active} onValueChange={(v) => setActive(v as Section)}>
+        <SelectTrigger className="lg:hidden h-14 gap-1 font-normal text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="z-1010 font-selecta text-[0.8rem] text-neutral-300 ring-transparent bg-background rounded-none">
+          <SelectItem value="bio">Daniel von Malmborg</SelectItem>
+          <SelectItem value="links">CV & Links</SelectItem>
+        </SelectContent>
+      </Select>
 
-      <div
-        ref={bioRef}
-        className={`row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full mb-0 lg:mb-0 lg:text-[0.8] font-normal leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full ${color("bio")}`}
-      >
-        {about?.bio?.length ? (
-          <PortableText value={about.bio} components={bioComponents} />
-        ) : (
-          FALLBACK_BIO.map((paragraph, i) => (
-            <p key={i} className="indent-0 mb-0">
-              {paragraph}
-            </p>
-          ))
-        )}
-      </div>
-      <span className="col-start-1 lg:col-start-2  row-start-2 flex lg:flex-col flex-wrap gap-x-4  font-normal justify-start">
-        <Button
-          variant="link"
-          size="sm"
-          className="text-blue-700 lg:text-neutral-300 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto  justify-start"
-          asChild
-        >
-          <Link href={`tel:${phone}`} className=" ">
-            Phone
-          </Link>
-        </Button>
-        <Button
-          variant="link"
-          size="sm"
-          className="text-blue-700 lg:text-neutral-300 hover:text-blue-700 cursor-pointer w-min  text-left lg:px-0 lg:h-auto  justify-start"
-          asChild
-        >
-          <Link href={`mailto:${email}`}>Email</Link>
-        </Button>
-        <Button
-          variant="link"
-          size="sm"
-          className="text-blue-700 lg:text-neutral-300 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto   justify-start"
-          asChild
-        >
-          <Link
-            href={`https://instagram.com/${INSTAGRAM_HANDLE}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className=""
-          >
-            Instagram
-          </Link>
-        </Button>
-      </span>
-      {bioImageUrl && (
-        <div className="row-start-2 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start">
-          <img
-            src={sanityImage(bioImageUrl, { w: 800 })}
-            alt=""
-            className="w-full lg:w-full lg:aspect-video object-cover"
-          />
-        </div>
-      )}
-
-      <span
-        ref={linksRef}
-        className="col-start-1 lg:col-start-2 lg:col-span-2 row-start-4 flex flex-wrap  lg:grid grid-cols-2 items-baseline gap-x-5.5 gap-y-1  font-normal justify-start mb-16 lg:mb-16 "
-      >
-        {" "}
-        <Button
-          variant="link"
-          size="sm"
-          className={`hidden lg:flex col-start-1 lg:col-start-1 lg:col-span-2 ${color("links")} hover:text-blue-700 cursor-pointer w-min text-left  px-0 lg:h-auto  mb-4  justify-start`}
-        >
-          Links
-        </Button>
-        {links.map((link) => (
-          <div key={link.url} className="group contents row-span-1">
+      {active === "bio" && (
+        <>
+          <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full mb-0 lg:mb-0 lg:text-[0.8] font-normal leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full text-blue-700">
+            {about?.bio?.length ? (
+              <PortableText value={about.bio} components={bioComponents} />
+            ) : (
+              FALLBACK_BIO.map((paragraph, i) => (
+                <p key={i} className="indent-0 mb-0">
+                  {paragraph}
+                </p>
+              ))
+            )}
+          </div>
+          <span className="col-start-1 lg:col-start-2  row-start-2 flex lg:flex-col flex-wrap gap-x-4  font-normal justify-start">
             <Button
               variant="link"
               size="sm"
-              className="text-blue-700 lg:text-neutral-300 group-hover:text-blue-700 cursor-pointer lg:w-min text-left hover:text-blue-700 lg:px-0 lg:h-min justify-start"
+              className="text-blue-700 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto  justify-start"
               asChild
             >
-              <Link href={link.url} target="_blank" rel="noopener noreferrer">
-                {link.title}
+              <Link href={`tel:${phone}`} className=" ">
+                Phone
               </Link>
             </Button>
-            <p className=" hidden lg:block mb-0 text-blue-700 lg:text-neutral-300 text-[0.8rem] hover:text-blue-700 group-hover:text-blue-700">
-              {link.description}
-            </p>
-          </div>
-        ))}
-      </span>
+            <Button
+              variant="link"
+              size="sm"
+              className="text-blue-700 hover:text-blue-700 cursor-pointer w-min  text-left lg:px-0 lg:h-auto  justify-start"
+              asChild
+            >
+              <Link href={`mailto:${email}`}>Email</Link>
+            </Button>
+            <Button
+              variant="link"
+              size="sm"
+              className="text-blue-700 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto   justify-start"
+              asChild
+            >
+              <Link
+                href={`https://instagram.com/${INSTAGRAM_HANDLE}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className=""
+              >
+                Instagram
+              </Link>
+            </Button>
+          </span>
+          {bioImageUrl && (
+            <div className="row-start-2 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start">
+              <img
+                src={sanityImage(bioImageUrl, { w: 800 })}
+                alt=""
+                className="w-full lg:w-full lg:aspect-video object-cover"
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {active === "links" && (
+        // CV goes here too once there is one — this panel isn't only the
+        // link list, just all it renders for now.
+        <span className="col-start-1 lg:col-start-2 lg:col-span-2 row-start-2 flex flex-wrap  lg:grid grid-cols-2 items-baseline gap-x-5.5 gap-y-1  font-normal justify-start mb-16 lg:mb-16 ">
+          {links.map((link) => (
+            <div key={link.url} className="group contents row-span-1">
+              <Button
+                variant="link"
+                size="sm"
+                className="text-blue-700 lg:text-neutral-300 group-hover:text-blue-700 cursor-pointer lg:w-min text-left hover:text-blue-700 lg:px-0 lg:h-min justify-start"
+                asChild
+              >
+                <Link href={link.url} target="_blank" rel="noopener noreferrer">
+                  {link.title}
+                </Link>
+              </Button>
+              <p className=" hidden lg:block mb-0 text-blue-700 lg:text-neutral-300 text-[0.8rem] hover:text-blue-700 group-hover:text-blue-700">
+                {link.description}
+              </p>
+            </div>
+          ))}
+        </span>
+      )}
     </div>
   );
 }

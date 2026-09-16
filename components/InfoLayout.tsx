@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "motion/react";
 import Counter from "@/components/Counter";
 
 // The metadata line under a cover: what the work is on the left, who it was
@@ -23,8 +24,20 @@ export default function InfoLayout({
   /** The cover is the one in view, so its title is lit without a pointer. */
   highlight?: boolean;
 }) {
-  const credits = [model, client, agency].filter(Boolean);
-  if (!title && !credits.length && frame === undefined) return null;
+  // Only up while gallery mode is on — see HomeClient — so each comes and
+  // goes with it rather than sitting there permanently.
+  const credited =
+    model && model !== title
+      ? { key: "model" as const, text: model }
+      : client && client !== title
+        ? { key: "client" as const, text: client }
+        : null;
+  const lines = [
+    credited,
+    agency ? { key: "agency" as const, text: agency } : null,
+  ].filter((line): line is { key: "model" | "client" | "agency"; text: string } => line !== null);
+
+  if (!title && !lines.length && frame === undefined) return null;
 
   return (
     <div className="flex  justify-between items-baseline gap-x-4 w-full font-selecta  font-normal px-0 tracking-wide text-[0.8rem] text-neutral-400">
@@ -39,18 +52,33 @@ export default function InfoLayout({
         >
           {title}
         </h3>
-        {model && model !== title && <h3>{model}</h3>}
-        {client && client !== title && (
-          <h3
-            className={`transition-colors duration-300  ease-out group-hover:text-blue-700 ${
-              highlight ? "text-blue-700" : ""
-            }`}
-          >
-            {client}
-          </h3>
-        )}
-        {/* Set apart from the credits above it when there is one. */}
-        {agency && <h3 className="text-neutral-400"> {agency} </h3>}
+        {/* Staggered in as gallery mode opens, staggered back out as it
+            closes — each line's own delay, shared by its entrance and its
+            exit, is what gives both directions the same rhythm. */}
+        <AnimatePresence>
+          {lines.map((line, i) => (
+            <motion.h3
+              key={line.key}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{
+                duration: 0.3,
+                ease: [0.22, 1, 0.36, 1],
+                delay: i * 0.08,
+              }}
+              className={
+                line.key === "agency"
+                  ? "text-neutral-400"
+                  : `transition-colors duration-300 ease-out group-hover:text-blue-700 ${
+                      highlight ? "text-blue-700" : ""
+                    }`
+              }
+            >
+              {line.key === "agency" ? ` ${line.text} ` : line.text}
+            </motion.h3>
+          ))}
+        </AnimatePresence>
       </div>
       <Counter frame={frame} total={total} />
     </div>

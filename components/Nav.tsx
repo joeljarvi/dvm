@@ -91,88 +91,8 @@ export default function Nav() {
   const inSection = inPersonal || inCommissioned;
   const leaf = crumb ?? (browsing ? slugify(browsing) : null);
 
-  // `short` is the stacked-layout spelling — com / per / all — where the full
-  // word would crowd the crumbs after it. Hyphens inside a label, since the
-  // underscore is what separates one crumb from the next.
-  const trail: {
-    label: string;
-    short?: string;
-    href?: string;
-    onClick?: () => void;
-  }[] = inSection
-    ? [
-        { label: section, short: section.slice(0, 3), href: `/${section}` },
-        { label: "all-projects", short: "all", href: `/${section}` },
-        // Stepping back to the project is what closes an open item.
-        ...(leaf
-          ? [{ label: leaf, onClick: item ? closeItem : undefined }]
-          : []),
-        ...(item ? [{ label: `${item.index + 1}_${item.count}` }] : []),
-      ]
-    : [];
-
-  // Only the first crumb carries a short form; the rest read the same at
-  // either width.
-  const crumbText = (c: (typeof trail)[number]) =>
-    c.short ? (
-      <>
-        <span className="lg:hidden">{c.short}</span>
-        <span className="hidden lg:inline">{c.label}</span>
-      </>
-    ) : (
-      c.label
-    );
-
-  const renderTrail = () =>
-    trail.map((c, i) => {
-      const last = i === trail.length - 1;
-      const link =
-        "w-auto px-0 h-full text-blue-700 transition-colors duration-300 ease-out";
-      // With an item open there is no room along a stacked edge for the whole
-      // trail, so only its tail stands there — the project and its counter.
-      // The wrapper takes the class so a crumb's separator goes with it.
-      const head = item !== null && i < trail.length - 2;
-      return (
-        <span
-          key={c.label}
-          className={`flex flex-row gap-0 items-center ${head ? "hidden lg:flex" : ""}`}
-        >
-          {c.onClick ? (
-            <Button variant="link" className={link} onClick={c.onClick}>
-              {crumbText(c)}
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant="link"
-                className={link}
-                aria-current={last && !c.href ? "page" : undefined}
-                asChild
-              >
-                {c.href ? (
-                  <Link href={c.href}>{crumbText(c)}</Link>
-                ) : (
-                  <span>{crumbText(c)}</span>
-                )}
-              </Button>
-              <span
-                aria-hidden
-                className="font-selecta text-base text-blue-700"
-              >
-                _
-              </span>
-            </>
-          )}
-        </span>
-      );
-    });
-
-  // One shape for all four corners, identical at both breakpoints. `z-1000`
-  // clears every overlay on the site — the About/Index sheets, the stacked
-  // section plates, the project reader — so the nav is always there to leave
-  // by, whatever is open over the page.
   const corner = (place: string) =>
-    `fixed ${place} z-[1000] flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${chrome}`;
+    `fixed ${place} z-[80] flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${chrome}`;
 
   const cornerLink =
     "px-5.5 py-4 w-auto h-full bg-transparent h-14 hover:bg-transparent hover:text-neutral-400 active:text-blue-700 active:bg-transparent ";

@@ -164,19 +164,32 @@ export default function IndexSection({
       {/* Selected is the real, curated index; All mixes in the placeholder
         projects so a fuller list — and the carousel behind it, which reads
         the same toggle — can be visualized without real content. */}
-      <div className="hidden lg:flex lg:items-start lg:col-start-2 pt-16 h-[33.3dvh] px-5.5">
+      {/* `absolute inset-0` rather than a grid cell: it needs to sit behind
+          the list, in the same space, not stacked in its own row above it —
+          a plain grid item can only ever be beside or between the others,
+          never underneath. `-z-10` only takes effect because it's
+          positioned now; on a static element z-index is a no-op. */}
+      <div className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5 py-30 ">
         {previewImage && (
           <img
             src={sanityImage(previewImage, { w: 800 })}
             alt={hovered?.title ?? ""}
-            className="max-h-[33.3dvh] w-auto object-contain"
+            className="h-full w-auto object-contain  "
           />
         )}
       </div>
-      <ul className="flex flex-col items-start justify-start w-full gap-y-0 pt-0 h-auto lg:h-auto lg:overflow-y-auto lg:grid  lg:content-start lg:gap-0 lg:space-y-0 lg:grid-cols-1 lg:col-start-3 lg:col-span-2  mt-16 lg:mt-0 ">
+      {/* `columns-2` rather than a grid: a grid's row-major auto-placement
+          alternates items between the two columns and stretches the rows to
+          fill the container, leaving big gaps. Multi-column flows items
+          straight down, packing the first column solid before spilling into
+          the second — `column-fill:auto` is what forces that fill order
+          instead of the browser balancing the two evenly. `relative z-10`
+          keeps it above the preview backdrop rather than under it. */}
+      <ul className="relative z-10 columns-2 [column-fill:auto] items-start justify-start w-full gap-x-0 pt-0 h-[50dvh] lg:h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:col-start-3 lg:col-span-2 lg:self-start mt-16 lg:mt-0">
         {entries.map((project, i) => (
           <li
             key={projectKey(project, i)}
+            className="break-inside-avoid"
             onMouseEnter={() => setHovered(project)}
             onMouseLeave={() => setHovered(null)}
           >
@@ -184,7 +197,7 @@ export default function IndexSection({
               variant="link"
               size="sm"
               onClick={() => select(project)}
-              className="w-full min-w-0 h-auto truncate  justify-start lg:h-auto  text-left cursor-pointer hover:text-blue-700"
+              className="     truncate h-auto  justify-start   text-left cursor-pointer hover:text-blue-700"
             >
               {project.client ?? project.title}
             </Button>
