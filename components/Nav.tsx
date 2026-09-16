@@ -5,11 +5,9 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { closeTop } from "@/lib/modalStack";
 import { useIntro } from "@/lib/intro";
-import { closeItem, useBrowsing, useItem } from "@/lib/crumb";
 import { setOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
 import { closeIndex, openIndex, useIndexOpen } from "@/lib/indexOverlay";
-import { slugify } from "@/lib/slug";
 import Link from "next/link";
 
 export default function Nav() {
@@ -66,31 +64,6 @@ export default function Nav() {
     (onHome && hash === "index") ||
     (onBrowser && indexOpen);
 
-  const segments = pathname.split("/").filter(Boolean);
-
-  // Keyed to the section rather than the exact path, so the breadcrumb
-  // survives opening a project.
-  const inCommissioned = segments[0] === "commissioned";
-
-  // The open project's slug, shown verbatim — `kirkeby-x-bjork-and-berries`
-  // rather than its title. It is already in the path, so the breadcrumb reads
-  // it from there and needs nothing published to it.
-  const crumb = segments[1] ? decodeURIComponent(segments[1]) : null;
-
-  const browsing = useBrowsing();
-
-  // Which item of the open project is up, if any — the last link in the trail.
-  const item = useItem();
-
-  const inPersonal = segments[0] === "personal";
-
-  // The breadcrumb hangs off whichever section label you are inside, so it
-  // grows away from its own corner. Everything after the section reads as a
-  // file name — see lib/slug.
-  const section = segments[0];
-  const inSection = inPersonal || inCommissioned;
-  const leaf = crumb ?? (browsing ? slugify(browsing) : null);
-
   const corner = (place: string) =>
     `fixed ${place} z-[80] flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${chrome}`;
 
@@ -101,9 +74,8 @@ export default function Nav() {
     <>
       {/* The two sections hold the top corners, About and Index the bottom
           ones. The section pair are controls rather than links: each hands
-          the width to its own column on home — see lib/section. Each section label carries the breadcrumb when you are inside
-          it, so the trail grows inward from its own corner. `data-nav` pairs
-          the top two with the home panels through globals.css. */}
+          the width to its own column on home — see lib/section. `data-nav`
+          pairs the top two with the home panels through globals.css. */}
       <span className={corner("top-0 left-0 justify-start")}>
         <Button
           data-nav="personal"
@@ -117,7 +89,6 @@ export default function Nav() {
         >
           Personal
         </Button>
-        {inPersonal && renderTrail()}
       </span>
 
       <span className={corner("top-0 right-0 justify-end")}>
@@ -133,7 +104,6 @@ export default function Nav() {
         >
           Commissioned
         </Button>
-        {inCommissioned && renderTrail()}
       </span>
 
       <span className={corner("bottom-0 lg:bottom-0 left-0 justify-start")}>
