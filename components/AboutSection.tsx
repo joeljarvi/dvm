@@ -64,7 +64,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
       <Button
         variant="link"
         size="sm"
-        className={`hidden lg:flex col-start-2 w-min h-14  items-center px-0   font-normal ${color("links")} `}
+        className={`hidden lg:flex col-start-2 w-min h-14  items-center px-0   font-normal hover:text-blue-700 `}
         onClick={() => setActive("links")}
       >
         CV & Links

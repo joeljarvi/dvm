@@ -45,9 +45,13 @@ const pick = (p: string[]) => p[Math.floor(Math.random() * p.length)];
 // Rendered by both the full page (/[view]) and the intercepted modal.
 export default function ViewBrowser({
   list,
+  siblingList,
   panel,
 }: {
   list: Project[];
+  /** The other category's projects — carried only so the Index sheet raised
+   * here can show both lists at once, per IndexSection. */
+  siblingList: Project[];
   panel: "personal" | "commissioned";
 }) {
   const router = useRouter();
@@ -65,7 +69,7 @@ export default function ViewBrowser({
   // "All projects" (Index's own toggle) mixes this panel's placeholder
   // projects into the carousel too, so there is something to reveal and step
   // through.
-  const visibility = useProjectVisibility();
+  const visibility = useProjectVisibility(panel);
   const effectiveList =
     visibility === "all" ? [...list, ...extraProjects[panel]] : list;
 
@@ -97,6 +101,18 @@ export default function ViewBrowser({
       setIndex(i);
     }
     closeIndex();
+  };
+
+  // A project picked from this panel's own list jumps the carousel in place;
+  // one picked from the sibling category has no carousel here to jump
+  // within, so it navigates to that project's own page instead.
+  const selectFromIndex = (project: Project, category: "personal" | "commissioned") => {
+    if (category === panel) {
+      jumpToProject(project);
+      return;
+    }
+    closeIndex();
+    if (project.slug) router.push(`/${category}/${project.slug}`);
   };
 
   // The nav's breadcrumb tails off with whatever cover is up.
@@ -166,9 +182,12 @@ export default function ViewBrowser({
         shadow={false}
       >
         <IndexSection
-          projects={list}
-          category={panel}
-          onSelect={jumpToProject}
+          projects={
+            panel === "personal"
+              ? { personal: list, commissioned: siblingList }
+              : { personal: siblingList, commissioned: list }
+          }
+          onSelect={selectFromIndex}
         />
       </InfoOverlay>
     </>

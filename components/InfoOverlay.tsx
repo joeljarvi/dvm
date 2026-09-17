@@ -42,7 +42,7 @@ export default function InfoOverlay({
         }`}
       />
       <div
-        className={`absolute ${panelClassName} bg-background/90 backdrop-blur-sm ${shadow ? "shadow-2xl" : ""} transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`absolute ${panelClassName} bg-background/80 backdrop-blur-xs ${shadow ? "shadow-2xl" : ""} transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           open ? "translate-y-0" : "translate-y-full"
         }`}
       >

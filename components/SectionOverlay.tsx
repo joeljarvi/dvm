@@ -18,14 +18,14 @@ export default function SectionOverlay({
       type="button"
       onClick={onClick}
       aria-label={`Show ${section}`}
-      className={`group/overlay  absolute z-900 inset-0 bg-background/20 hover:bg-background/10 backdrop-blur-md transition-all duration-700 ease-out flex items-center justify-center ${
+      className={`group/overlay  absolute z-900 inset-0 bg-background/90 hover:bg-background/80 backdrop-blur-xs transition-all duration-700 ease-out flex items-center justify-center cursor-pointer ${
         dismissed ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
       {/* Named group: the column behind this is a `group` too, and an
           unnamed `group-*` answers to any matching ancestor. */}
       <h2
-        className={` ${section === "personal" ? "-rotate-90 lg:rotate-0" : "rotate-90 lg:rotate-0"} font-selecta text-base tracking-wide font-medium text-neutral-400 transition-colors duration-200 ease-out group-hover/overlay:text-blue-700 group-active/overlay:text-blue-700`}
+        className={`capitalize ${section === "personal" ? "-rotate-90 lg:rotate-0" : "rotate-90 lg:rotate-0"} font-selecta text-[0.8rem] tracking-wide font-normal text-neutral-400 transition-colors duration-200 ease-out group-hover/overlay:text-blue-700 group-active/overlay:text-blue-700`}
       >
         {section}
       </h2>

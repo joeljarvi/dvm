@@ -14,6 +14,7 @@ import LenisSnap from "lenis/snap";
 import type { About, Project, ProjectMedia } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { useIntro } from "@/lib/intro";
+import { useIsDesktop } from "@/lib/media";
 import {
   setHoveredSection,
   useHoveredSection,
@@ -95,6 +96,11 @@ function Cover({
     if (inView) onEnter();
   }, [inView, onEnter]);
 
+  // Same expanded/resting rhythm at both sizes, just roomier once there's
+  // width to spare — matches Tailwind's own `lg` breakpoint.
+  const desktop = useIsDesktop();
+  const padding = expanded ? (desktop ? 56 : 23) : desktop ? 120 : 120;
+
   // The first click only opens the gallery — dropping the padding to py-6
   // without moving off the cover image. Once open, the same zones step
   // through the project's own images — until the last one, where a further
@@ -123,10 +129,10 @@ function Cover({
     <motion.div
       ref={box}
       data-slug={project.slug ?? project.title}
-      className="relative shrink-0 w-full h-screen flex flex-col"
+      className="relative shrink-0 w-full group h-screen flex flex-col"
       animate={{
-        paddingTop: expanded ? 23 : 120,
-        paddingBottom: expanded ? 23 : 120,
+        paddingTop: padding,
+        paddingBottom: padding,
       }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
     >
@@ -261,6 +267,9 @@ function Strip({
   const [expanded, setExpanded] = useState<boolean[]>(() =>
     projects.map(() => false),
   );
+  // The caption only sinks for gallery mode's extra lines on desktop —
+  // mobile has no room to spare, so it stays put at 50vh throughout.
+  const desktop = useIsDesktop();
 
   const expandCover = useCallback((index: number) => {
     setExpanded((prev) => {
@@ -429,18 +438,40 @@ function Strip({
           it names whichever project is currently in view. `px-5.5` shares
           the cover's own inset — the same edge the nav corners keep.
           `pointer-events-none` lets hover and clicks fall through to the
-          column behind it. */}
+          column behind it. Gallery mode adds a line above (title) and one
+          below (agency), so on desktop the block sinks from the resting
+          50vh down to 66.6vh — animated with mass rather than a plain ease,
+          so it reads as the extra lines' own weight dragging it down rather
+          than a UI panel just sliding. Mobile has no room to spare, so it
+          stays fixed at 50vh regardless of gallery mode. */}
       {shown && (
-        <div className="pointer-events-none absolute inset-x-0 top-[50vh] z-10 flex flex-col gap-y-2 px-5.5 pb-6">
+        <motion.div
+          className="pointer-events-none absolute inset-x-0 z-10 flex flex-col gap-y-2 px-5.5 pb-6"
+          animate={{
+            top: desktop && expanded[active] ? "62.5vh" : "62.5vh",
+          }}
+          transition={{
+            type: "spring",
+            mass: 1.4,
+            stiffness: 120,
+            damping: 16,
+          }}
+        >
           <InfoLayout
             title={shown.title}
             model={section === "personal" ? shown.client : undefined}
             client={section === "commissioned" ? shown.client : undefined}
             agency={expanded[active] ? shown.agency : undefined}
-            frame={expanded[active] ? (frames[active] ?? 0) + 1 : undefined}
-            total={expanded[active] ? shownImages.length : undefined}
+            revealed={expanded[active]}
+            frame={(frames[active] ?? 0) + 1}
+            total={shownImages.length}
+            // Gallery mode shows the counter everywhere; resting on the
+            // cover, it's desktop-only — mobile keeps it hidden until then.
+            counterClassName={
+              expanded[active] ? undefined : "hidden lg:inline-flex"
+            }
           />
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -474,11 +505,8 @@ export default function HomeClient({
 
   // A project picked in the Index sheet, handed down to both columns to
   // scroll to — only the one that actually holds it will move; cleared once
-  // acted on. Which category the Index itself shows follows whichever column
-  // is currently raised, defaulting to commissioned when neither is.
+  // acted on.
   const [jumpSlug, setJumpSlug] = useState<string | null>(null);
-  const indexCategory: "personal" | "commissioned" =
-    opened === "personal" ? "personal" : "commissioned";
 
   // The card's own rows, one beat apart, coming in as the name fades out.
   const row = (n: number) =>
@@ -522,16 +550,11 @@ export default function HomeClient({
         shadow={false}
       >
         <IndexSection
-          projects={indexCategory === "personal" ? personal : commissioned}
-          category={indexCategory}
-          // Home already holds both categories' projects, so swap which one
-          // is showing in place rather than navigating away and losing the
-          // open sheet.
-          onCategoryChange={(next) => setOpenedSection(next)}
-          onSelect={(project) => {
-            // Raise that column and scroll it to this project, then drop the
-            // sheet — same shape as picking a section corner.
-            setOpenedSection(indexCategory);
+          projects={{ personal, commissioned }}
+          onSelect={(project, category) => {
+            // Raise that project's own column and scroll it into view, then
+            // drop the sheet — same shape as picking a section corner.
+            setOpenedSection(category);
             setJumpSlug(project.slug ?? project.title);
             setHash("");
           }}
