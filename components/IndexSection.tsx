@@ -8,8 +8,18 @@ import { clients, models, extraProjects } from "@/lib/data";
 import {
   setProjectVisibility,
   useProjectVisibility,
+  type Visibility,
 } from "@/lib/projectVisibility";
 import { Button } from "./ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 export type Category = "commissioned" | "personal";
 
@@ -50,13 +60,22 @@ const projectKey = (project: Project, i: number) =>
 export default function IndexSection({
   projects,
   onSelect,
+  initialCategory = "personal",
 }: {
   /** Both categories' project lists — Home already holds both; other callers
    * hand in their own fetched list plus the sibling category's. */
   projects: Record<Category, Project[]>;
   onSelect?: (project: Project, category: Category) => void;
+  /** Which list the mobile toggle (see `mobileCategory` below) opens on —
+   * e.g. ViewBrowser hands in whichever panel it's already browsing. */
+  initialCategory?: Category;
 }) {
   const router = useRouter();
+  // Desktop shows both lists side by side; mobile has room for only one, so
+  // it gets its own toggle instead — see the `lg:hidden` row below and each
+  // column's `hidden lg:flex` visibility.
+  const [mobileCategory, setMobileCategory] =
+    useState<Category>(initialCategory);
   // One hook call per category (a fixed, constant-length pair) rather than
   // inside the render loop below — each list's toggle only ever touches its
   // own category's mode, never the sibling's.
@@ -112,15 +131,56 @@ export default function IndexSection({
           a plain grid item can only ever be beside or between the others,
           never underneath. `-z-10` only takes effect because it's
           positioned now; on a static element z-index is a no-op. */}
-      <div className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5 py-30 ">
+      <div className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5 ">
         {previewImage && (
-          <img
-            src={sanityImage(previewImage, { w: 800 })}
-            alt={hovered?.title ?? ""}
-            className="h-full w-auto object-contain opacity-20 e blur-xs  "
-          />
+          <div className="relative w-full h-full bg-background flex items-center justify-center py-30 ">
+            <img
+              src={sanityImage(previewImage, { w: 800 })}
+              alt={hovered?.title ?? ""}
+              className="h-full w-auto object-contain  blur-xs  opacity-20  "
+            />
+          </div>
         )}
       </div>
+
+      {/* Mobile only — desktop's grid already puts both lists on screen at
+          once and each gets its own pinned Selected/Show All, but there's no
+          room for two lists (let alone four extra buttons) below lg, so one
+          Select stands in for both the category switch and that list's own
+          visibility toggle. */}
+      <Select
+        value={`${mobileCategory}:${visibility[mobileCategory]}`}
+        onValueChange={(v) => {
+          const [nextCategory, nextVisibility] = v.split(":") as [
+            Category,
+            Visibility,
+          ];
+          setMobileCategory(nextCategory);
+          setProjectVisibility(nextCategory, nextVisibility);
+        }}
+      >
+        <SelectTrigger className="lg:hidden h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="z-1010 font-selecta text-[0.8rem] text-neutral-300 ring-transparent bg-background rounded-none">
+          <SelectGroup>
+            <SelectLabel>{LABEL.personal}</SelectLabel>
+            <SelectItem value="personal:selected">
+              {LABEL.personal} – Selected
+            </SelectItem>
+            <SelectItem value="personal:all">{LABEL.personal} – All</SelectItem>
+          </SelectGroup>
+          <SelectGroup>
+            <SelectLabel>{LABEL.commissioned}</SelectLabel>
+            <SelectItem value="commissioned:selected">
+              {LABEL.commissioned} – Selected
+            </SelectItem>
+            <SelectItem value="commissioned:all">
+              {LABEL.commissioned} – All
+            </SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
 
       {CATEGORIES.map((category) => {
         const entries = entriesFor(category);
@@ -128,7 +188,7 @@ export default function IndexSection({
         return (
           <div
             key={category}
-            className={`relative z-10 flex flex-col w-full h-[50dvh] lg:h-screen mt-16 first:mt-0 lg:mt-0 ${COLUMN[category]}`}
+            className={`${category === mobileCategory ? "flex" : "hidden"} lg:flex relative z-10 flex-col w-full h-dvh lg:h-screen ${COLUMN[category]}`}
           >
             {/* Pinned to this category's own top edge, mirroring the footer
                 below — the heading never scrolls with the list, and the
@@ -150,10 +210,12 @@ export default function IndexSection({
                 instead of the browser balancing the two evenly. Personal's
                 single grid column has no room for a second sub-column.
                 `pt-14`/`pb-14` keep the first and last rows clear of the
-                heading and footer pinned above/below, since both are
-                `absolute` and out of this flow. */}
+                heading and footer pinned above/below on desktop, since both
+                are `absolute` and out of this flow — mobile has neither
+                (the Select above stands in for both), so it needs none of
+                that reserved space. */}
             <ul
-              className={`${category === "commissioned" ? "columns-2 [column-fill:auto]" : ""} items-start justify-start w-full gap-x-0 pt-0 lg:pt-14 pb-14 flex-1 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden`}
+              className={`${category === "commissioned" ? "columns-2 [column-fill:auto]" : ""} items-start justify-start w-full gap-x-0 pt-0 lg:pt-14 pb-0 lg:pb-14 flex-1 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden`}
             >
               {entries.map((project, i) => (
                 <li
@@ -180,8 +242,10 @@ export default function IndexSection({
                 `via` stop, so text scrolling under it fades out gradually
                 rather than cutting off hard at the row's edge; it's
                 `pointer-events-none` so the blank space above the buttons
-                doesn't block clicks/hover on the list underneath. */}
-            <div className="absolute bottom-0 left-0 w-full h-32 flex items-end justify-start px-5.5 text-sm bg-linear-to-t from-background from-25% via-background/70 via-55% to-transparent pointer-events-none">
+                doesn't block clicks/hover on the list underneath. Desktop
+                only — mobile's Select above already covers this list's own
+                visibility toggle. */}
+            <div className="hidden lg:flex absolute bottom-0 left-0 w-full h-32 items-end justify-start px-5.5 text-sm bg-linear-to-t from-background from-25% via-background/70 via-55% to-transparent pointer-events-none">
               <div className="flex items-center gap-x-4 h-14 pointer-events-auto">
                 <Button
                   variant="link"

@@ -188,6 +188,7 @@ export default function ViewBrowser({
               : { personal: siblingList, commissioned: list }
           }
           onSelect={selectFromIndex}
+          initialCategory={panel}
         />
       </InfoOverlay>
     </>

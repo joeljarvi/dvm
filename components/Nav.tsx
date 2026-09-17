@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { closeTop } from "@/lib/modalStack";
 import { useIntro } from "@/lib/intro";
-import { setOpenedSection } from "@/lib/section";
+import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
 import { closeIndex, openIndex, useIndexOpen } from "@/lib/indexOverlay";
 import Link from "next/link";
@@ -27,6 +27,10 @@ export default function Nav() {
   // carousel instead of navigating to /archive — see lib/indexOverlay.
   const indexOpen = useIndexOpen();
   const onBrowser = pathname === "/commissioned" || pathname === "/personal";
+
+  // Before either home column has been chosen, About/Index have nothing to
+  // sit below yet — see the corner gating further down.
+  const opened = useOpenedSection();
 
   // Nothing in the nav exists until the card has handed the page over. State
   // only — each element declares its own transition, and twMerge keeps the
@@ -64,8 +68,22 @@ export default function Nav() {
     (onHome && hash === "index") ||
     (onBrowser && indexOpen);
 
-  const corner = (place: string) =>
-    `fixed ${place} z-[80] flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${chrome}`;
+  // Home starts with neither column chosen — both split the width evenly
+  // and About/Index have no page beneath them yet, so they stay hidden
+  // until a corner (or a column tap) picks one.
+  const chosen = !onHome || opened !== null;
+
+  // On home, before either column is picked, the two corners that make that
+  // pick don't need to sit through the intro card's own timeline — they
+  // fade in on mount, on their own. Once a column is chosen (or off home
+  // entirely), they settle into the same arrival as the rest of the nav.
+  const directChrome = "animate-in fade-in duration-700 ease-out";
+  const topChrome = onHome && !chosen ? directChrome : chrome;
+
+  const corner = (place: string, visible = true, arrival = chrome) =>
+    `fixed ${place} z-[2000] flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${arrival} ${
+      visible ? "" : "opacity-0 pointer-events-none"
+    }`;
 
   const cornerLink =
     "px-5.5 py-4 w-auto h-full bg-transparent h-14 hover:bg-transparent hover:text-neutral-400 active:text-blue-700 active:bg-transparent ";
@@ -76,7 +94,7 @@ export default function Nav() {
           ones. The section pair are controls rather than links: each hands
           the width to its own column on home — see lib/section. `data-nav`
           pairs the top two with the home panels through globals.css. */}
-      <span className={corner("top-0 left-0 justify-start")}>
+      <span className={corner("top-0 left-0 justify-start", true, topChrome)}>
         <Button
           data-nav="personal"
           variant="link"
@@ -91,7 +109,7 @@ export default function Nav() {
         </Button>
       </span>
 
-      <span className={corner("top-0 right-0 justify-end")}>
+      <span className={corner("top-0 right-0 justify-end", true, topChrome)}>
         <Button
           data-nav="commissioned"
           variant="link"
@@ -105,8 +123,8 @@ export default function Nav() {
           Commissioned
         </Button>
       </span>
-
-      <span className={corner("bottom-0 lg:bottom-0 left-0 justify-start")}>
+      {}
+      <span className={corner("bottom-0 lg:bottom-0 left-0 justify-start", chosen)}>
         {onHome ? (
           <Button
             variant="link"
@@ -128,7 +146,7 @@ export default function Nav() {
         )}
       </span>
 
-      <span className={corner("bottom-0 lg:bottom-0 right-0 justify-end")}>
+      <span className={corner("bottom-0 lg:bottom-0 right-0 justify-end", chosen)}>
         {onHome ? (
           <Button
             variant="link"

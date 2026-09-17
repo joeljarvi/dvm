@@ -96,10 +96,10 @@ function Cover({
     if (inView) onEnter();
   }, [inView, onEnter]);
 
-  // Same expanded/resting rhythm at both sizes, just roomier once there's
-  // width to spare — matches Tailwind's own `lg` breakpoint.
+  // Desktop holds a flat 120 whether resting or in gallery mode; mobile
+  // still tightens to 23 once it's in gallery mode.
   const desktop = useIsDesktop();
-  const padding = expanded ? (desktop ? 56 : 23) : desktop ? 120 : 120;
+  const padding = desktop ? 96 : expanded ? 23 : 120;
 
   // The first click only opens the gallery — dropping the padding to py-6
   // without moving off the cover image. Once open, the same zones step
@@ -558,6 +558,8 @@ export default function HomeClient({
             setJumpSlug(project.slug ?? project.title);
             setHash("");
           }}
+          // Mobile's toggle opens on whichever column is already raised.
+          initialCategory={opened ?? "personal"}
         />
       </InfoOverlay>
 
