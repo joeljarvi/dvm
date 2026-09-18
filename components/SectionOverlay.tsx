@@ -22,13 +22,11 @@ export default function SectionOverlay({
         dismissed ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
-      {/* Named group: the column behind this is a `group` too, and an
-          unnamed `group-*` answers to any matching ancestor. */}
-      {/* <h2
-        className={`capitalize ${section === "personal" ? "text-left lg:rotate-0" : "text-right lg:rotate-0"} font-selecta text-[0.8rem] h-14 px-5.5 pt-6 tracking-wide w-full  font-normal text-neutral-400 transition-colors duration-200 ease-out group-hover/overlay:text-blue-700 group-active/overlay:text-blue-700`}
+      <h2
+        className={`capitalize ${section === "personal" ? "text-left lg:rotate-0" : "text-right lg:rotate-0"} font-selecta text-[0.8rem] px-5.5 mt-[62.5vh] tracking-wide  font-normal text-neutral-400 transition-colors duration-200 ease-out group-hover/overlay:text-blue-700 group-active/overlay:text-blue-700`}
       >
         {section}
-      </h2> */}
+      </h2>
     </button>
   );
 }

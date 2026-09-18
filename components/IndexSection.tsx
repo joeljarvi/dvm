@@ -125,7 +125,7 @@ export default function IndexSection({
           positioned now; on a static element z-index is a no-op. */}
       <div className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5 ">
         {previewImage && (
-          <div className="relative w-full h-full bg-background flex items-center justify-center  ">
+          <div className="relative bg-background flex items-center justify-center h-screen w-screen  ">
             <img
               src={sanityImage(previewImage, { w: 800 })}
               alt={hovered?.title ?? ""}
@@ -235,12 +235,13 @@ export default function IndexSection({
                 rather than cutting off hard at the row's edge; it's
                 `pointer-events-none` so the blank space above the buttons
                 doesn't block clicks/hover on the list underneath. Rendered
-                once, under Personal, rather than once per column — the
-                toggle is shared, so showing it twice would just be two
-                controls for the same state. Desktop only — mobile's Select
-                above already covers it. */}
-            {category === "personal" && (
-              <div className="hidden lg:flex absolute bottom-0 left-0 w-full h-32 items-end justify-start px-5.5 text-sm bg-linear-to-t from-background from-25% via-background/70 via-55% to-transparent pointer-events-none">
+                under both columns so each list fades out the same way, but
+                the toggle itself only under Personal — it's shared, so
+                showing it twice would just be two controls for the same
+                state. Desktop only — mobile's Select above already covers
+                it. */}
+            <div className="hidden lg:flex absolute bottom-0 left-0 w-full h-32 items-end justify-start px-5.5 text-sm bg-linear-to-t from-background from-25% via-background/70 via-55% to-transparent pointer-events-none">
+              {category === "personal" && (
                 <div className="flex items-center gap-x-4 h-14 pointer-events-auto">
                   <Button
                     variant="link"
@@ -259,8 +260,8 @@ export default function IndexSection({
                     Show All
                   </Button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         );
       })}

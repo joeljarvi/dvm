@@ -77,7 +77,7 @@ export default function Nav() {
   const topChrome = onHome && !chosen ? directChrome : chrome;
 
   const corner = (place: string, visible = true, arrival = chrome) =>
-    `fixed ${place} z-[2000] flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${arrival} ${
+    `fixed ${place} z-[80] flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${arrival} ${
       visible ? "" : "opacity-0 pointer-events-none"
     }`;
 
@@ -120,7 +120,13 @@ export default function Nav() {
         </Button>
       </span>
       {}
-      <span className={corner("bottom-0 lg:bottom-0 left-0 justify-start", true, topChrome)}>
+      <span
+        className={corner(
+          "bottom-0 lg:bottom-0 left-0 justify-start",
+          true,
+          topChrome,
+        )}
+      >
         {onHome ? (
           <Button
             variant="link"
@@ -142,7 +148,13 @@ export default function Nav() {
         )}
       </span>
 
-      <span className={corner("bottom-0 lg:bottom-0 right-0 justify-end", true, topChrome)}>
+      <span
+        className={corner(
+          "bottom-0 lg:bottom-0 right-0 justify-end",
+          true,
+          topChrome,
+        )}
+      >
         {onHome ? (
           <Button
             variant="link"

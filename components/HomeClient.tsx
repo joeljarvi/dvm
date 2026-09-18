@@ -10,6 +10,7 @@ import {
 } from "react";
 import { motion } from "motion/react";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
+import type { ScrollCallback } from "lenis";
 import LenisSnap from "lenis/snap";
 import type { About, Project, ProjectMedia } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
@@ -63,28 +64,19 @@ function coverImages(project: Project, fallbackSrc: string): ProjectMedia[] {
 function Cover({
   project,
   media,
-  frame,
-  total,
   columnOpen,
   expanded,
   onExpand,
-  onCollapse,
   onStepImage,
   onEnter,
 }: {
   project: Project;
   media: ProjectMedia;
-  /** Which of the project's images is up, and how many it has — drives the
-   *  cursor (zoomed in before the gallery opens, zoomed back out once the
-   *  last one is reached) and whether a click steps or leaves the gallery. */
-  frame: number;
-  total: number;
   /** The column holds the width, so a click steps rather than only widening. */
   columnOpen: boolean;
-  /** Stepped into its own gallery — drives the padding down to py-6. */
+  /** Stepped into its own gallery — drives the padding down to 96. */
   expanded: boolean;
   onExpand: () => void;
-  onCollapse: () => void;
   onStepImage: (delta: number) => void;
   onEnter: () => void;
 }) {
@@ -96,27 +88,16 @@ function Cover({
     if (inView) onEnter();
   }, [inView, onEnter]);
 
-  // Desktop holds a flat 120 whether resting or in gallery mode; mobile
-  // still tightens to 23 once it's in gallery mode.
-  const desktop = useIsDesktop();
-  const padding = desktop ? 96 : expanded ? 23 : 120;
+  const padding = expanded ? 56 : 168;
 
-  // A click steps straight through the project's own images — dropping the
-  // padding to py-6 (gallery mode) from the very first click rather than
-  // requiring one click just to open it — until the last one, where a
-  // further click leaves the gallery instead of wrapping back to the first.
-  const atEnd = expanded && frame === total - 1;
-  const handleClick = (delta: number) => {
+  const handleClick = () => {
     if (!columnOpen) return;
-    if (atEnd) {
-      onCollapse();
+    if (!expanded) {
+      onExpand();
       return;
     }
-    if (!expanded) onExpand();
-    onStepImage(delta);
+    onStepImage(1);
   };
-
-  const cursor = atEnd ? "cursor-zoom-out" : "cursor-pointer";
 
   return (
     <motion.div
@@ -130,26 +111,13 @@ function Cover({
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="relative w-full h-full">
-        {/* prev / next zones — split the image itself since stepping
-            through a project's own gallery has both directions, same as
-            the project-level scroll does. The click still bubbles up so a
-            narrow column widens first, same as before. */}
         <button
           type="button"
-          aria-label={`Previous image of ${project.title}`}
-          className={`absolute inset-y-0 left-0 z-10 w-1/4 ${cursor}`}
-          onClick={() => handleClick(-1)}
+          aria-label={`Cycle images of ${project.title}`}
+          className="absolute inset-0 z-10 cursor-pointer"
+          onClick={handleClick}
         />
-        <button
-          type="button"
-          aria-label={`Next image of ${project.title}`}
-          className={`absolute inset-y-0 right-0 z-10 w-1/4 ${cursor}`}
-          onClick={() => handleClick(1)}
-        />
-        {/* `contain` fits the whole thing without cropping; `object-center`
-            keeps it centered rather than pinned to an edge. A video cover
-            (see coverImages) plays muted and on loop, same as the gallery
-            grid's own video items in ProjectDetail. */}
+
         {media.type === "file" ? (
           <video
             src={src}
@@ -172,13 +140,6 @@ function Cover({
   );
 }
 
-// Registers every cover already in the DOM as a Lenis snap point, so a
-// scroll or swipe settles cleanly on one project once it stops — done via
-// Lenis's own snap plugin, driven off its `virtual-scroll` event, rather
-// than CSS scroll-snap: combining CSS snap with Lenis's own JS-driven
-// smoothing fights over the scroll position and can lock it in place
-// entirely. Rendered inside <ReactLenis> so `useLenis` resolves to this
-// column's own instance rather than the page-level one from the layout.
 function ColumnSnap({
   containerRef,
   count,
@@ -193,7 +154,7 @@ function ColumnSnap({
     if (!lenis || !container) return;
     const snap = new LenisSnap(lenis, {
       type: "mandatory",
-      duration: 1.6,
+      duration: 0.8,
       easing: (t) => 1 - Math.pow(1 - t, 3),
     });
     const removers = Array.from(
@@ -208,9 +169,33 @@ function ColumnSnap({
   return null;
 }
 
-// Each section is its own vertical scroller — side by side once there is
-// width for it, stacked below. The two run independently: scrolling through
-// the commissioned work leaves the personal column where it was.
+// Any actual scroll — wheel, touch, arrow-key paging, the snap settling —
+// breaks the active cover out of gallery mode, but keeps whichever image it
+// was on rather than resetting to the first (unlike leaving the cover
+// behind entirely by scrolling past it — see Strip's enterCover). Rendered
+// inside <ReactLenis> for the same reason as ColumnSnap.
+function BreakGalleryOnScroll({ onScroll }: { onScroll: () => void }) {
+  const lenis = useLenis();
+  useEffect(() => {
+    if (!lenis) return;
+    // Lenis also fires "scroll" from a bare dimension recalculation — e.g.
+    // its own debounced resize observer, tripped by the very padding
+    // animation gallery mode just started — with the scroll position left
+    // untouched. `isScrolling` is only set while a real scroll is under
+    // way, which is what told the click-triggered entry into gallery mode
+    // apart from one of those recalculation pings immediately undoing it.
+    const handleScroll: ScrollCallback = (instance) => {
+      if (instance.isScrolling) onScroll();
+    };
+    lenis.on("scroll", handleScroll);
+    return () => {
+      lenis.off("scroll", handleScroll);
+    };
+  }, [lenis, onScroll]);
+
+  return null;
+}
+
 function Strip({
   section,
   projects,
@@ -223,45 +208,34 @@ function Strip({
 }: {
   section: Exclude<Section, null>;
   projects: Project[];
-  /** Stands in for a project with no cover of its own. */
+
   fallbackSrc: string;
-  /** Ground the covers sit on, and what shows between them. */
+
   background?: string;
-  /** Which column has been chosen while stacked; null means neither yet. */
+
   opened: Section;
   onOpen: () => void;
-  /** A project handed down from the Index overlay to scroll to, once. */
+
   scrollToSlug?: string | null;
   onScrolled?: () => void;
 }) {
-  // Space and the arrow keys page this column, but only when it is the one
-  // being read: the chosen column, or — before either has been chosen — the
-  // one under the pointer. Lenis owns the scroll position, so it does the
-  // moving rather than the browser.
   const lenisRef = useRef<LenisRef>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const pointerOver = useHoveredSection();
   const listens =
     opened === section || (opened === null && pointerOver === section);
 
-  // The images each project steps through, resolved once for the column.
   const columnImages = useMemo(
     () => projects.map((p) => coverImages(p, fallbackSrc)),
     [projects, fallbackSrc],
   );
 
-  // Which cover is in view, where each project sits in its own images, and
-  // whether it's been stepped into its gallery (py-6) or is still resting on
-  // its cover (py-30). All three belong to the column, not a cover: the
-  // caption that reads them is pinned to the column and outlives any one
-  // cover scrolling past.
   const [active, setActive] = useState(0);
   const [frames, setFrames] = useState<number[]>(() => projects.map(() => 0));
   const [expanded, setExpanded] = useState<boolean[]>(() =>
     projects.map(() => false),
   );
-  // The caption only sinks for gallery mode's extra lines on desktop —
-  // mobile has no room to spare, so it stays put at 50vh throughout.
+
   const desktop = useIsDesktop();
 
   const expandCover = useCallback((index: number) => {
@@ -273,23 +247,14 @@ function Strip({
     });
   }, []);
 
-  // A click at the last image in the gallery leaves it rather than wrapping
-  // back to the first — same reset as scrolling a gallery-mode project out
-  // of view, just triggered by the click itself instead.
-  const collapseCover = useCallback((index: number) => {
+  const breakGallery = useCallback(() => {
     setExpanded((prev) => {
-      if (!prev[index]) return prev;
+      if (!prev[active]) return prev;
       const next = prev.slice();
-      next[index] = false;
+      next[active] = false;
       return next;
     });
-    setFrames((prev) => {
-      if ((prev[index] ?? 0) === 0) return prev;
-      const next = prev.slice();
-      next[index] = 0;
-      return next;
-    });
-  }, []);
+  }, [active]);
 
   const stepImage = useCallback(
     (index: number, delta: number) => {
@@ -303,9 +268,6 @@ function Strip({
     [columnImages],
   );
 
-  // A cover entering view is what moves `active` along — but if that carries
-  // us past a project left sitting in its gallery, that project gives way
-  // to its cover again (py-30) rather than being left stranded off-screen.
   const enterCover = useCallback((index: number) => {
     setActive((prev) => {
       if (index > prev) {
@@ -326,10 +288,6 @@ function Strip({
     });
   }, []);
 
-  // Picking a project in the Index overlay lands here as a slug to bring
-  // into view — scoped to this column's own container so a same-named
-  // project in the other section can never be matched instead. Both columns
-  // get the same slug; only the one that actually holds it moves.
   useEffect(() => {
     if (!scrollToSlug) return;
     const lenis = lenisRef.current?.lenis;
@@ -356,11 +314,6 @@ function Strip({
     return () => window.removeEventListener("keydown", onKey);
   }, [listens]);
 
-  // The two columns split the width until one is chosen, and then it takes
-  // all of it — but the other keeps a sliver rather than collapsing to
-  // nothing, so there is still something to click to hand the width back.
-  // Same at every breakpoint: stacked you tap the overlay, on desktop the
-  // column itself, since the overlay is not there.
   const width =
     opened === null ? "w-[50vw]" : opened === section ? "w-screen" : "w-0";
 
@@ -371,8 +324,6 @@ function Strip({
     <div
       ref={containerRef}
       data-panel={section}
-      // A cover's own click navigates and this fires too, but the page is
-      // leaving anyway — so it only takes effect on the ground around them.
       onClick={onOpen}
       className={`group relative h-auto ${width} overflow-hidden pb-0 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
@@ -383,10 +334,7 @@ function Strip({
         dismissed={opened !== null}
         onClick={onOpen}
       />
-      {/* Lenis owns this scroller rather than the page. The wrapper is what
-          scrolls; the column inside is a stack of full-height covers, each
-          registered as a snap point by ColumnSnap, so scrolling always lands
-          cleanly on one project at a time. */}
+
       <ReactLenis
         ref={lenisRef}
         className="w-full h-full overflow-y-auto overflow-x-hidden scrollbar-none [&::-webkit-scrollbar]:hidden"
@@ -403,6 +351,7 @@ function Strip({
         }}
       >
         <ColumnSnap containerRef={containerRef} count={projects.length} />
+        <BreakGalleryOnScroll onScroll={breakGallery} />
         <div className="flex flex-col items-start w-full px-5.5">
           {projects.map((p, i) => {
             const images = columnImages[i];
@@ -413,12 +362,9 @@ function Strip({
                 key={p.slug ?? `${p.title}-${i}`}
                 project={p}
                 media={media}
-                frame={frame}
-                total={images.length}
                 columnOpen={opened === section}
                 expanded={expanded[i] ?? false}
                 onExpand={() => expandCover(i)}
-                onCollapse={() => collapseCover(i)}
                 onStepImage={(delta) => stepImage(i, delta)}
                 onEnter={() => enterCover(i)}
               />
@@ -427,21 +373,9 @@ function Strip({
         </div>
       </ReactLenis>
 
-      {/* The caption, pinned to the column rather than to any one cover, so
-          it names whichever project is currently in view. `px-5.5` shares
-          the cover's own inset — the same edge the nav corners keep.
-          `pointer-events-none` lets hover and clicks fall through to the
-          column behind it. Gallery mode adds a line above (title) and one
-          below (agency), so on desktop the block sinks from the resting
-          50vh down to 66.6vh — animated with mass rather than a plain ease,
-          so it reads as the extra lines' own weight dragging it down rather
-          than a UI panel just sliding. Mobile has no room to spare, so it
-          stays fixed at 50vh regardless of gallery mode. On desktop it's
-          also hidden until the image itself is hovered — `group` is the
-          column container above, which wraps the covers too. */}
       {shown && (
         <motion.div
-          className="pointer-events-none absolute inset-x-0 z-10 flex flex-col gap-y-2 px-5.5 pb-6 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300"
+          className="pointer-events-none absolute inset-x-0 z-10 flex flex-col gap-y-2 px-5.5 pb-6  transition-opacity duration-300"
           animate={{
             top: desktop && expanded[active] ? "62.5vh" : "62.5vh",
           }}
@@ -460,8 +394,6 @@ function Strip({
             revealed={expanded[active]}
             frame={(frames[active] ?? 0) + 1}
             total={shownImages.length}
-            // Gallery mode shows the counter everywhere; resting on the
-            // cover, it's desktop-only — mobile keeps it hidden until then.
             counterClassName={
               expanded[active] ? undefined : "hidden lg:inline-flex"
             }
@@ -481,29 +413,18 @@ export default function HomeClient({
   commissioned: Project[];
   about: About | null;
 }) {
-  // `rows` still drives the intro card below, hidden though it currently is.
   const { rows } = useIntro();
 
-  // Held in a store rather than state: the nav's own section buttons set it
-  // too, and they render in the layout.
   const opened = useOpenedSection();
 
-  // The URL carries the current view: `#personal` / `#commissioned` for which
-  // column holds the width, `#about` / `#index` for the sheet over both. The
-  // nav's corner buttons write it; here it is read back so a deep link or the
-  // back button lands on the same state.
   const hash = useHash();
 
   useEffect(() => {
     if (hash === "personal" || hash === "commissioned") setOpenedSection(hash);
   }, [hash]);
 
-  // A project picked in the Index sheet, handed down to both columns to
-  // scroll to — only the one that actually holds it will move; cleared once
-  // acted on.
   const [jumpSlug, setJumpSlug] = useState<string | null>(null);
 
-  // The card's own rows, one beat apart, coming in as the name fades out.
   const row = (n: number) =>
     `transition-opacity duration-500 ease-out ${rows > n ? "" : "opacity-0"}`;
 
@@ -533,8 +454,6 @@ export default function HomeClient({
         />
       </section>
 
-      {/* Both sheets stay mounted so each keeps its own content while it slides
-          back down — only one is ever raised, since the hash holds one value. */}
       <InfoOverlay open={hash === "about"} onDismiss={() => setHash("")}>
         <AboutSection about={about} />
       </InfoOverlay>
@@ -547,25 +466,13 @@ export default function HomeClient({
         <IndexSection
           projects={{ personal, commissioned }}
           onSelect={(project, category) => {
-            // Raise that project's own column and scroll it into view, then
-            // drop the sheet — same shape as picking a section corner.
             setOpenedSection(category);
             setJumpSlug(project.slug ?? project.title);
             setHash("");
           }}
-          // Mobile's toggle opens on whichever column is already raised.
           initialCategory={opened ?? "personal"}
         />
       </InfoOverlay>
-
-      <div className="hidden fixed inset-0 z-20  items-center justify-center p-4 pointer-events-none w-full">
-        <DvmCard color="bg-green-900" variant="animation">
-          <span className="flex flex-col items-start justify-center   gap-y-0 p-0 text-orange-400 font-selecta text-base font-medium text-left tracking-wider w-full ">
-            <h1 className={row(0)}>Daniel von Malmborg</h1>
-            <h2 className={row(1)}>Creative Director &amp; Photographer</h2>
-          </span>
-        </DvmCard>
-      </div>
     </>
   );
 }
