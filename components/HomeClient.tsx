@@ -101,29 +101,22 @@ function Cover({
   const desktop = useIsDesktop();
   const padding = desktop ? 96 : expanded ? 23 : 120;
 
-  // The first click only opens the gallery — dropping the padding to py-6
-  // without moving off the cover image. Once open, the same zones step
-  // through the project's own images — until the last one, where a further
-  // click leaves the gallery instead of wrapping back to the first.
+  // A click steps straight through the project's own images — dropping the
+  // padding to py-6 (gallery mode) from the very first click rather than
+  // requiring one click just to open it — until the last one, where a
+  // further click leaves the gallery instead of wrapping back to the first.
   const atEnd = expanded && frame === total - 1;
   const handleClick = (delta: number) => {
     if (!columnOpen) return;
-    if (!expanded) {
-      onExpand();
-      return;
-    }
     if (atEnd) {
       onCollapse();
       return;
     }
+    if (!expanded) onExpand();
     onStepImage(delta);
   };
 
-  const cursor = !expanded
-    ? "cursor-zoom-in"
-    : atEnd
-      ? "cursor-zoom-out"
-      : "cursor-pointer";
+  const cursor = atEnd ? "cursor-zoom-out" : "cursor-pointer";
 
   return (
     <motion.div
@@ -144,13 +137,13 @@ function Cover({
         <button
           type="button"
           aria-label={`Previous image of ${project.title}`}
-          className={`absolute inset-y-0 left-0 z-10 w-1/2 ${cursor}`}
+          className={`absolute inset-y-0 left-0 z-10 w-1/4 ${cursor}`}
           onClick={() => handleClick(-1)}
         />
         <button
           type="button"
           aria-label={`Next image of ${project.title}`}
-          className={`absolute inset-y-0 right-0 z-10 w-1/2 ${cursor}`}
+          className={`absolute inset-y-0 right-0 z-10 w-1/4 ${cursor}`}
           onClick={() => handleClick(1)}
         />
         {/* `contain` fits the whole thing without cropping; `object-center`
@@ -443,10 +436,12 @@ function Strip({
           50vh down to 66.6vh — animated with mass rather than a plain ease,
           so it reads as the extra lines' own weight dragging it down rather
           than a UI panel just sliding. Mobile has no room to spare, so it
-          stays fixed at 50vh regardless of gallery mode. */}
+          stays fixed at 50vh regardless of gallery mode. On desktop it's
+          also hidden until the image itself is hovered — `group` is the
+          column container above, which wraps the covers too. */}
       {shown && (
         <motion.div
-          className="pointer-events-none absolute inset-x-0 z-10 flex flex-col gap-y-2 px-5.5 pb-6"
+          className="pointer-events-none absolute inset-x-0 z-10 flex flex-col gap-y-2 px-5.5 pb-6 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300"
           animate={{
             top: desktop && expanded[active] ? "62.5vh" : "62.5vh",
           }}

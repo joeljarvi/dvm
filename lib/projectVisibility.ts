@@ -1,23 +1,18 @@
 import { useSyncExternalStore } from "react";
 
-// Whether each category's Index list (and the carousel behind it) shows the
-// curated projects only, or those plus the placeholder "Boring Client" ones —
-// see lib/data's extraClients. Same shape as lib/section.ts: the Index
-// overlay's own toggle writes it, the carousel reads it back to grow its list
-// to match. Kept per category — Personal's toggle never touches Commissioned's
-// list, and vice versa.
+// Whether the Index lists (and the carousel behind them) show the curated
+// projects only, or those plus the placeholder "Boring Client" ones — see
+// lib/data's extraClients. Same shape as lib/section.ts: the Index overlay's
+// own toggle writes it, the carousel reads it back to grow its list to
+// match. Shared across both categories — one toggle drives both lists.
 export type Visibility = "selected" | "all";
-export type Category = "personal" | "commissioned";
 
-let mode: Record<Category, Visibility> = {
-  personal: "selected",
-  commissioned: "selected",
-};
+let mode: Visibility = "selected";
 const listeners = new Set<() => void>();
 
-export function setProjectVisibility(category: Category, next: Visibility) {
-  if (mode[category] === next) return;
-  mode = { ...mode, [category]: next };
+export function setProjectVisibility(next: Visibility) {
+  if (mode === next) return;
+  mode = next;
   listeners.forEach((l) => l());
 }
 
@@ -28,10 +23,10 @@ function subscribe(l: () => void) {
   };
 }
 
-export function useProjectVisibility(category: Category) {
+export function useProjectVisibility() {
   return useSyncExternalStore(
     subscribe,
-    () => mode[category],
+    () => mode,
     () => "selected" as Visibility,
   );
 }

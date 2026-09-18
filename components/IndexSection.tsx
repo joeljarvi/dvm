@@ -76,16 +76,8 @@ export default function IndexSection({
   // column's `hidden lg:flex` visibility.
   const [mobileCategory, setMobileCategory] =
     useState<Category>(initialCategory);
-  // One hook call per category (a fixed, constant-length pair) rather than
-  // inside the render loop below — each list's toggle only ever touches its
-  // own category's mode, never the sibling's.
-  const visibility: Record<
-    Category,
-    ReturnType<typeof useProjectVisibility>
-  > = {
-    personal: useProjectVisibility("personal"),
-    commissioned: useProjectVisibility("commissioned"),
-  };
+  // One toggle drives both categories' lists — see lib/projectVisibility.
+  const visibility = useProjectVisibility();
   const [hovered, setHovered] = useState<Project | null>(null);
 
   // Real projects when Sanity answered, the name-only fallback otherwise —
@@ -102,7 +94,7 @@ export default function IndexSection({
       ? list.filter((p) => p.featured)
       : FALLBACK[category];
     return [
-      ...(visibility[category] === "all"
+      ...(visibility === "all"
         ? [...all, ...extraProjects[category]]
         : selected),
     ].sort(byName);
@@ -133,30 +125,30 @@ export default function IndexSection({
           positioned now; on a static element z-index is a no-op. */}
       <div className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5 ">
         {previewImage && (
-          <div className="relative w-full h-full bg-background flex items-center justify-center py-30 ">
+          <div className="relative w-full h-full bg-background flex items-center justify-center  ">
             <img
               src={sanityImage(previewImage, { w: 800 })}
               alt={hovered?.title ?? ""}
-              className="h-full w-auto object-contain  blur-xs  opacity-20  "
+              className="h-full w-auto object-contain  blur-xs  opacity-20 py-30  "
             />
           </div>
         )}
       </div>
 
       {/* Mobile only — desktop's grid already puts both lists on screen at
-          once and each gets its own pinned Selected/Show All, but there's no
-          room for two lists (let alone four extra buttons) below lg, so one
-          Select stands in for both the category switch and that list's own
-          visibility toggle. */}
+          once with one shared Selected/Show All between them, but there's no
+          room for both lists (let alone the toggle) below lg, so one Select
+          stands in for both the category switch and the shared visibility
+          toggle. */}
       <Select
-        value={`${mobileCategory}:${visibility[mobileCategory]}`}
+        value={`${mobileCategory}:${visibility}`}
         onValueChange={(v) => {
           const [nextCategory, nextVisibility] = v.split(":") as [
             Category,
             Visibility,
           ];
           setMobileCategory(nextCategory);
-          setProjectVisibility(nextCategory, nextVisibility);
+          setProjectVisibility(nextVisibility);
         }}
       >
         <SelectTrigger className="lg:hidden h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
@@ -242,29 +234,33 @@ export default function IndexSection({
                 `via` stop, so text scrolling under it fades out gradually
                 rather than cutting off hard at the row's edge; it's
                 `pointer-events-none` so the blank space above the buttons
-                doesn't block clicks/hover on the list underneath. Desktop
-                only — mobile's Select above already covers this list's own
-                visibility toggle. */}
-            <div className="hidden lg:flex absolute bottom-0 left-0 w-full h-32 items-end justify-start px-5.5 text-sm bg-linear-to-t from-background from-25% via-background/70 via-55% to-transparent pointer-events-none">
-              <div className="flex items-center gap-x-4 h-14 pointer-events-auto">
-                <Button
-                  variant="link"
-                  size="sm"
-                  className={`px-0 hover:text-blue-700 ${visibility[category] === "selected" ? "text-blue-700" : ""}`}
-                  onClick={() => setProjectVisibility(category, "selected")}
-                >
-                  Selected
-                </Button>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className={`px-0 hover:text-blue-700 ${visibility[category] === "all" ? "text-blue-700" : ""}`}
-                  onClick={() => setProjectVisibility(category, "all")}
-                >
-                  Show All
-                </Button>
+                doesn't block clicks/hover on the list underneath. Rendered
+                once, under Personal, rather than once per column — the
+                toggle is shared, so showing it twice would just be two
+                controls for the same state. Desktop only — mobile's Select
+                above already covers it. */}
+            {category === "personal" && (
+              <div className="hidden lg:flex absolute bottom-0 left-0 w-full h-32 items-end justify-start px-5.5 text-sm bg-linear-to-t from-background from-25% via-background/70 via-55% to-transparent pointer-events-none">
+                <div className="flex items-center gap-x-4 h-14 pointer-events-auto">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className={`px-0 hover:text-blue-700 ${visibility === "selected" ? "text-blue-700" : ""}`}
+                    onClick={() => setProjectVisibility("selected")}
+                  >
+                    Selected
+                  </Button>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className={`px-0 hover:text-blue-700 ${visibility === "all" ? "text-blue-700" : ""}`}
+                    onClick={() => setProjectVisibility("all")}
+                  >
+                    Show All
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         );
       })}

@@ -69,7 +69,7 @@ export default function ViewBrowser({
   // "All projects" (Index's own toggle) mixes this panel's placeholder
   // projects into the carousel too, so there is something to reveal and step
   // through.
-  const visibility = useProjectVisibility(panel);
+  const visibility = useProjectVisibility();
   const effectiveList =
     visibility === "all" ? [...list, ...extraProjects[panel]] : list;
 
