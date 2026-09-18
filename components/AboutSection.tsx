@@ -53,7 +53,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
       <h3 className="hidden lg:flex col-start-2 w-min h-14 items-center px-0 font-normal text-blue-700">
         Contact
       </h3>
-      <h3 className="hidden lg:flex col-start-3 w-min h-14 items-center px-0 font-normal text-blue-700">
+      <h3 className="hidden lg:flex col-start-3 w-min h-14 items-center px-0 font-normal text-blue-700 whitespace-nowrap">
         Daniel von Malmborg
       </h3>
 
@@ -102,8 +102,20 @@ export default function AboutSection({ about }: { about?: About | null }) {
             Instagram
           </Link>
         </Button>
-        {/* multi2, krejzy, … — same list the standalone links panel used to
-            hold, now just more rows in this same column. */}
+      </span>
+      {bioImageUrl && (
+        <div className="row-start-3 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start px-5.5 lg:px-0 lg:pb-0 pb-14">
+          <img
+            src={sanityImage(bioImageUrl, { w: 800 })}
+            alt=""
+            className="w-full lg:w-full lg:aspect-video object-cover"
+          />
+        </div>
+      )}
+      {/* multi2, krejzy, … — same list the standalone links panel used to
+          hold, now pinned below the image rather than alongside the
+          Contact block above it. */}
+      <span className="col-start-1 lg:col-start-2 lg:row-start-4 flex lg:flex-col flex-wrap gap-x-4  font-normal justify-start">
         {links.map((link) => (
           <Button
             key={link.url}
@@ -118,15 +130,6 @@ export default function AboutSection({ about }: { about?: About | null }) {
           </Button>
         ))}
       </span>
-      {bioImageUrl && (
-        <div className="row-start-2 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start px-5.5 lg:px-0 lg:pb-0 pb-14">
-          <img
-            src={sanityImage(bioImageUrl, { w: 800 })}
-            alt=""
-            className="w-full lg:w-full lg:aspect-video object-cover"
-          />
-        </div>
-      )}
     </div>
   );
 }
