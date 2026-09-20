@@ -7,72 +7,39 @@ import { closeTop } from "@/lib/modalStack";
 import { useIntro } from "@/lib/intro";
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
-import { closeIndex, openIndex, useIndexOpen } from "@/lib/indexOverlay";
 import Link from "next/link";
 
 export default function Nav() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
 
-  // Only once the wordmark has landed does the rest of the nav arrive and the
-  // button start behaving as a breadcrumb.
   const { arrived } = useIntro();
 
-  // The home overlays live in the hash — `#about` / `#index` — so the nav reads
-  // it back to light the corner that raised the sheet.
   const hash = useHash();
-
-  // On a browser page the Index corner raises a floating overlay over the
-  // carousel instead of navigating to /archive — see lib/indexOverlay.
-  const indexOpen = useIndexOpen();
-  const onBrowser = pathname === "/commissioned" || pathname === "/personal";
 
   const opened = useOpenedSection();
 
-  // Nothing in the nav exists until the card has handed the page over. State
-  // only — each element declares its own transition, and twMerge keeps the
-  // last `transition-*` in the string, so a shared one here would be dropped.
   const chrome = arrived ? "" : "opacity-0 pointer-events-none";
-
-  // The metadata belongs to the project you were on, so leaving folds it away.
-  useEffect(() => setInfoOpen(false), [pathname]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (menuOpen) setMenuOpen(false);
-      else if (infoOpen) setInfoOpen(false);
       else closeTop();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [menuOpen, infoOpen]);
+  }, [menuOpen]);
 
-  // No site nav over the Sanity Studio.
   if (pathname.startsWith("/studio")) return null;
 
-  // On home the four corners drive state through the URL hash rather than
-  // navigating: `#personal` / `#commissioned` hand a column the width, and
-  // `#about` / `#index` raise that page in a sheet over both — see HomeClient.
-  // Everywhere else they are plain links to the full pages.
   const onHome = pathname === "/";
 
-  // About and Index read as chosen both on their own pages and while their
-  // home sheet is raised — so the corner that opened one stays lit blue.
   const aboutActive = pathname === "/about" || (onHome && hash === "about");
-  const indexActive =
-    pathname === "/archive" ||
-    (onHome && hash === "index") ||
-    (onBrowser && indexOpen);
+  const indexActive = pathname === "/archive" || (onHome && hash === "index");
 
-  // Home starts with neither column chosen — both split the width evenly.
   const chosen = !onHome || opened !== null;
 
-  // On home, before either column is picked, all four corners fade in on
-  // mount rather than sitting through the intro card's own timeline. Once a
-  // column is chosen (or off home entirely), they settle into the same
-  // arrival as the rest of the nav.
   const directChrome = "animate-in fade-in duration-700 ease-out";
   const topChrome = onHome && !chosen ? directChrome : chrome;
 
@@ -86,10 +53,6 @@ export default function Nav() {
 
   return (
     <>
-      {/* The two sections hold the top corners, About and Index the bottom
-          ones. The section pair are controls rather than links: each hands
-          the width to its own column on home — see lib/section. `data-nav`
-          pairs the top two with the home panels through globals.css. */}
       <span className={corner("top-0 left-0 justify-start", true, topChrome)}>
         <Button
           data-nav="personal"
@@ -161,15 +124,6 @@ export default function Nav() {
             size="sm"
             className={`justify-end  ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
             onClick={() => setHash(hash === "index" ? "" : "index")}
-          >
-            Index
-          </Button>
-        ) : onBrowser ? (
-          <Button
-            variant="link"
-            size="sm"
-            className={`justify-end  ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
-            onClick={() => (indexOpen ? closeIndex() : openIndex())}
           >
             Index
           </Button>

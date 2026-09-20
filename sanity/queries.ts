@@ -12,7 +12,7 @@ export const PROJECT_FIELDS = `
   agency,
   year,
   featured,
-  "images": images[]{
+  "images": images[defined(asset)]{
     "url": asset->url,
     "type": _type,
     caption

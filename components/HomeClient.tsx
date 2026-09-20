@@ -8,14 +8,11 @@ import {
   useState,
   type RefObject,
 } from "react";
-import { motion } from "motion/react";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
 import type { ScrollCallback } from "lenis";
-import LenisSnap from "lenis/snap";
 import type { About, Project, ProjectMedia } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { useIntro } from "@/lib/intro";
-import { useIsDesktop } from "@/lib/media";
 import {
   setHoveredSection,
   useHoveredSection,
@@ -24,26 +21,17 @@ import {
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
 import { useInView } from "@/lib/inView";
-import DvmCard from "@/components/DvmCard";
+
 import InfoLayout from "@/components/InfoLayout";
 import SectionOverlay from "./SectionOverlay";
 import InfoOverlay from "./InfoOverlay";
 import AboutSection from "./AboutSection";
 import IndexSection from "./IndexSection";
+import { CustomCursor, CustomCursorTarget } from "@/components/ui/custom-cursor";
 
-// The images one project steps through. This carousel only ever shows
-// stills — video lives in the full project page — so video media is
-// filtered out here rather than handed to an <img>. The dedicated cover
-// leads (frame 0 is what the column opens on), followed by the rest of the
-// stills — a still that happens to duplicate the cover isn't repeated. A
-// project with no stills or cover of its own falls back to the section's
-// placeholder, so the counter reads 1 (1) rather than nothing.
 function coverImages(project: Project, fallbackSrc: string): ProjectMedia[] {
   const stills = project.images?.filter((m) => m.type === "image") ?? [];
 
-  // A video cover takes precedence over an image one — same rule the studio
-  // description states — and, unlike a still, is never also one of the
-  // gallery's own images, so it's just prepended rather than deduped.
   if (project.coverVideoUrl) {
     return [{ url: project.coverVideoUrl, type: "file" }, ...stills];
   }
@@ -56,11 +44,6 @@ function coverImages(project: Project, fallbackSrc: string): ProjectMedia[] {
   return stills.length ? stills : [{ url: fallbackSrc, type: "image" }];
 }
 
-// One project in the column's scrollable stack: a full-height slot for
-// whichever of its images is currently up. Reports into the column when it
-// scrolls into view, so the pinned caption follows whichever cover is being
-// looked at. `data-slug` is how a jump from the Index overlay finds this
-// cover to scroll to — see Strip's scrollToSlug.
 function Cover({
   project,
   media,
@@ -72,9 +55,8 @@ function Cover({
 }: {
   project: Project;
   media: ProjectMedia;
-  /** The column holds the width, so a click steps rather than only widening. */
+
   columnOpen: boolean;
-  /** Stepped into its own gallery — drives the padding down to 96. */
   expanded: boolean;
   onExpand: () => void;
   onStepImage: (delta: number) => void;
@@ -88,8 +70,6 @@ function Cover({
     if (inView) onEnter();
   }, [inView, onEnter]);
 
-  const padding = expanded ? 56 : 168;
-
   const handleClick = () => {
     if (!columnOpen) return;
     if (!expanded) {
@@ -100,23 +80,20 @@ function Cover({
   };
 
   return (
-    <motion.div
+    <div
       ref={box}
       data-slug={project.slug ?? project.title}
-      className="relative shrink-0 w-full group h-screen flex flex-col"
-      animate={{
-        paddingTop: padding,
-        paddingBottom: padding,
-      }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="relative shrink-0 w-full group h-screen flex flex-col p-0 lg:py-28 lg:px-0"
     >
       <div className="relative w-full h-full">
-        <button
-          type="button"
-          aria-label={`Cycle images of ${project.title}`}
-          className="absolute inset-0 z-10 cursor-pointer"
-          onClick={handleClick}
-        />
+        <CustomCursorTarget asChild>
+          <button
+            type="button"
+            aria-label={`Cycle images of ${project.title}`}
+            className="absolute inset-0 z-10 cursor-pointer"
+            onClick={handleClick}
+          />
+        </CustomCursorTarget>
 
         {media.type === "file" ? (
           <video
@@ -136,54 +113,15 @@ function Cover({
           />
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
-function ColumnSnap({
-  containerRef,
-  count,
-}: {
-  containerRef: RefObject<HTMLDivElement | null>;
-  /** Re-collects the covers whenever the project list's size changes. */
-  count: number;
-}) {
-  const lenis = useLenis();
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!lenis || !container) return;
-    const snap = new LenisSnap(lenis, {
-      type: "mandatory",
-      duration: 0.8,
-      easing: (t) => 1 - Math.pow(1 - t, 3),
-    });
-    const removers = Array.from(
-      container.querySelectorAll<HTMLElement>("[data-slug]"),
-    ).map((el) => snap.addElement(el));
-    return () => {
-      removers.forEach((remove) => remove());
-      snap.destroy();
-    };
-  }, [lenis, containerRef, count]);
-
-  return null;
-}
-
-// Any actual scroll — wheel, touch, arrow-key paging, the snap settling —
-// breaks the active cover out of gallery mode, but keeps whichever image it
-// was on rather than resetting to the first (unlike leaving the cover
-// behind entirely by scrolling past it — see Strip's enterCover). Rendered
-// inside <ReactLenis> for the same reason as ColumnSnap.
 function BreakGalleryOnScroll({ onScroll }: { onScroll: () => void }) {
   const lenis = useLenis();
   useEffect(() => {
     if (!lenis) return;
-    // Lenis also fires "scroll" from a bare dimension recalculation — e.g.
-    // its own debounced resize observer, tripped by the very padding
-    // animation gallery mode just started — with the scroll position left
-    // untouched. `isScrolling` is only set while a real scroll is under
-    // way, which is what told the click-triggered entry into gallery mode
-    // apart from one of those recalculation pings immediately undoing it.
+
     const handleScroll: ScrollCallback = (instance) => {
       if (instance.isScrolling) onScroll();
     };
@@ -235,8 +173,6 @@ function Strip({
   const [expanded, setExpanded] = useState<boolean[]>(() =>
     projects.map(() => false),
   );
-
-  const desktop = useIsDesktop();
 
   const expandCover = useCallback((index: number) => {
     setExpanded((prev) => {
@@ -350,7 +286,6 @@ function Strip({
           autoResize: true,
         }}
       >
-        <ColumnSnap containerRef={containerRef} count={projects.length} />
         <BreakGalleryOnScroll onScroll={breakGallery} />
         <div className="flex flex-col items-start w-full px-5.5">
           {projects.map((p, i) => {
@@ -374,31 +309,16 @@ function Strip({
       </ReactLenis>
 
       {shown && (
-        <motion.div
-          className="pointer-events-none absolute inset-x-0 z-10 flex flex-col gap-y-2 px-5.5 pb-6  transition-opacity duration-300"
-          animate={{
-            top: desktop && expanded[active] ? "62.5vh" : "62.5vh",
-          }}
-          transition={{
-            type: "spring",
-            mass: 1.4,
-            stiffness: 120,
-            damping: 16,
-          }}
-        >
+        <div className="pointer-events-none absolute inset-x-0 top-[62.5vh] z-10 flex flex-col gap-y-2 px-5.5 pb-6">
           <InfoLayout
             title={shown.title}
             model={section === "personal" ? shown.client : undefined}
             client={section === "commissioned" ? shown.client : undefined}
-            agency={expanded[active] ? shown.agency : undefined}
-            revealed={expanded[active]}
+            agency={shown.agency}
             frame={(frames[active] ?? 0) + 1}
             total={shownImages.length}
-            counterClassName={
-              expanded[active] ? undefined : "hidden lg:inline-flex"
-            }
           />
-        </motion.div>
+        </div>
       )}
     </div>
   );
@@ -413,7 +333,7 @@ export default function HomeClient({
   commissioned: Project[];
   about: About | null;
 }) {
-  const { rows } = useIntro();
+  const { rows, settled } = useIntro();
 
   const opened = useOpenedSection();
 
@@ -430,8 +350,33 @@ export default function HomeClient({
 
   useEffect(() => () => setHoveredSection(null), []);
 
+  // Pulse the cursor while something's loading in: the opening intro, or a
+  // drawer's content staggering in (see .reveal-stagger in globals.css) —
+  // then settle it once everything's actually on screen.
+  const [drawerOpening, setDrawerOpening] = useState(false);
+  useEffect(() => {
+    if (hash !== "about" && hash !== "index") {
+      const reset = setTimeout(() => setDrawerOpening(false), 0);
+      return () => clearTimeout(reset);
+    }
+    const on = setTimeout(() => setDrawerOpening(true), 0);
+    const off = setTimeout(() => setDrawerOpening(false), 900);
+    return () => {
+      clearTimeout(on);
+      clearTimeout(off);
+    };
+  }, [hash]);
+
   return (
-    <>
+    <CustomCursor
+      layout="fixed"
+      color="#1447e6"
+      dotWidth={8}
+      dotHeight={8}
+      ring={false}
+      pulsing={!settled || drawerOpening}
+      className="contents"
+    >
       <section className="font-selecta relative flex  flex-row w-screen h-dvh overflow-hidden">
         <Strip
           section="personal"
@@ -473,6 +418,6 @@ export default function HomeClient({
           initialCategory={opened ?? "personal"}
         />
       </InfoOverlay>
-    </>
+    </CustomCursor>
   );
 }

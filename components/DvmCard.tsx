@@ -21,9 +21,6 @@ export default function DvmCard({
 
   return (
     <div className="relative h-[33.3dvh] lg:h-[45dvh] flex flex-col items-start lg:items-start justify-between p-8 group aspect-video gap-y-4">
-      {/* The plate is its own layer so it can fade up underneath the name
-          rather than taking the name with it — the words are written before
-          there is anything behind them. */}
       <div
         className={`absolute inset-0 z-0 ${color} shadow-md transition-opacity duration-700 ease-out ${
           !animated || plated ? "" : "opacity-0"

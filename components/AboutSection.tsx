@@ -44,20 +44,20 @@ export default function AboutSection({ about }: { about?: About | null }) {
   return (
     <div
       data-lenis-prevent
-      className="relative flex flex-col lg:grid pt-30 lg:pt-0 overflow-y-auto  grid-rows-[auto_auto_auto] lg:grid-cols-4 items-start justify-start w-full h-full   font-selecta font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-0  lg:tracking-normal  text-blue-700 lg:text-neutral-300      "
+      className="relative flex flex-col lg:grid pt-30 lg:pt-0 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden  grid-rows-[auto_auto_auto] lg:grid-cols-4 items-start justify-start w-full h-full   font-selecta font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-0  lg:tracking-normal pb-16  text-blue-700 lg:text-neutral-300      "
     >
       {/* Both panels are always up now — no toggle left to switch between
           them — so these just label the columns beneath, the same static
           heading treatment IndexSection's Personal/Commissioned got once
           its own toggle went away. */}
       <h3 className="hidden lg:flex col-start-2 w-min h-14 items-center px-0 font-normal text-blue-700">
-        Contact
+        Connect
       </h3>
-      <h3 className="hidden lg:flex col-start-3 w-min h-14 items-center px-0 font-normal text-blue-700 whitespace-nowrap">
+      <h3 className="flex col-start-3  h-14 items-center lg:px-0 font-normal text-blue-700 px-5.5 whitespace-nowrap">
         Daniel von Malmborg
       </h3>
 
-      <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full mb-0 lg:mb-0 lg:text-[0.8] font-normal px-5.5  lg:px-0 leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full text-blue-700">
+      <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8] font-normal px-5.5  lg:px-0 leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full text-blue-700  mb-0 lg:mb-16">
         {about?.bio?.length ? (
           <PortableText value={about.bio} components={bioComponents} />
         ) : (
@@ -104,7 +104,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
         </Button>
       </span>
       {bioImageUrl && (
-        <div className="row-start-3 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start px-5.5 lg:px-0 lg:pb-0 pb-14">
+        <div className="row-start-3 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start px-5.5 mb-16 lg:px-0 lg:pb-0 pb-14">
           <img
             src={sanityImage(bioImageUrl, { w: 800 })}
             alt=""
@@ -115,19 +115,28 @@ export default function AboutSection({ about }: { about?: About | null }) {
       {/* multi2, krejzy, … — same list the standalone links panel used to
           hold, now pinned below the image rather than alongside the
           Contact block above it. */}
-      <span className="col-start-1 lg:col-start-2 lg:row-start-4 flex lg:flex-col flex-wrap gap-x-4  font-normal justify-start">
+      <span className="col-start-1 lg:col-start-2 lg:col-span-3 lg:row-start-4 flex lg:flex-col flex-wrap gap-x-4  font-normal justify-start lg:grid lg:grid-cols-3 mt-16 lg:mt-0">
         {links.map((link) => (
-          <Button
+          <span
             key={link.url}
-            variant="link"
-            size="sm"
-            className="text-blue-700 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto   justify-start"
-            asChild
+            className="col-span-3 w-full grid grid-cols-2 lg:grid-cols-3 items-baseline justify-start"
           >
-            <Link href={link.url} target="_blank" rel="noopener noreferrer">
-              {link.title}
-            </Link>
-          </Button>
+            <Button
+              variant="link"
+              size="sm"
+              className="text-blue-700 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 col-span-1 lg:h-auto   justify-start"
+              asChild
+            >
+              <Link href={link.url} target="_blank" rel="noopener noreferrer">
+                {link.title}
+              </Link>
+            </Button>
+            {link.description && (
+              <p className="text-neutral-400 text-[0.8rem] col-span-1">
+                {link.description}
+              </p>
+            )}
+          </span>
         ))}
       </span>
     </div>

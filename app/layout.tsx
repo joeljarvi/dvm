@@ -132,8 +132,6 @@ export default function RootLayout({
       lang="en"
       className={`${selecta.variable} ${director.variable} ${univers.variable} antialiased`}
     >
-      {/* Lenis drives the page's own scrolling. Views with their own scroll
-          container set up a scoped instance of their own — see ProjectDetail. */}
       <body className="">
         <ReactLenis root />
         {children}

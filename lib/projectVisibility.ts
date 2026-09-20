@@ -1,10 +1,8 @@
 import { useSyncExternalStore } from "react";
 
-// Whether the Index lists (and the carousel behind them) show the curated
-// projects only, or those plus the placeholder "Boring Client" ones — see
-// lib/data's extraClients. Same shape as lib/section.ts: the Index overlay's
-// own toggle writes it, the carousel reads it back to grow its list to
-// match. Shared across both categories — one toggle drives both lists.
+// Whether the Index lists show the curated ("featured") projects only, or
+// every project in the category. Same shape as lib/section.ts. Shared across
+// both categories — one toggle drives both lists.
 export type Visibility = "selected" | "all";
 
 let mode: Visibility = "selected";
