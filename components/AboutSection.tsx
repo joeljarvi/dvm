@@ -152,7 +152,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
               </Link>
             </Button>
             {link.description && (
-              <p className="text-neutral-400 text-[0.8rem] col-span-1">
+              <p className="text-blue-700 font-normal tracking-wide text-[0.8rem] col-span-1">
                 {link.description}
               </p>
             )}

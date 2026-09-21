@@ -10,6 +10,10 @@ function read() {
   return decodeURIComponent(window.location.hash.replace(/^#/, ""));
 }
 
+/** A one-off read of the current hash, for code that isn't a component
+ * (and so can't subscribe with `useHash`) but still needs to branch on it. */
+export const getHash = read;
+
 // pushState rather than assigning `location.hash`, so an empty value clears the
 // `#` from the bar instead of leaving a bare one — then a manual `hashchange`,
 // since pushState fires none.

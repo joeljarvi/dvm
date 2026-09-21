@@ -122,6 +122,22 @@ const univers = localFont({
   variable: "--font-univers",
 });
 
+const diatype = localFont({
+  src: [
+    {
+      path: "../public/fonts/ABCDiatypeTrial-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/ABCDiatypeTrial-Medium.otf",
+      weight: "500",
+      style: "normal",
+    },
+  ],
+  variable: "--font-diatype",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -130,7 +146,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${selecta.variable} ${director.variable} ${univers.variable} antialiased`}
+      className={`${selecta.variable} ${director.variable} ${univers.variable} ${diatype.variable} antialiased`}
     >
       <body className="">
         <ReactLenis root />

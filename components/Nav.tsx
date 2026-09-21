@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { closeTop } from "@/lib/modalStack";
 import { useIntro } from "@/lib/intro";
-import { setOpenedSection, useOpenedSection } from "@/lib/section";
+import { useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
+import { switchSection } from "@/lib/navigation";
 import { REVEAL_CLASS } from "@/lib/motion";
 import Link from "next/link";
 
@@ -72,10 +73,7 @@ export default function Nav() {
           variant="link"
           size="sm"
           className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(personalActive)}`}
-          onClick={() => {
-            setOpenedSection("personal");
-            if (onHome) setHash("personal");
-          }}
+          onClick={() => switchSection("personal", onHome)}
         >
           Personal
         </Button>
@@ -87,10 +85,7 @@ export default function Nav() {
           variant="link"
           size="sm"
           className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(commissionedActive)}`}
-          onClick={() => {
-            setOpenedSection("commissioned");
-            if (onHome) setHash("commissioned");
-          }}
+          onClick={() => switchSection("commissioned", onHome)}
         >
           Commissioned
         </Button>

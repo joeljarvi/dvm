@@ -38,7 +38,7 @@ export default function InfoLayout({
 
   if (!title && !credited && frame === undefined) return null;
 
-  const titleClass = `transition-colors  duration-300 ease-out group-hover:text-blue-700 ${
+  const titleClass = `transition-colors  duration-300 ease-out font-diatype font-normal tracking-wide group-hover:text-blue-700 ${
     highlight
       ? "text-blue-700 mix-blend-normal"
       : "mix-blend-difference text-neutral-400 dark:text-neutral-500   "

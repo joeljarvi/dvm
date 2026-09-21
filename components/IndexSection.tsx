@@ -91,13 +91,18 @@ export default function IndexSection({
     (hovered ? PLACEHOLDER_IMAGE : null);
 
   return (
-    <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-selecta font-medium text-lg lg:text-xl tracking-wide text-neutral-300 dark:text-neutral-600 pt-30 lg:pt-0 ">
+    <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-diatype font-normal text-[0.8rem] tracking-wide text-neutral-300 dark:text-neutral-600 pt-30 lg:pt-0 ">
       <motion.div
         variants={staggerItem}
-        className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5  "
+        className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5 overflow-hidden"
       >
         {previewImage && (
-          <div className="relative bg-background flex items-center justify-center h-screen w-screen blur-xs   ">
+          // Safari clips `filter: blur()` right at the element's own box
+          // instead of letting it fade out past the edge, which reads as a
+          // hard, ugly line around the preview. Scaling this div up past
+          // the parent's overflow-hidden bounds pushes that clip line
+          // outside the visible area, so only the soft blur shows.
+          <div className="relative bg-background flex items-center justify-center h-screen w-screen blur-xs scale-110">
             <img
               src={sanityImage(previewImage, { w: 800 })}
               alt={hovered?.title ?? ""}
@@ -122,7 +127,7 @@ export default function IndexSection({
           <SelectTrigger className="h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="z-1010 bg-background font-selecta text-[0.8rem] text-neutral-300 ring-transparent  rounded-none">
+          <SelectContent className="z-1010 bg-background  text-[0.8rem] text-neutral-300 ring-transparent  rounded-none">
             <SelectGroup>
               <SelectItem value="personal:selected">
                 {LABEL.personal} – Selected

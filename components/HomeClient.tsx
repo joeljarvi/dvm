@@ -366,7 +366,7 @@ function Strip({
               e.stopPropagation();
               setSoundOn((v) => !v);
             }}
-            className={`col-start-4 justify-self-start pointer-events-auto  font-selecta text-[0.8rem] tracking-wide hover:text-blue-700 transition-colors duration-200 ease-out cursor-pointer ${soundOn ? "text-blue-700" : "text-neutral-400 "}`}
+            className={`col-start-4 justify-self-start pointer-events-auto  text-[0.8rem] tracking-wide hover:text-blue-700 transition-colors duration-200 ease-out cursor-pointer ${soundOn ? "text-blue-700" : "text-neutral-400 "}`}
           >
             {soundOn ? "Sound On" : "Sound Off"}
           </Button>
