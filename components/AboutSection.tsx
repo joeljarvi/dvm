@@ -46,7 +46,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
   return (
     <div
       data-lenis-prevent
-      className="relative flex flex-col lg:grid pt-30 lg:pt-0 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden  grid-rows-[auto_auto_auto] lg:grid-cols-4 items-start justify-start w-full h-full   font-selecta font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-0  lg:tracking-normal pb-16  text-blue-700 lg:text-neutral-300      "
+      className="relative flex flex-col lg:grid pt-30 lg:pt-0 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden  grid-rows-[auto_auto_auto] lg:grid-cols-4 items-start justify-start w-full h-full   font-diatype font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-0  lg:tracking-normal pb-16  text-blue-700 lg:text-neutral-300      "
     >
       {/* Both panels are always up now — no toggle left to switch between
           them — so these just label the columns beneath, the same static
@@ -67,7 +67,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
 
       <motion.div
         variants={staggerItem}
-        className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8] font-normal px-5.5  lg:px-0 leading-tight tracking-normal gap-y-2 max-w-sm lg:max-w-full text-blue-700  mb-0 lg:mb-16"
+        className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8rem] font-normal px-5.5  lg:px-0 leading-tight tracking-wide gap-y-2 max-w-sm lg:max-w-full text-blue-700  mb-0 lg:mb-16"
       >
         {about?.bio?.length ? (
           <PortableText value={about.bio} components={bioComponents} />
@@ -152,7 +152,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
               </Link>
             </Button>
             {link.description && (
-              <p className="text-blue-700 font-normal tracking-wide text-[0.8rem] col-span-1">
+              <p className="text-blue-700 font-normal font-diatype tracking-wide text-[0.8rem] col-span-1">
                 {link.description}
               </p>
             )}
