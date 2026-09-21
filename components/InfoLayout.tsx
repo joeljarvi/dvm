@@ -87,8 +87,8 @@ export default function InfoLayout({
               transition={{ ...REVEAL_TRANSITION, delay: 0.08 }}
               className={
                 highlight
-                  ? "text-blue-700 mix-blend-normal"
-                  : "mix-blend-difference text-neutral-400 dark:text-neutral-500 "
+                  ? "text-blue-700 mix-blend-normal font-normal"
+                  : "mix-blend-difference text-neutral-400 dark:text-neutral-500 font-normal"
               }
             >
               {agency}

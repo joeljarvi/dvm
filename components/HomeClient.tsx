@@ -318,6 +318,11 @@ function Strip({
           wheelMultiplier: 1,
           touchMultiplier: 2,
           infinite: true,
+          // Required by Lenis for `infinite` to actually apply on touch —
+          // without it, native touch scroll bypasses Lenis's virtual scroll
+          // entirely and just hits the real end of the content (this is
+          // what was happening on Safari/iOS).
+          syncTouch: true,
           autoResize: true,
         }}
       >
