@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { clients, models } from "@/lib/data";
+import { coverImages } from "@/components/HomeClient";
 import {
   setProjectVisibility,
   useProjectVisibility,
@@ -82,10 +83,13 @@ export default function IndexSection({
     router.push(`/#${category}`);
   };
 
-  const previewImage =
-    hovered?.images?.find((m) => m.type === "image")?.url ??
-    hovered?.coverImageUrl ??
-    (hovered ? PLACEHOLDER_IMAGE : null);
+  // Same cover-selection order the home page itself uses (coverVideoUrl /
+  // coverImageUrl take priority over the raw images array) — just the
+  // first image in that order, since the preview here is a static <img>.
+  const previewImage = hovered
+    ? (coverImages(hovered, PLACEHOLDER_IMAGE).find((m) => m.type === "image")
+        ?.url ?? PLACEHOLDER_IMAGE)
+    : null;
 
   return (
     <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-diatype font-normal text-[0.8rem] tracking-wide text-neutral-300 dark:text-neutral-600 pt-30 lg:pt-0 ">

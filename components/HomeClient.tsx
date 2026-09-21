@@ -432,8 +432,6 @@ export default function HomeClient({
       color="#1447e6"
       dotWidth={8}
       dotHeight={8}
-      hoverWidth={16}
-      hoverHeight={16}
       ring={false}
       pulsing={!settled || drawerOpening}
       className="contents"

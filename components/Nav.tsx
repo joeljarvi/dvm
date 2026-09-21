@@ -49,7 +49,8 @@ export default function Nav() {
 
   const aboutActive = pathname === "/about" || (onHome && hash === "about");
   const indexActive = pathname === "/archive" || (onHome && hash === "index");
-  const personalActive = opened === "personal" || projectCategory === "personal";
+  const personalActive =
+    opened === "personal" || projectCategory === "personal";
   const commissionedActive =
     opened === "commissioned" || projectCategory === "commissioned";
 
@@ -78,9 +79,7 @@ export default function Nav() {
   return (
     <>
       {showPersonal && (
-        <span
-          className={corner("top-0 left-0 justify-start", true, topChrome)}
-        >
+        <span className={corner("top-0 left-0 justify-start", true, topChrome)}>
           {onHome ? (
             <Button
               tabIndex={0}
@@ -108,9 +107,7 @@ export default function Nav() {
       )}
 
       {showCommissioned && (
-        <span
-          className={corner("top-0 right-0 justify-end", true, topChrome)}
-        >
+        <span className={corner("top-0 right-0 justify-end", true, topChrome)}>
           {onHome ? (
             <Button
               data-nav="commissioned"
@@ -156,7 +153,7 @@ export default function Nav() {
             <Button
               variant="link"
               size="sm"
-              className={`justify-start ${cornerLink} ${linkBlend(aboutActive)}`}
+              className={`justify-start hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
               asChild
             >
               <Link href="/about">About</Link>
