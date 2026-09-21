@@ -40,11 +40,6 @@ export default function InfoOverlay({
           open ? "opacity-100" : "opacity-0"
         }`}
       >
-        <div
-          aria-hidden
-          className="noise-bg pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-overlay"
-        />
-
         <motion.div
           data-lenis-prevent
           variants={staggerContainer}
