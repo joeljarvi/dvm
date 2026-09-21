@@ -37,12 +37,14 @@ export default function InfoLayout({
 
   if (!title && !credited && frame === undefined) return null;
 
-  const titleClass = `transition-colors duration-300 ease-out group-hover:text-blue-700 ${
-    highlight ? "text-blue-700" : ""
+  const titleClass = `transition-colors  duration-300 ease-out group-hover:text-blue-700 ${
+    highlight
+      ? "text-blue-700 mix-blend-normal"
+      : "mix-blend-difference text-neutral-400 "
   }`;
 
   return (
-    <div className="flex  justify-between items-baseline gap-x-4 w-full font-selecta  font-normal px-0 tracking-wide text-[0.8rem] text-neutral-400">
+    <div className="flex  justify-between items-baseline gap-x-4 w-full font-selecta  font-normal px-0 tracking-wide text-[0.8rem] ">
       <div className="justify-self-end flex flex-col items-start text-left">
         <AnimatePresence initial={false}>
           {revealed && showTitle && (
@@ -71,7 +73,11 @@ export default function InfoLayout({
                 ease: [0.22, 1, 0.36, 1],
                 delay: 0.08,
               }}
-              className="text-neutral-400"
+              className={
+                highlight
+                  ? "text-blue-700 mix-blend-normal"
+                  : "mix-blend-difference text-neutral-400"
+              }
             >
               {agency}
             </motion.h3>

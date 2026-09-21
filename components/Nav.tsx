@@ -37,6 +37,8 @@ export default function Nav() {
 
   const aboutActive = pathname === "/about" || (onHome && hash === "about");
   const indexActive = pathname === "/archive" || (onHome && hash === "index");
+  const personalActive = opened === "personal";
+  const commissionedActive = opened === "commissioned";
 
   const chosen = !onHome || opened !== null;
 
@@ -49,7 +51,12 @@ export default function Nav() {
     }`;
 
   const cornerLink =
-    "px-5.5 py-4 w-auto h-full bg-transparent h-14 hover:bg-transparent hover:text-neutral-400 active:text-blue-700 active:bg-transparent ";
+    "px-5.5 py-4 w-auto h-full bg-transparent  h-14 hover:bg-transparent hover:text-neutral-400 active:text-blue-700 active:bg-transparent ";
+
+  // Blended against whatever's behind it while its section isn't the one
+  // showing; once it is, it drops the blend and just reads blue.
+  const linkBlend = (active: boolean) =>
+    active ? "text-blue-700 mix-blend-normal" : "mix-blend-difference";
 
   return (
     <>
@@ -59,7 +66,7 @@ export default function Nav() {
           data-nav="personal"
           variant="link"
           size="sm"
-          className={`justify-start hover:text-blue-700 transition-all ${cornerLink}`}
+          className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(personalActive)}`}
           onClick={() => {
             setOpenedSection("personal");
             if (onHome) setHash("personal");
@@ -74,7 +81,7 @@ export default function Nav() {
           data-nav="commissioned"
           variant="link"
           size="sm"
-          className={`justify-end hover:text-blue-700 transition-all ${cornerLink}`}
+          className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(commissionedActive)}`}
           onClick={() => {
             setOpenedSection("commissioned");
             if (onHome) setHash("commissioned");
@@ -95,7 +102,7 @@ export default function Nav() {
           <Button
             variant="link"
             size="sm"
-            className={`justify-start hover:text-blue-700 ${cornerLink} ${aboutActive ? "text-blue-700" : ""}`}
+            className={`justify-start hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
             onClick={() => setHash(hash === "about" ? "" : "about")}
           >
             About
@@ -104,7 +111,7 @@ export default function Nav() {
           <Button
             variant="link"
             size="sm"
-            className={`justify-start ${cornerLink} ${aboutActive ? "text-blue-700" : ""}`}
+            className={`justify-start ${cornerLink} ${linkBlend(aboutActive)}`}
             asChild
           >
             <Link href="/about">About</Link>
@@ -123,7 +130,7 @@ export default function Nav() {
           <Button
             variant="link"
             size="sm"
-            className={`justify-end hover:text-blue-700  ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
+            className={`justify-end hover:text-blue-700  ${cornerLink} ${linkBlend(indexActive)}`}
             onClick={() => setHash(hash === "index" ? "" : "index")}
           >
             Index
@@ -132,7 +139,7 @@ export default function Nav() {
           <Button
             variant="link"
             size="sm"
-            className={`justify-end  hover:text-blue-700 ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
+            className={`justify-end  hover:text-blue-700 ${cornerLink} ${linkBlend(indexActive)}`}
             asChild
           >
             <Link href="/archive">Index</Link>

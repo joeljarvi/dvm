@@ -116,16 +116,14 @@ export default function IndexSection({
         <SelectTrigger className="lg:hidden h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent className="z-1010 font-selecta text-[0.8rem] text-neutral-300 ring-transparent bg-background rounded-none">
+        <SelectContent className="z-1010 bg-background font-selecta text-[0.8rem] text-neutral-300 ring-transparent  rounded-none">
           <SelectGroup>
-            <SelectLabel>{LABEL.personal}</SelectLabel>
             <SelectItem value="personal:selected">
               {LABEL.personal} – Selected
             </SelectItem>
             <SelectItem value="personal:all">{LABEL.personal} – All</SelectItem>
           </SelectGroup>
           <SelectGroup>
-            <SelectLabel>{LABEL.commissioned}</SelectLabel>
             <SelectItem value="commissioned:selected">
               {LABEL.commissioned} – Selected
             </SelectItem>
