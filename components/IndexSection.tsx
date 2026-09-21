@@ -92,11 +92,11 @@ export default function IndexSection({
     <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-selecta font-medium text-lg lg:text-xl tracking-wide text-neutral-300 pt-30 lg:pt-0">
       <div className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5 ">
         {previewImage && (
-          <div className="relative bg-background flex items-center justify-center h-screen w-screen  ">
+          <div className="relative bg-background flex items-center justify-center h-screen w-screen blur-xs   ">
             <img
               src={sanityImage(previewImage, { w: 800 })}
               alt={hovered?.title ?? ""}
-              className="h-full w-auto object-contain  blur-xs  opacity-30 py-30  "
+              className="h-full w-auto object-contain   opacity-30 py-30  "
             />
           </div>
         )}
