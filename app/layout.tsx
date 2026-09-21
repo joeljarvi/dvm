@@ -5,30 +5,11 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import Nav from "@/components/Nav";
 import { ReactLenis } from "lenis/react";
-import Wordmark from "@/components/Wordmark";
-
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Daniel von Malmborg",
   description: "Photographer & Creative Director",
 };
-
-const director = localFont({
-  src: [
-    {
-      path: "../public/fonts/Director-Light.woff2",
-      weight: "300",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/Director-Regular.woff2",
-      weight: "400",
-      style: "normal",
-    },
-  ],
-  variable: "--font-director",
-});
 
 const selecta = localFont({
   src: [
@@ -96,32 +77,6 @@ const selecta = localFont({
   variable: "--font-selecta",
 });
 
-const univers = localFont({
-  src: [
-    {
-      path: "../public/fonts/UniversNextPro-MediumCond.ttf",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/UniversNextPro-MediumCondIt.ttf",
-      weight: "500",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/UniversNextPro-XBlackCond.ttf",
-      weight: "900",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/UniversNextPro-XBlackCondIt.ttf",
-      weight: "900",
-      style: "italic",
-    },
-  ],
-  variable: "--font-univers",
-});
-
 const diatype = localFont({
   src: [
     {
@@ -146,7 +101,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${selecta.variable} ${director.variable} ${univers.variable} ${diatype.variable} antialiased`}
+      className={`${selecta.variable}   ${diatype.variable} antialiased`}
     >
       <body className="">
         <ReactLenis root />

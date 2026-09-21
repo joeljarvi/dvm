@@ -83,10 +83,7 @@ function Cover({
 
   const handleClick = () => {
     if (!columnOpen) return;
-    if (!expanded) {
-      onExpand();
-      return;
-    }
+    if (!expanded) onExpand();
     onStepImage(1);
   };
 
@@ -316,7 +313,7 @@ function Strip({
           smoothWheel: true,
           wheelMultiplier: 1,
           touchMultiplier: 2,
-          infinite: false,
+          infinite: true,
           autoResize: true,
         }}
       >
