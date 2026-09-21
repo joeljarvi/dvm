@@ -33,3 +33,11 @@ export const staggerItem: Variants = {
   hidden: { opacity: 0, y: 12, transition: REVEAL_TRANSITION },
   visible: { opacity: 1, y: 0, transition: REVEAL_TRANSITION },
 };
+
+// A drawer's content as one block — slides up from below into place on
+// reveal, and back down on exit (the same pair of states, just played in
+// each direction). No per-item stagger, unlike staggerItem above.
+export const slideReveal: Variants = {
+  hidden: { opacity: 0, y: 24, transition: REVEAL_TRANSITION },
+  visible: { opacity: 1, y: 0, transition: REVEAL_TRANSITION },
+};

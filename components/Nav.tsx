@@ -37,10 +37,21 @@ export default function Nav() {
 
   const onHome = pathname === "/";
 
+  // A single project's own page (see app/[category]/[slug]) shows only its
+  // own category's corner link — not About/Index or the other category.
+  const projectCategory = pathname.match(
+    /^\/(personal|commissioned)\/[^/]+$/,
+  )?.[1] as "personal" | "commissioned" | undefined;
+  const showPersonal = !projectCategory || projectCategory === "personal";
+  const showCommissioned =
+    !projectCategory || projectCategory === "commissioned";
+  const showAboutIndex = !projectCategory;
+
   const aboutActive = pathname === "/about" || (onHome && hash === "about");
   const indexActive = pathname === "/archive" || (onHome && hash === "index");
-  const personalActive = opened === "personal";
-  const commissionedActive = opened === "commissioned";
+  const personalActive = opened === "personal" || projectCategory === "personal";
+  const commissionedActive =
+    opened === "commissioned" || projectCategory === "commissioned";
 
   const chosen = !onHome || opened !== null;
 
@@ -66,86 +77,123 @@ export default function Nav() {
 
   return (
     <>
-      <span className={corner("top-0 left-0 justify-start", true, topChrome)}>
-        <Button
-          tabIndex={0}
-          data-nav="personal"
-          variant="link"
-          size="sm"
-          className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(personalActive)}`}
-          onClick={() => switchSection("personal", onHome)}
+      {showPersonal && (
+        <span
+          className={corner("top-0 left-0 justify-start", true, topChrome)}
         >
-          Personal
-        </Button>
-      </span>
+          {onHome ? (
+            <Button
+              tabIndex={0}
+              data-nav="personal"
+              variant="link"
+              size="sm"
+              className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(personalActive)}`}
+              onClick={() => switchSection("personal", onHome)}
+            >
+              Personal
+            </Button>
+          ) : (
+            <Button
+              tabIndex={0}
+              data-nav="personal"
+              variant="link"
+              size="sm"
+              className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(personalActive)}`}
+              asChild
+            >
+              <Link href="/#personal">Personal</Link>
+            </Button>
+          )}
+        </span>
+      )}
 
-      <span className={corner("top-0 right-0 justify-end", true, topChrome)}>
-        <Button
-          data-nav="commissioned"
-          variant="link"
-          size="sm"
-          className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(commissionedActive)}`}
-          onClick={() => switchSection("commissioned", onHome)}
+      {showCommissioned && (
+        <span
+          className={corner("top-0 right-0 justify-end", true, topChrome)}
         >
-          Commissioned
-        </Button>
-      </span>
-      {}
-      <span
-        className={corner(
-          "bottom-0 lg:bottom-0 left-0 justify-start",
-          true,
-          topChrome,
-        )}
-      >
-        {onHome ? (
-          <Button
-            variant="link"
-            size="sm"
-            className={`justify-start  hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
-            onClick={() => setHash(hash === "about" ? "" : "about")}
-          >
-            About
-          </Button>
-        ) : (
-          <Button
-            variant="link"
-            size="sm"
-            className={`justify-start ${cornerLink} ${linkBlend(aboutActive)}`}
-            asChild
-          >
-            <Link href="/about">About</Link>
-          </Button>
-        )}
-      </span>
+          {onHome ? (
+            <Button
+              data-nav="commissioned"
+              variant="link"
+              size="sm"
+              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(commissionedActive)}`}
+              onClick={() => switchSection("commissioned", onHome)}
+            >
+              Commissioned
+            </Button>
+          ) : (
+            <Button
+              data-nav="commissioned"
+              variant="link"
+              size="sm"
+              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(commissionedActive)}`}
+              asChild
+            >
+              <Link href="/#commissioned">Commissioned</Link>
+            </Button>
+          )}
+        </span>
+      )}
 
-      <span
-        className={corner(
-          "bottom-0 lg:bottom-0 right-0 justify-end",
-          true,
-          topChrome,
-        )}
-      >
-        {onHome ? (
-          <Button
-            variant="link"
-            size="sm"
-            className={`justify-end hover:text-blue-700  ${cornerLink} ${linkBlend(indexActive)}`}
-            onClick={() => setHash(hash === "index" ? "" : "index")}
-          >
-            Index
-          </Button>
-        ) : (
-          <Button
-            variant="link"
-            size="sm"
-            className={`justify-end  hover:text-blue-700 ${cornerLink} ${linkBlend(indexActive)}`}
-            asChild
-          >
-            <Link href="/archive">Index</Link>
-          </Button>
-        )}
-      </span>
+      {showAboutIndex && (
+        <span
+          className={corner(
+            "bottom-0 lg:bottom-0 left-0 justify-start",
+            true,
+            topChrome,
+          )}
+        >
+          {onHome ? (
+            <Button
+              variant="link"
+              size="sm"
+              className={`justify-start  hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
+              onClick={() => setHash(hash === "about" ? "" : "about")}
+            >
+              About
+            </Button>
+          ) : (
+            <Button
+              variant="link"
+              size="sm"
+              className={`justify-start ${cornerLink} ${linkBlend(aboutActive)}`}
+              asChild
+            >
+              <Link href="/about">About</Link>
+            </Button>
+          )}
+        </span>
+      )}
+
+      {showAboutIndex && (
+        <span
+          className={corner(
+            "bottom-0 lg:bottom-0 right-0 justify-end",
+            true,
+            topChrome,
+          )}
+        >
+          {onHome ? (
+            <Button
+              variant="link"
+              size="sm"
+              className={`justify-end hover:text-blue-700  ${cornerLink} ${linkBlend(indexActive)}`}
+              onClick={() => setHash(hash === "index" ? "" : "index")}
+            >
+              Index
+            </Button>
+          ) : (
+            <Button
+              variant="link"
+              size="sm"
+              className={`justify-end  hover:text-blue-700 ${cornerLink} ${linkBlend(indexActive)}`}
+              asChild
+            >
+              <Link href="/archive">Index</Link>
+            </Button>
+          )}
+        </span>
+      )}
     </>
   );
 }

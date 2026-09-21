@@ -32,8 +32,12 @@ import {
   CustomCursor,
   CustomCursorTarget,
 } from "@/components/ui/custom-cursor";
+import Link from "next/link";
 
-function coverImages(project: Project, fallbackSrc: string): ProjectMedia[] {
+export function coverImages(
+  project: Project,
+  fallbackSrc: string,
+): ProjectMedia[] {
   // Images and videos the user uploaded into the gallery, in upload order —
   // both types cycle together when clicking through a cover.
   const media = project.images ?? [];
@@ -91,7 +95,7 @@ function Cover({
     <div
       ref={box}
       data-slug={project.slug ?? project.title}
-      className="relative shrink-0 w-full group h-screen flex flex-col p-0 lg:py-28 lg:px-0 max-w-full lg:max-w-1/3 mx-auto"
+      className="relative shrink-0 w-full group h-screen flex flex-col p-0 lg:py-28 lg:px-0 max-w-full lg:max-w-full mx-auto"
     >
       <div className="relative w-full h-full flex items-center justify-center">
         <div className="relative inline-flex max-w-full max-h-full">
@@ -344,6 +348,7 @@ function Strip({
         <div className="pointer-events-none absolute inset-x-0 top-[62.5vh] z-10 flex flex-col gap-y-2 px-5.5 ">
           <InfoLayout
             title={shown.title}
+            titleHref={shown.slug ? `/${section}/${shown.slug}` : undefined}
             model={section === "personal" ? shown.client : undefined}
             client={section === "commissioned" ? shown.client : undefined}
             agency={shown.agency}
@@ -400,8 +405,7 @@ export default function HomeClient({
   useEffect(() => () => setHoveredSection(null), []);
 
   // Pulse the cursor while something's loading in: the opening intro, or a
-  // drawer's content staggering in (see staggerContainer/staggerItem in
-  // lib/motion.ts) — then settle it once everything's actually on screen.
+  // drawer opening — then settle it once everything's actually on screen.
   const [drawerOpening, setDrawerOpening] = useState(false);
   useEffect(() => {
     if (hash !== "about" && hash !== "index") {
@@ -409,9 +413,8 @@ export default function HomeClient({
       return () => clearTimeout(reset);
     }
     const on = setTimeout(() => setDrawerOpening(true), 0);
-    // Longest stagger is AboutSection's 6 items: 5 * 60ms delay + the 700ms
-    // reveal transition itself.
-    const off = setTimeout(() => setDrawerOpening(false), 1000);
+    // Matches the drawer's own fade (see REVEAL_DURATION in lib/motion.ts).
+    const off = setTimeout(() => setDrawerOpening(false), 700);
     return () => {
       clearTimeout(on);
       clearTimeout(off);

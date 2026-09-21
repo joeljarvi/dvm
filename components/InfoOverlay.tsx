@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useRegisterModal } from "@/lib/modalStack";
-import { staggerContainer, REVEAL_CLASS } from "@/lib/motion";
+import { REVEAL_CLASS, slideReveal } from "@/lib/motion";
 
 export default function InfoOverlay({
   open,
@@ -42,7 +42,7 @@ export default function InfoOverlay({
       >
         <motion.div
           data-lenis-prevent
-          variants={staggerContainer}
+          variants={slideReveal}
           initial="hidden"
           animate={open ? "visible" : "hidden"}
           className="relative h-full w-full overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden"

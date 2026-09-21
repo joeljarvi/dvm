@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { Button } from "@/components/ui/button";
 import { sanityImage } from "@/lib/image";
-import { staggerItem } from "@/lib/motion";
 import type { About } from "@/lib/types";
 
 // Shown when Sanity has no About document yet — same degradation pattern
@@ -52,23 +50,14 @@ export default function AboutSection({ about }: { about?: About | null }) {
           them — so these just label the columns beneath, the same static
           heading treatment IndexSection's Personal/Commissioned got once
           its own toggle went away. */}
-      <motion.h3
-        variants={staggerItem}
-        className="hidden lg:flex col-start-2 w-min h-14 items-center px-0 font-normal text-blue-700"
-      >
+      <h3 className="hidden lg:flex col-start-2 w-min h-14 items-center px-0 font-normal text-blue-700">
         Connect
-      </motion.h3>
-      <motion.h3
-        variants={staggerItem}
-        className="flex col-start-3  h-14 items-center lg:px-0 font-normal text-blue-700 px-5.5 whitespace-nowrap"
-      >
+      </h3>
+      <h3 className="flex col-start-3  h-14 items-center lg:px-0 font-normal text-blue-700 px-5.5 whitespace-nowrap">
         Daniel von Malmborg
-      </motion.h3>
+      </h3>
 
-      <motion.div
-        variants={staggerItem}
-        className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8rem] font-normal px-5.5  lg:px-0 leading-tight tracking-wide gap-y-2 max-w-sm lg:max-w-full text-blue-700  mb-0 lg:mb-16"
-      >
+      <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8rem] font-normal px-5.5  lg:px-0 leading-tight tracking-wide gap-y-2 max-w-sm lg:max-w-full text-blue-700  mb-0 lg:mb-16">
         {about?.bio?.length ? (
           <PortableText value={about.bio} components={bioComponents} />
         ) : (
@@ -78,11 +67,8 @@ export default function AboutSection({ about }: { about?: About | null }) {
             </p>
           ))
         )}
-      </motion.div>
-      <motion.span
-        variants={staggerItem}
-        className="col-start-1 lg:col-start-2  row-start-2 flex lg:flex-col flex-wrap gap-x-4  font-normal justify-start"
-      >
+      </div>
+      <span className="col-start-1 lg:col-start-2  row-start-2 flex lg:flex-col flex-wrap gap-x-4  font-normal justify-start">
         <Button
           variant="link"
           size="sm"
@@ -116,26 +102,20 @@ export default function AboutSection({ about }: { about?: About | null }) {
             Instagram
           </Link>
         </Button>
-      </motion.span>
+      </span>
       {bioImageUrl && (
-        <motion.div
-          variants={staggerItem}
-          className="row-start-3 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start px-5.5 mb-16 lg:px-0 lg:pb-0 pb-14"
-        >
+        <div className="row-start-3 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full flex justify-start items-start px-5.5 mb-16 lg:px-0 lg:pb-0 pb-14">
           <img
             src={sanityImage(bioImageUrl, { w: 800 })}
             alt=""
             className="w-full lg:w-full lg:aspect-video object-cover"
           />
-        </motion.div>
+        </div>
       )}
       {/* multi2, krejzy, … — same list the standalone links panel used to
           hold, now pinned below the image rather than alongside the
           Contact block above it. */}
-      <motion.span
-        variants={staggerItem}
-        className="col-start-1 lg:col-start-2 lg:col-span-3 lg:row-start-4 flex lg:flex-col flex-wrap gap-x-4  font-normal justify-start lg:grid lg:grid-cols-3 mt-16 lg:mt-0"
-      >
+      <span className="col-start-1 lg:col-start-2 lg:col-span-3 lg:row-start-4 flex lg:flex-col flex-wrap gap-x-4  font-normal justify-start lg:grid lg:grid-cols-3 mt-16 lg:mt-0">
         {links.map((link) => (
           <span
             key={link.url}
@@ -158,7 +138,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
             )}
           </span>
         ))}
-      </motion.span>
+      </span>
     </div>
   );
 }

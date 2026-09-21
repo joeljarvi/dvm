@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import Counter from "@/components/Counter";
 import { REVEAL_TRANSITION } from "@/lib/motion";
 
 export default function InfoLayout({
   title,
+  titleHref,
   model,
   client,
   agency,
@@ -14,6 +16,9 @@ export default function InfoLayout({
   highlight = false,
 }: {
   title?: string;
+  /** Where the title links to — its own project page. Omit to render it as
+   * plain text, e.g. on the project page itself. */
+  titleHref?: string;
 
   model?: string;
   client?: string;
@@ -45,7 +50,7 @@ export default function InfoLayout({
   }`;
 
   return (
-    <div className="flex  justify-between items-baseline gap-x-4 w-full font-selecta  font-normal px-0 tracking-wide text-[0.8rem] ">
+    <div className="flex  justify-between items-baseline gap-x-4 w-full font-diatype  font-normal px-0 tracking-wide text-[0.8rem] ">
       <div className="justify-self-end flex flex-col items-start text-left">
         <AnimatePresence initial={false}>
           {revealed && showTitle && (
@@ -55,9 +60,19 @@ export default function InfoLayout({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={REVEAL_TRANSITION}
-              className={titleClass}
+              className={`${titleClass} capitalize`}
             >
-              {title}
+              {titleHref ? (
+                <Link
+                  href={titleHref}
+                  className="pointer-events-auto flex gap-0.5  "
+                >
+                  {" "}
+                  {title}
+                </Link>
+              ) : (
+                title
+              )}
             </motion.h3>
           )}
         </AnimatePresence>

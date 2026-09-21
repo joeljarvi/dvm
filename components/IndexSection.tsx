@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
 import type { Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { clients, models } from "@/lib/data";
-import { staggerItem } from "@/lib/motion";
 import {
   setProjectVisibility,
   useProjectVisibility,
@@ -91,10 +89,7 @@ export default function IndexSection({
 
   return (
     <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-diatype font-normal text-[0.8rem] tracking-wide text-neutral-300 dark:text-neutral-600 pt-30 lg:pt-0 ">
-      <motion.div
-        variants={staggerItem}
-        className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5 overflow-hidden"
-      >
+      <div className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5 overflow-hidden">
         {previewImage && (
           // Safari clips `filter: blur()` right at the element's own box
           // instead of letting it fade out past the edge, which reads as a
@@ -109,9 +104,9 @@ export default function IndexSection({
             />
           </div>
         )}
-      </motion.div>
+      </div>
 
-      <motion.div variants={staggerItem} className="lg:hidden">
+      <div className="lg:hidden">
         <Select
           value={`${mobileCategory}:${visibility}`}
           onValueChange={(v) => {
@@ -145,15 +140,14 @@ export default function IndexSection({
             </SelectGroup>
           </SelectContent>
         </Select>
-      </motion.div>
+      </div>
 
       {CATEGORIES.map((category) => {
         const entries = entriesFor(category);
 
         return (
-          <motion.div
+          <div
             key={category}
-            variants={staggerItem}
             className={`${category === mobileCategory ? "flex" : "hidden"} lg:flex relative z-10 flex-col w-full h-dvh lg:h-screen ${COLUMN[category]}`}
           >
             <div className="hidden lg:flex absolute top-0 left-0 w-full h-32 items-start justify-start px-5.5 pointer-events-none bg-linear-to-b from-background from-25% via-background/10 via-55% to-transparent">
@@ -176,7 +170,7 @@ export default function IndexSection({
                     variant="link"
                     size="sm"
                     onClick={() => select(project, category)}
-                    className="     truncate h-auto  justify-start text-neutral-400 dark:text-neutral-500   text-left cursor-pointer hover:text-blue-700"
+                    className={`     truncate h-auto  justify-start text-neutral-400 dark:text-neutral-500   text-left cursor-pointer hover:text-blue-700 ${project.client ? "" : "capitalize"}`}
                   >
                     {project.client ?? project.title}
                   </Button>
@@ -206,7 +200,7 @@ export default function IndexSection({
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         );
       })}
     </div>
