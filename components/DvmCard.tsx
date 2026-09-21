@@ -2,6 +2,7 @@
 
 import Wordmark from "./Wordmark";
 import { useIntro } from "@/lib/intro";
+import { REVEAL_CLASS } from "@/lib/motion";
 
 // The plate the name sits on.
 //   text      — the name as lettering (default)
@@ -22,7 +23,7 @@ export default function DvmCard({
   return (
     <div className="relative h-[33.3dvh] lg:h-[45dvh] flex flex-col items-start lg:items-start justify-between p-8 group aspect-video gap-y-4">
       <div
-        className={`absolute inset-0 z-0 ${color} shadow-md transition-opacity duration-700 ease-out ${
+        className={`absolute inset-0 z-0 ${color} shadow-md transition-opacity ${REVEAL_CLASS} ${
           !animated || plated ? "" : "opacity-0"
         }`}
       />

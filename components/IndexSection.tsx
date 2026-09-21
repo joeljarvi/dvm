@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "motion/react";
 import type { Project } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
 import { clients, models } from "@/lib/data";
+import { staggerItem } from "@/lib/motion";
 import {
   setProjectVisibility,
   useProjectVisibility,
@@ -89,8 +91,11 @@ export default function IndexSection({
     (hovered ? PLACEHOLDER_IMAGE : null);
 
   return (
-    <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-selecta font-medium text-lg lg:text-xl tracking-wide text-neutral-300 pt-30 lg:pt-0 ">
-      <div className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5  ">
+    <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-selecta font-medium text-lg lg:text-xl tracking-wide text-neutral-300 dark:text-neutral-600 pt-30 lg:pt-0 ">
+      <motion.div
+        variants={staggerItem}
+        className="hidden absolute inset-0 -z-10 lg:flex lg:items-center justify-center lg:h-screen px-5.5  "
+      >
         {previewImage && (
           <div className="relative bg-background flex items-center justify-center h-screen w-screen blur-xs   ">
             <img
@@ -100,46 +105,51 @@ export default function IndexSection({
             />
           </div>
         )}
-      </div>
+      </motion.div>
 
-      <Select
-        value={`${mobileCategory}:${visibility}`}
-        onValueChange={(v) => {
-          const [nextCategory, nextVisibility] = v.split(":") as [
-            Category,
-            Visibility,
-          ];
-          setMobileCategory(nextCategory);
-          setProjectVisibility(nextVisibility);
-        }}
-      >
-        <SelectTrigger className="lg:hidden h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent className="z-1010 bg-background font-selecta text-[0.8rem] text-neutral-300 ring-transparent  rounded-none">
-          <SelectGroup>
-            <SelectItem value="personal:selected">
-              {LABEL.personal} – Selected
-            </SelectItem>
-            <SelectItem value="personal:all">{LABEL.personal} – All</SelectItem>
-          </SelectGroup>
-          <SelectGroup>
-            <SelectItem value="commissioned:selected">
-              {LABEL.commissioned} – Selected
-            </SelectItem>
-            <SelectItem value="commissioned:all">
-              {LABEL.commissioned} – All
-            </SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      <motion.div variants={staggerItem} className="lg:hidden">
+        <Select
+          value={`${mobileCategory}:${visibility}`}
+          onValueChange={(v) => {
+            const [nextCategory, nextVisibility] = v.split(":") as [
+              Category,
+              Visibility,
+            ];
+            setMobileCategory(nextCategory);
+            setProjectVisibility(nextVisibility);
+          }}
+        >
+          <SelectTrigger className="h-14 gap-1 font-normal px-5.5 text-[0.8rem] w-full border-none rounded-none bg-transparent shadow-none text-blue-700 hover:text-blue-700 cursor-pointer">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="z-1010 bg-background font-selecta text-[0.8rem] text-neutral-300 ring-transparent  rounded-none">
+            <SelectGroup>
+              <SelectItem value="personal:selected">
+                {LABEL.personal} – Selected
+              </SelectItem>
+              <SelectItem value="personal:all">
+                {LABEL.personal} – All
+              </SelectItem>
+            </SelectGroup>
+            <SelectGroup>
+              <SelectItem value="commissioned:selected">
+                {LABEL.commissioned} – Selected
+              </SelectItem>
+              <SelectItem value="commissioned:all">
+                {LABEL.commissioned} – All
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </motion.div>
 
       {CATEGORIES.map((category) => {
         const entries = entriesFor(category);
 
         return (
-          <div
+          <motion.div
             key={category}
+            variants={staggerItem}
             className={`${category === mobileCategory ? "flex" : "hidden"} lg:flex relative z-10 flex-col w-full h-dvh lg:h-screen ${COLUMN[category]}`}
           >
             <div className="hidden lg:flex absolute top-0 left-0 w-full h-32 items-start justify-start px-5.5 pointer-events-none bg-linear-to-b from-background from-25% via-background/10 via-55% to-transparent">
@@ -162,7 +172,7 @@ export default function IndexSection({
                     variant="link"
                     size="sm"
                     onClick={() => select(project, category)}
-                    className="     truncate h-auto  justify-start   text-left cursor-pointer hover:text-blue-700"
+                    className="     truncate h-auto  justify-start text-neutral-400 dark:text-neutral-500   text-left cursor-pointer hover:text-blue-700"
                   >
                     {project.client ?? project.title}
                   </Button>
@@ -184,7 +194,7 @@ export default function IndexSection({
                   <Button
                     variant="link"
                     size="sm"
-                    className={`px-0 hover:text-blue-700 ${visibility === "all" ? "text-blue-700" : ""}`}
+                    className={`px-0 hover:text-blue-700 text-neutral-400 dark:text-neutral-500 ${visibility === "all" ? "text-blue-700" : ""}`}
                     onClick={() => setProjectVisibility("all")}
                   >
                     Show All
@@ -192,7 +202,7 @@ export default function IndexSection({
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         );
       })}
     </div>

@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import Counter from "@/components/Counter";
+import { REVEAL_TRANSITION } from "@/lib/motion";
 
 export default function InfoLayout({
   title,
@@ -40,7 +41,7 @@ export default function InfoLayout({
   const titleClass = `transition-colors  duration-300 ease-out group-hover:text-blue-700 ${
     highlight
       ? "text-blue-700 mix-blend-normal"
-      : "mix-blend-difference text-neutral-400 "
+      : "mix-blend-difference text-neutral-400 dark:text-neutral-500   "
   }`;
 
   return (
@@ -53,7 +54,7 @@ export default function InfoLayout({
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              transition={REVEAL_TRANSITION}
               className={titleClass}
             >
               {title}
@@ -68,15 +69,11 @@ export default function InfoLayout({
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{
-                duration: 0.3,
-                ease: [0.22, 1, 0.36, 1],
-                delay: 0.08,
-              }}
+              transition={{ ...REVEAL_TRANSITION, delay: 0.08 }}
               className={
                 highlight
                   ? "text-blue-700 mix-blend-normal"
-                  : "mix-blend-difference text-neutral-400"
+                  : "mix-blend-difference text-neutral-400 dark:text-neutral-500 "
               }
             >
               {agency}

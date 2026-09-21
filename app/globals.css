@@ -3,7 +3,10 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* No manual toggle — the site just follows the visitor's OS/browser
+   preference, so `dark:` stays Tailwind's default prefers-color-scheme
+   variant rather than being rebound to a `.dark` class (the shadcn default,
+   meant for a next-themes-style toggle we don't have). */
 
 @theme inline {
   --color-background: var(--background);
@@ -86,38 +89,44 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* Dark palette — mirrors the light theme's contrast (near-white on
+   near-black rather than a softened grey), and keeps blue-700 as the one
+   fixed accent color in both themes; nothing here overrides it. Driven
+   purely by the OS/browser preference below, no `.dark` class involved. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+  }
 }
 
 @layer base {
@@ -132,9 +141,22 @@
   }
 }
 
-/* Univers Next Pro Condensed — only two weights exist (500 Medium, 900 XBlack),
-   each with an italic. Use these instead of arbitrary font-weight utilities so
-   the browser never synthesises a weight the family doesn't ship. */
+@utility noise-bg {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCA3MDAgNzAwIiB3aWR0aD0iNzAwIiBoZWlnaHQ9IjcwMCI+PGRlZnM+PGZpbHRlciBpZD0ibm5ub2lzZS1maWx0ZXIiIHg9Ii0yMCUiIHk9Ii0yMCUiIHdpZHRoPSIxNDAlIiBoZWlnaHQ9IjE0MCUiIGZpbHRlclVuaXRzPSJvYmplY3RCb3VuZGluZ0JveCIgcHJpbWl0aXZlVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9ImxpbmVhclJHQiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuMiIgbnVtT2N0YXZlcz0iNCIgc2VlZD0iMTUiIHN0aXRjaFRpbGVzPSJzdGl0Y2giIHg9IjAlIiB5PSIwJSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgcmVzdWx0PSJ0dXJidWxlbmNlIj48L2ZlVHVyYnVsZW5jZT48ZmVTcGVjdWxhckxpZ2h0aW5nIHN1cmZhY2VTY2FsZT0iMzUiIHNwZWN1bGFyQ29uc3RhbnQ9IjEuOCIgc3BlY3VsYXJFeHBvbmVudD0iMjAiIGxpZ2h0aW5nLWNvbG9yPSIjMUQ0RUQ4IiB4PSIwJSIgeT0iMCUiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGluPSJ0dXJidWxlbmNlIiByZXN1bHQ9InNwZWN1bGFyTGlnaHRpbmciPjxmZURpc3RhbnRMaWdodCBhemltdXRoPSIzIiBlbGV2YXRpb249IjE0OSI+PC9mZURpc3RhbnRMaWdodD48L2ZlU3BlY3VsYXJMaWdodGluZz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIiB4PSIwJSIgeT0iMCUiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGluPSJzcGVjdWxhckxpZ2h0aW5nIiByZXN1bHQ9ImNvbG9ybWF0cml4Ij48L2ZlQ29sb3JNYXRyaXg+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI3MDAiIGhlaWdodD0iNzAwIiBmaWxsPSIjZmZmZmZmMDAiPjwvcmVjdD48cmVjdCB3aWR0aD0iNzAwIiBoZWlnaHQ9IjcwMCIgZmlsbD0iIzFkNGVkOCIgZmlsdGVyPSJ1cmwoI25ubm9pc2UtZmlsdGVyKSI+PC9yZWN0Pjwvc3ZnPgo=");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Same texture, tuned for a dark backdrop: grey-lit noise instead of white,
+   softer frequency, and its own opacity baked into the SVG rather than
+   relying on a wrapping element's opacity utility. */
+@media (prefers-color-scheme: dark) {
+  .noise-bg {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCA3MDAgNzAwIiB3aWR0aD0iNzAwIiBoZWlnaHQ9IjcwMCIgb3BhY2l0eT0iMC41NCI+PGRlZnM+PGZpbHRlciBpZD0ibm5ub2lzZS1maWx0ZXIiIHg9Ii0yMCUiIHk9Ii0yMCUiIHdpZHRoPSIxNDAlIiBoZWlnaHQ9IjE0MCUiIGZpbHRlclVuaXRzPSJvYmplY3RCb3VuZGluZ0JveCIgcHJpbWl0aXZlVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9ImxpbmVhclJHQiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuMDc0IiBudW1PY3RhdmVzPSI0IiBzZWVkPSIxNSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgeD0iMCUiIHk9IjAlIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiByZXN1bHQ9InR1cmJ1bGVuY2UiPjwvZmVUdXJidWxlbmNlPjxmZVNwZWN1bGFyTGlnaHRpbmcgc3VyZmFjZVNjYWxlPSIzNCIgc3BlY3VsYXJDb25zdGFudD0iMS43IiBzcGVjdWxhckV4cG9uZW50PSIyMCIgbGlnaHRpbmctY29sb3I9IiM4ODg4ODgiIHg9IjAlIiB5PSIwJSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgaW49InR1cmJ1bGVuY2UiIHJlc3VsdD0ic3BlY3VsYXJMaWdodGluZyI+PGZlRGlzdGFudExpZ2h0IGF6aW11dGg9IjMiIGVsZXZhdGlvbj0iMTQ5Ij48L2ZlRGlzdGFudExpZ2h0PjwvZmVTcGVjdWxhckxpZ2h0aW5nPjxmZUNvbG9yTWF0cml4IHR5cGU9InNhdHVyYXRlIiB2YWx1ZXM9IjAiIHg9IjAlIiB5PSIwJSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgaW49InNwZWN1bGFyTGlnaHRpbmciIHJlc3VsdD0iY29sb3JtYXRyaXgiPjwvZmVDb2xvck1hdHJpeD48L2ZpbHRlcj48L2RlZnM+PHJlY3Qgd2lkdGg9IjcwMCIgaGVpZ2h0PSI3MDAiIGZpbGw9IiNmZmZmZmYwMCI+PC9yZWN0PjxyZWN0IHdpZHRoPSI3MDAiIGhlaWdodD0iNzAwIiBmaWxsPSIjODg4ODg4IiBmaWx0ZXI9InVybCgjbm5ub2lzZS1maWx0ZXIpIj48L3JlY3Q+PC9zdmc+");
+  }
+}
+
 @utility univers {
   font-family: var(--font-univers);
   font-weight: 500;
@@ -159,12 +181,6 @@
   font-style: italic;
 }
 
-/* A home panel and its label act as one control even though they sit in
-   different trees — the label is rendered by the nav in the layout, the panel
-   by the page. `:has` on the body bridges the two. Unlayered, so it beats the
-   utilities that set the label's own background.
-
-   Hovering or pressing the panel colours its label... */
 body:has([data-panel="personal"]:is(:hover, :active)) [data-nav="personal"],
 body:has([data-panel="commissioned"]:is(:hover, :active))
   [data-nav="commissioned"] {
@@ -173,42 +189,12 @@ body:has([data-panel="commissioned"]:is(:hover, :active))
   mix-blend-mode: normal;
 }
 
-/* ...and hovering or pressing the label colours that panel, the same blue its
-   own `hover:text-blue-700` raises. Covers are always up now, so this is the
-   only thing the label still has to reach for. */
 body:has([data-nav="personal"]:is(:hover, :active)) [data-panel="personal"],
 body:has([data-nav="commissioned"]:is(:hover, :active))
   [data-panel="commissioned"] {
   color: var(--color-blue-700, #1447e6);
 }
-/* Recessed label chips on the home panels: reads as a hole cut through the
-   featured image, with the cut edge of the image casting inward (light from
-   above, so the top edge is darkest and the bottom lip catches a highlight).
-   Inset shadows only — the element itself must have an opaque background. */
-@utility cutout {
-  box-shadow:
-    inset 0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent),
-    inset 0 2px 3px color-mix(in oklch, var(--foreground) 34%, transparent),
-    inset 0 7px 10px -5px
-      color-mix(in oklch, var(--foreground) 28%, transparent),
-    inset 2px 0 4px -2px color-mix(in oklch, var(--foreground) 20%, transparent),
-    inset -2px 0 4px -2px
-      color-mix(in oklch, var(--foreground) 80%, transparent),
-    inset 0 -1px 0 color-mix(in oklch, var(--background) 80%, transparent);
-}
 
-/* Trim the half-leading off a text box so its background hugs the glyphs:
-   top edge at cap height, bottom edge at the baseline. Only takes effect on a
-   block container (add `inline-block` to inline spans). Firefox doesn't support
-   text-box yet and falls back to the line-height box, so keep leading tight. */
-@utility text-trim {
-  text-box: trim-both cap alphabetic;
-}
-
-/* The page's own scrollbar. Every view is a fixed viewport with its own
-   scroller, and Lenis drives the window, so the native bar is chrome the
-   layout never accounts for. Scoped to the document rather than `*` — the
-   Studio at /studio has real scrollers that need visible bars. */
 html,
 body {
   scrollbar-width: none;
@@ -219,62 +205,9 @@ body::-webkit-scrollbar {
   display: none;
 }
 
-/* components/ui/custom-cursor.tsx renders its own dot in place of the system
-   pointer. It toggles this class on <html> itself while mounted with
-   layout="fixed", so the rule only fires where the replacement is actually
-   on screen. */
 @media (min-width: 64rem) {
   .custom-cursor,
   .custom-cursor * {
     cursor: none !important;
   }
 }
-
-/* InfoOverlay's drawer itself only fades (see the panel's transition-opacity
-   in InfoOverlay.tsx) — this staggers the reveal of its content instead of
-   sliding the whole panel in on the y-axis. AboutSection and IndexSection
-   each render a single root element, so `> * > *` reaches their real content
-   rows without either of them needing to know about this. Delay only applies
-   while opening; closing (the attribute goes away) falls back to a quick,
-   undelayed fade so content doesn't linger after the panel's gone. */
-.reveal-stagger > * > * {
-  opacity: 0;
-  transform: translateY(12px);
-  transition:
-    opacity 300ms ease-in,
-    transform 300ms ease-in;
-}
-
-.reveal-stagger[data-open="true"] > * > * {
-  opacity: 1;
-  transform: translateY(0);
-  transition:
-    opacity 500ms ease-out,
-    transform 500ms ease-out;
-}
-
-.reveal-stagger[data-open="true"] > * > *:nth-child(1) {
-  transition-delay: 0ms;
-}
-.reveal-stagger[data-open="true"] > * > *:nth-child(2) {
-  transition-delay: 60ms;
-}
-.reveal-stagger[data-open="true"] > * > *:nth-child(3) {
-  transition-delay: 120ms;
-}
-.reveal-stagger[data-open="true"] > * > *:nth-child(4) {
-  transition-delay: 180ms;
-}
-.reveal-stagger[data-open="true"] > * > *:nth-child(5) {
-  transition-delay: 240ms;
-}
-.reveal-stagger[data-open="true"] > * > *:nth-child(6) {
-  transition-delay: 300ms;
-}
-.reveal-stagger[data-open="true"] > * > *:nth-child(7) {
-  transition-delay: 360ms;
-}
-.reveal-stagger[data-open="true"] > * > *:nth-child(8) {
-  transition-delay: 420ms;
-}
-

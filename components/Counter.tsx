@@ -25,7 +25,7 @@ export default function Counter({
       variant="link"
       size="sm"
       className={cn(
-        "font-selecta font-normal tracking-wide h-auto tabular-nums  px-0",
+        "font-selecta font-normal tracking-wide h-auto tabular-nums  px-0 text-neutral-400 dark:text-neutral-600",
         className,
       )}
     >

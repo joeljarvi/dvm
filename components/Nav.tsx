@@ -7,6 +7,7 @@ import { closeTop } from "@/lib/modalStack";
 import { useIntro } from "@/lib/intro";
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
+import { REVEAL_CLASS } from "@/lib/motion";
 import Link from "next/link";
 
 export default function Nav() {
@@ -42,11 +43,11 @@ export default function Nav() {
 
   const chosen = !onHome || opened !== null;
 
-  const directChrome = "animate-in fade-in duration-700 ease-out";
+  const directChrome = `animate-in fade-in ${REVEAL_CLASS}`;
   const topChrome = onHome && !chosen ? directChrome : chrome;
 
   const corner = (place: string, visible = true, arrival = chrome) =>
-    `fixed ${place} z-[80] flex flex-row items-center gap-0  transition-opacity duration-700 ease-out ${arrival} ${
+    `fixed ${place} z-[80] flex flex-row items-center gap-0  transition-opacity ${REVEAL_CLASS} ${arrival} ${
       visible ? "" : "opacity-0 pointer-events-none"
     }`;
 
@@ -54,9 +55,13 @@ export default function Nav() {
     "px-5.5 py-4 w-auto h-full bg-transparent  h-14 hover:bg-transparent hover:text-neutral-400 active:text-blue-700 active:bg-transparent ";
 
   // Blended against whatever's behind it while its section isn't the one
-  // showing; once it is, it drops the blend and just reads blue.
+  // showing; once it is, it drops the blend and just reads blue. The dark
+  // neutral only applies while inactive — kept out of cornerLink so it can
+  // never fight the active state's plain text-blue-700 for the same element.
   const linkBlend = (active: boolean) =>
-    active ? "text-blue-700 mix-blend-normal" : "mix-blend-difference";
+    active
+      ? "text-blue-700 mix-blend-normal"
+      : "mix-blend-difference dark:text-neutral-500 dark:hover:text-neutral-400";
 
   return (
     <>
@@ -102,7 +107,7 @@ export default function Nav() {
           <Button
             variant="link"
             size="sm"
-            className={`justify-start hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
+            className={`justify-start  hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
             onClick={() => setHash(hash === "about" ? "" : "about")}
           >
             About

@@ -21,6 +21,7 @@ import {
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
 import { useInView } from "@/lib/inView";
+import { REVEAL_CLASS } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import InfoLayout from "@/components/InfoLayout";
 import SectionOverlay from "./SectionOverlay";
@@ -190,14 +191,20 @@ function Strip({
   );
 
   // Videos always start muted — sound is opt-in per video, and switching to
-  // a different cover mutes again rather than carrying sound over to it.
+  // a different cover (or opening About/Index over it) mutes again rather
+  // than carrying sound over. Reset during render rather than in an effect,
+  // per https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
   const [soundOn, setSoundOn] = useState(false);
-  useEffect(() => {
+  const [prevActive, setPrevActive] = useState(active);
+  const [prevMuteSound, setPrevMuteSound] = useState(muteSound);
+  if (active !== prevActive) {
+    setPrevActive(active);
     setSoundOn(false);
-  }, [active]);
-  useEffect(() => {
+  }
+  if (muteSound !== prevMuteSound) {
+    setPrevMuteSound(muteSound);
     if (muteSound) setSoundOn(false);
-  }, [muteSound]);
+  }
 
   const expandCover = useCallback((index: number) => {
     setExpanded((prev) => {
@@ -288,7 +295,7 @@ function Strip({
       ref={containerRef}
       data-panel={section}
       onClick={onOpen}
-      className={`group relative h-auto ${width} overflow-hidden pb-0 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-blue-700 ${background}`}
+      className={`group relative h-auto ${width} overflow-hidden pb-0 transition-[width] ${REVEAL_CLASS} hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
       onMouseLeave={() => setHoveredSection(null)}
     >
@@ -337,7 +344,7 @@ function Strip({
       </ReactLenis>
 
       {shown && (
-        <div className="pointer-events-none absolute inset-x-0 top-[62.5vh] z-10 flex flex-col gap-y-2 px-5.5 pb-6">
+        <div className="pointer-events-none absolute inset-x-0 top-[62.5vh] z-10 flex flex-col gap-y-2 px-5.5 ">
           <InfoLayout
             title={shown.title}
             model={section === "personal" ? shown.client : undefined}
@@ -396,8 +403,8 @@ export default function HomeClient({
   useEffect(() => () => setHoveredSection(null), []);
 
   // Pulse the cursor while something's loading in: the opening intro, or a
-  // drawer's content staggering in (see .reveal-stagger in globals.css) —
-  // then settle it once everything's actually on screen.
+  // drawer's content staggering in (see staggerContainer/staggerItem in
+  // lib/motion.ts) — then settle it once everything's actually on screen.
   const [drawerOpening, setDrawerOpening] = useState(false);
   useEffect(() => {
     if (hash !== "about" && hash !== "index") {
@@ -405,7 +412,9 @@ export default function HomeClient({
       return () => clearTimeout(reset);
     }
     const on = setTimeout(() => setDrawerOpening(true), 0);
-    const off = setTimeout(() => setDrawerOpening(false), 900);
+    // Longest stagger is AboutSection's 6 items: 5 * 60ms delay + the 700ms
+    // reveal transition itself.
+    const off = setTimeout(() => setDrawerOpening(false), 1000);
     return () => {
       clearTimeout(on);
       clearTimeout(off);
@@ -424,12 +433,11 @@ export default function HomeClient({
       pulsing={!settled || drawerOpening}
       className="contents"
     >
-      <section className="font-selecta relative flex  flex-row w-screen h-dvh overflow-hidden">
+      <section className="font-selecta relative flex  flex-row w-screen h-dvh overflow-hidden bg-background">
         <Strip
           section="personal"
           projects={personal}
           fallbackSrc="/personal_placeholder.png"
-          background="bg-background"
           opened={opened}
           onOpen={() => setHash("personal")}
           scrollToSlug={jumpSlug}

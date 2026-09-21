@@ -1,6 +1,8 @@
 "use client";
 
+import { motion } from "motion/react";
 import { useRegisterModal } from "@/lib/modalStack";
+import { staggerContainer, REVEAL_CLASS } from "@/lib/motion";
 
 export default function InfoOverlay({
   open,
@@ -29,31 +31,29 @@ export default function InfoOverlay({
         tabIndex={open ? 0 : -1}
         aria-label="Close"
         onClick={onDismiss}
-        className={`absolute inset-0 bg-background/30 transition-opacity duration-500 ease-out ${
+        className={`absolute inset-0 bg-background/30 transition-opacity ${REVEAL_CLASS} ${
           open ? "opacity-100" : "opacity-0"
         }`}
       />
       <div
-        className={`absolute ${panelClassName} bg-background/60 backdrop-blur-xs ${shadow ? "shadow-2xl" : ""} transition-opacity duration-500 ease-out ${
+        className={`absolute ${panelClassName} bg-background/60 backdrop-blur-xs ${shadow ? "shadow-2xl" : ""} transition-opacity ${REVEAL_CLASS} ${
           open ? "opacity-100" : "opacity-0"
         }`}
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-overlay"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-          }}
+          className="noise-bg pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-overlay"
         />
 
-        <div
+        <motion.div
           data-lenis-prevent
-          data-open={open}
-          className="reveal-stagger relative h-full w-full overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden"
+          variants={staggerContainer}
+          initial="hidden"
+          animate={open ? "visible" : "hidden"}
+          className="relative h-full w-full overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden"
         >
           {children}
-        </div>
+        </motion.div>
       </div>
     </div>
   );
