@@ -43,9 +43,6 @@ const COLUMN: Record<Category, string> = {
   commissioned: "lg:col-start-3 lg:col-span-2",
 };
 
-const byName = (a: Project, b: Project) =>
-  (a.client ?? a.title).localeCompare(b.client ?? b.title, "sv");
-
 const projectKey = (project: Project, i: number) =>
   project.slug ?? `${project.title}-${i}`;
 
@@ -67,13 +64,15 @@ export default function IndexSection({
   const visibility = useProjectVisibility();
   const [hovered, setHovered] = useState<Project | null>(null);
 
+  // Order comes straight from the fetch (see sanity/queries.ts) — the
+  // client sets it in Sanity Studio's Personal/Commissioned Projects panes.
   const entriesFor = (category: Category) => {
     const list = projects[category];
     const all = list.length ? list : FALLBACK[category];
     const selected = list.length
       ? list.filter((p) => p.featured)
       : FALLBACK[category];
-    return [...(visibility === "all" ? all : selected)].sort(byName);
+    return visibility === "all" ? all : selected;
   };
 
   const select = (project: Project, category: Category) => {

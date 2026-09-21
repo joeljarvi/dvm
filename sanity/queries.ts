@@ -23,7 +23,7 @@ export const PROJECT_FIELDS = `
 export async function fetchProjects(category: Category): Promise<Project[]> {
   try {
     return await client.fetch<Project[]>(
-      `*[_type == "project" && category == $category] | order(dateAdded desc) {
+      `*[_type == "project" && category == $category] | order(orderRank asc) {
         ${PROJECT_FIELDS}
       }`,
       { category },
@@ -35,13 +35,14 @@ export async function fetchProjects(category: Category): Promise<Project[]> {
 }
 
 // The project behind a home panel — its cover fills the panel and its
-// metadata is what the bar shows while that panel is hovered.
+// metadata is what the bar shows while that panel is hovered. First
+// featured project in the client's own display order (see sanity/structure.ts).
 export async function fetchFeaturedProject(
   category: Category,
 ): Promise<Project | null> {
   try {
     const result = await client.fetch<Project | null>(
-      `*[_type == "project" && category == $category && featured == true][0] {
+      `*[_type == "project" && category == $category && featured == true] | order(orderRank asc)[0] {
         ${PROJECT_FIELDS}
       }`,
       { category },
@@ -92,7 +93,7 @@ export async function fetchAbout(): Promise<About | null> {
 export async function fetchProjectSlugs(category: Category): Promise<string[]> {
   try {
     const rows = await client.fetch<{ slug: string | null }[]>(
-      `*[_type == "project" && category == $category] | order(dateAdded desc) {
+      `*[_type == "project" && category == $category] | order(orderRank asc) {
         "slug": slug.current
       }`,
       { category },

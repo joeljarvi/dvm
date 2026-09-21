@@ -1,10 +1,15 @@
 import { defineField, defineType } from 'sanity'
+import { orderRankField, orderRankOrdering } from '@sanity/orderable-document-list'
 
 export const project = defineType({
   name: 'project',
   title: 'Project',
   type: 'document',
   fields: [
+    // Backs the drag-to-reorder panes in the Studio sidebar (see
+    // sanity/structure.ts) — one shared field, but each pane filters to its
+    // own category, so personal and commissioned reorder independently.
+    orderRankField({ type: 'project' }),
     defineField({
       name: 'title',
       title: 'Title',
@@ -121,6 +126,7 @@ export const project = defineType({
     }),
   ],
   orderings: [
+    orderRankOrdering,
     {
       title: 'Date Added, Newest',
       name: 'dateAddedDesc',
