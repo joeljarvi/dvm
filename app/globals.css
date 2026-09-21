@@ -223,9 +223,11 @@ body::-webkit-scrollbar {
    pointer. It toggles this class on <html> itself while mounted with
    layout="fixed", so the rule only fires where the replacement is actually
    on screen. */
-.custom-cursor,
-.custom-cursor * {
-  cursor: none !important;
+@media (min-width: 64rem) {
+  .custom-cursor,
+  .custom-cursor * {
+    cursor: none !important;
+  }
 }
 
 /* InfoOverlay's drawer itself only fades (see the panel's transition-opacity

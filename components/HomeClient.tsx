@@ -21,27 +21,35 @@ import {
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
 import { useInView } from "@/lib/inView";
-
+import { Button } from "@/components/ui/button";
 import InfoLayout from "@/components/InfoLayout";
 import SectionOverlay from "./SectionOverlay";
 import InfoOverlay from "./InfoOverlay";
 import AboutSection from "./AboutSection";
 import IndexSection from "./IndexSection";
-import { CustomCursor, CustomCursorTarget } from "@/components/ui/custom-cursor";
+import {
+  CustomCursor,
+  CustomCursorTarget,
+} from "@/components/ui/custom-cursor";
 
 function coverImages(project: Project, fallbackSrc: string): ProjectMedia[] {
-  const stills = project.images?.filter((m) => m.type === "image") ?? [];
+  // Images and videos the user uploaded into the gallery, in upload order —
+  // both types cycle together when clicking through a cover.
+  const media = project.images ?? [];
 
   if (project.coverVideoUrl) {
-    return [{ url: project.coverVideoUrl, type: "file" }, ...stills];
+    return [
+      { url: project.coverVideoUrl, type: "file" },
+      ...media.filter((m) => m.url !== project.coverVideoUrl),
+    ];
   }
   if (project.coverImageUrl) {
     const cover =
-      stills.find((m) => m.url === project.coverImageUrl) ??
+      media.find((m) => m.url === project.coverImageUrl) ??
       ({ url: project.coverImageUrl, type: "image" } as ProjectMedia);
-    return [cover, ...stills.filter((m) => m.url !== project.coverImageUrl)];
+    return [cover, ...media.filter((m) => m.url !== project.coverImageUrl)];
   }
-  return stills.length ? stills : [{ url: fallbackSrc, type: "image" }];
+  return media.length ? media : [{ url: fallbackSrc, type: "image" }];
 }
 
 function Cover({
@@ -52,6 +60,7 @@ function Cover({
   onExpand,
   onStepImage,
   onEnter,
+  muted = true,
 }: {
   project: Project;
   media: ProjectMedia;
@@ -61,6 +70,7 @@ function Cover({
   onExpand: () => void;
   onStepImage: (delta: number) => void;
   onEnter: () => void;
+  muted?: boolean;
 }) {
   const src = media.url;
 
@@ -83,35 +93,37 @@ function Cover({
     <div
       ref={box}
       data-slug={project.slug ?? project.title}
-      className="relative shrink-0 w-full group h-screen flex flex-col p-0 lg:py-28 lg:px-0"
+      className="relative shrink-0 w-full group h-screen flex flex-col p-0 lg:py-28 lg:px-0 max-w-full lg:max-w-1/3 mx-auto"
     >
-      <div className="relative w-full h-full">
-        <CustomCursorTarget asChild>
-          <button
-            type="button"
-            aria-label={`Cycle images of ${project.title}`}
-            className="absolute inset-0 z-10 cursor-pointer"
-            onClick={handleClick}
-          />
-        </CustomCursorTarget>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <div className="relative inline-flex max-w-full max-h-full">
+          <CustomCursorTarget asChild grow>
+            <button
+              type="button"
+              aria-label={`Cycle images of ${project.title}`}
+              className="absolute inset-0 z-10 cursor-pointer"
+              onClick={handleClick}
+            />
+          </CustomCursorTarget>
 
-        {media.type === "file" ? (
-          <video
-            src={src}
-            className="w-full h-full object-contain object-center pointer-events-none"
-            autoPlay
-            muted
-            loop
-            playsInline
-            aria-label={media.caption}
-          />
-        ) : (
-          <img
-            src={src.startsWith("/") ? src : sanityImage(src, { w: 1400 })}
-            alt={media.caption ?? ""}
-            className="w-full h-full object-contain object-center pointer-events-none"
-          />
-        )}
+          {media.type === "file" ? (
+            <video
+              src={src}
+              className="block max-w-full max-h-full w-auto h-auto object-contain object-center pointer-events-none"
+              autoPlay
+              muted={muted}
+              loop
+              playsInline
+              aria-label={media.caption}
+            />
+          ) : (
+            <img
+              src={src.startsWith("/") ? src : sanityImage(src, { w: 1400 })}
+              alt={media.caption ?? ""}
+              className="block max-w-full max-h-full w-auto h-auto object-contain object-center pointer-events-none"
+            />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -143,6 +155,7 @@ function Strip({
   onOpen,
   scrollToSlug,
   onScrolled,
+  muteSound = false,
 }: {
   section: Exclude<Section, null>;
   projects: Project[];
@@ -156,6 +169,8 @@ function Strip({
 
   scrollToSlug?: string | null;
   onScrolled?: () => void;
+
+  muteSound?: boolean;
 }) {
   const lenisRef = useRef<LenisRef>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -173,6 +188,16 @@ function Strip({
   const [expanded, setExpanded] = useState<boolean[]>(() =>
     projects.map(() => false),
   );
+
+  // Videos always start muted — sound is opt-in per video, and switching to
+  // a different cover mutes again rather than carrying sound over to it.
+  const [soundOn, setSoundOn] = useState(false);
+  useEffect(() => {
+    setSoundOn(false);
+  }, [active]);
+  useEffect(() => {
+    if (muteSound) setSoundOn(false);
+  }, [muteSound]);
 
   const expandCover = useCallback((index: number) => {
     setExpanded((prev) => {
@@ -255,6 +280,8 @@ function Strip({
 
   const shown = projects[active] ?? projects[0];
   const shownImages = columnImages[active] ?? [];
+  const activeMedia = shownImages[frames[active] ?? 0] ?? shownImages[0];
+  const showSoundToggle = listens && activeMedia?.type === "file";
 
   return (
     <div
@@ -302,6 +329,7 @@ function Strip({
                 onExpand={() => expandCover(i)}
                 onStepImage={(delta) => stepImage(i, delta)}
                 onEnter={() => enterCover(i)}
+                muted={!(i === active && soundOn)}
               />
             ) : null;
           })}
@@ -318,6 +346,23 @@ function Strip({
             frame={(frames[active] ?? 0) + 1}
             total={shownImages.length}
           />
+        </div>
+      )}
+
+      {showSoundToggle && (
+        <div className="hidden lg:grid fixed bottom-0 inset-x-0 z-40 grid-cols-4 pointer-events-none">
+          <Button
+            variant="link"
+            size="sm"
+            aria-pressed={soundOn}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSoundOn((v) => !v);
+            }}
+            className={`col-start-4 justify-self-start pointer-events-auto  font-selecta text-[0.8rem] tracking-wide hover:text-blue-700 transition-colors duration-200 ease-out cursor-pointer ${soundOn ? "text-blue-700" : "text-neutral-400 "}`}
+          >
+            {soundOn ? "Sound On" : "Sound Off"}
+          </Button>
         </div>
       )}
     </div>
@@ -373,6 +418,8 @@ export default function HomeClient({
       color="#1447e6"
       dotWidth={8}
       dotHeight={8}
+      hoverWidth={16}
+      hoverHeight={16}
       ring={false}
       pulsing={!settled || drawerOpening}
       className="contents"
@@ -387,6 +434,7 @@ export default function HomeClient({
           onOpen={() => setHash("personal")}
           scrollToSlug={jumpSlug}
           onScrolled={() => setJumpSlug(null)}
+          muteSound={hash === "about" || hash === "index"}
         />
         <Strip
           section="commissioned"
@@ -396,6 +444,7 @@ export default function HomeClient({
           onOpen={() => setHash("commissioned")}
           scrollToSlug={jumpSlug}
           onScrolled={() => setJumpSlug(null)}
+          muteSound={hash === "about" || hash === "index"}
         />
       </section>
 

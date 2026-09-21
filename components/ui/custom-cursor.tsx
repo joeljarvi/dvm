@@ -67,6 +67,8 @@ export function CustomCursor({
   ring = true,
   dotWidth = 10,
   dotHeight = 10,
+  hoverWidth,
+  hoverHeight,
   pulsing = false,
   children,
   ...props
@@ -76,6 +78,10 @@ export function CustomCursor({
   ring?: boolean;
   dotWidth?: number;
   dotHeight?: number;
+  // Size the dot grows to over a `CustomCursorTarget` with `grow` set, when
+  // `ring` is off. Defaults to dotWidth/dotHeight (no change) if omitted.
+  hoverWidth?: number;
+  hoverHeight?: number;
   pulsing?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -129,18 +135,15 @@ export function CustomCursor({
       const origin =
         layout === "demo" ? container.getBoundingClientRect() : null;
 
-      const targetEl = ring
-        ? (e.target as Element | null)?.closest<HTMLElement>(
-            "[data-cursor-target]",
-          )
-        : null;
+      const targetEl = (e.target as Element | null)?.closest<HTMLElement>(
+        "[data-cursor-target]",
+      );
       const rect = targetEl
         ? targets.current.get(targetEl.dataset.cursorTarget!)
         : null;
 
-      setRinged(!!rect);
-
-      if (rect) {
+      if (ring && rect) {
+        setRinged(true);
         const natural = Math.max(rect.width, rect.height) * 1.15;
         const capped = natural > MAX_RING_SIZE;
 
@@ -162,11 +165,18 @@ export function CustomCursor({
           capped ? MAX_RING_SIZE / 2 : Math.min(rect.width, rect.height) / 2,
         );
       } else {
+        setRinged(false);
         x.set(e.clientX - (origin?.left ?? 0));
         y.set(e.clientY - (origin?.top ?? 0));
-        width.set(dotWidth);
-        height.set(dotHeight);
-        radius.set(Math.min(dotWidth, dotHeight) / 2);
+
+        // Not morphing into a ring, but a target can still opt in (via
+        // `grow` on CustomCursorTarget) to have the dot grow in place.
+        const grow = !ring && targetEl?.dataset.cursorGrow === "true";
+        const w = grow ? (hoverWidth ?? dotWidth) : dotWidth;
+        const h = grow ? (hoverHeight ?? dotHeight) : dotHeight;
+        width.set(w);
+        height.set(h);
+        radius.set(Math.min(w, h) / 2);
       }
     };
 
@@ -178,7 +188,20 @@ export function CustomCursor({
       scope.removeEventListener("pointermove", move as EventListener);
       scope.removeEventListener("pointerleave", leave);
     };
-  }, [layout, pointerFine, ring, dotWidth, dotHeight, x, y, width, height, radius]);
+  }, [
+    layout,
+    pointerFine,
+    ring,
+    dotWidth,
+    dotHeight,
+    hoverWidth,
+    hoverHeight,
+    x,
+    y,
+    width,
+    height,
+    radius,
+  ]);
 
   const ctx = useMemo<CustomCursorContextValue>(
     () => ({ color, registerTarget }),
@@ -201,7 +224,7 @@ export function CustomCursor({
         <motion.div
           aria-hidden
           data-slot="custom-cursor-dot"
-          className="pointer-events-none top-0 left-0 z-950 rounded-full"
+          className="hidden lg:block pointer-events-none top-0 left-0 z-950 rounded-full"
           animate={pulsing ? { scale: [1, 1.4, 1] } : { scale: 1 }}
           transition={
             pulsing
@@ -220,7 +243,8 @@ export function CustomCursor({
             opacity: visible ? 1 : 0,
             backgroundColor: ringed ? "transparent" : color,
             border: `1.5px solid ${color}`,
-            transition: "background-color 150ms ease-out, opacity 150ms ease-out",
+            transition:
+              "background-color 150ms ease-out, opacity 150ms ease-out",
           }}
         />
       </div>
@@ -228,9 +252,6 @@ export function CustomCursor({
   );
 }
 
-// No default — an explicit `size` is a convenience for bare icon/button
-// targets. Anything that already sizes itself (asChild onto a full-bleed
-// button, say) is left alone rather than shrunk to fit a preset.
 const targetSizes = cva("inline-flex items-center justify-center", {
   variants: {
     size: {
@@ -245,10 +266,11 @@ export function CustomCursorTarget({
   className,
   size,
   asChild = false,
+  grow = false,
   children,
   ...props
 }: ComponentProps<"div"> &
-  VariantProps<typeof targetSizes> & { asChild?: boolean }) {
+  VariantProps<typeof targetSizes> & { asChild?: boolean; grow?: boolean }) {
   const { registerTarget } = useCustomCursorContext("CustomCursorTarget");
   const id = useId();
   const ref = useRef<HTMLElement>(null);
@@ -284,6 +306,7 @@ export function CustomCursorTarget({
       ref={ref as Ref<HTMLDivElement>}
       data-slot="custom-cursor-target"
       data-cursor-target={id}
+      data-cursor-grow={grow || undefined}
       className={cn(targetSizes({ size }), className)}
       {...props}
     >

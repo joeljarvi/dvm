@@ -55,10 +55,11 @@ export default function Nav() {
     <>
       <span className={corner("top-0 left-0 justify-start", true, topChrome)}>
         <Button
+          tabIndex={0}
           data-nav="personal"
           variant="link"
           size="sm"
-          className={`justify-start ${cornerLink}`}
+          className={`justify-start hover:text-blue-700 transition-all ${cornerLink}`}
           onClick={() => {
             setOpenedSection("personal");
             if (onHome) setHash("personal");
@@ -73,7 +74,7 @@ export default function Nav() {
           data-nav="commissioned"
           variant="link"
           size="sm"
-          className={`justify-end ${cornerLink}`}
+          className={`justify-end hover:text-blue-700 transition-all ${cornerLink}`}
           onClick={() => {
             setOpenedSection("commissioned");
             if (onHome) setHash("commissioned");
@@ -94,7 +95,7 @@ export default function Nav() {
           <Button
             variant="link"
             size="sm"
-            className={`justify-start ${cornerLink} ${aboutActive ? "text-blue-700" : ""}`}
+            className={`justify-start hover:text-blue-700 ${cornerLink} ${aboutActive ? "text-blue-700" : ""}`}
             onClick={() => setHash(hash === "about" ? "" : "about")}
           >
             About
@@ -122,7 +123,7 @@ export default function Nav() {
           <Button
             variant="link"
             size="sm"
-            className={`justify-end  ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
+            className={`justify-end hover:text-blue-700  ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
             onClick={() => setHash(hash === "index" ? "" : "index")}
           >
             Index
@@ -131,7 +132,7 @@ export default function Nav() {
           <Button
             variant="link"
             size="sm"
-            className={`justify-end  ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
+            className={`justify-end  hover:text-blue-700 ${cornerLink} ${indexActive ? "text-blue-700" : ""}`}
             asChild
           >
             <Link href="/archive">Index</Link>
