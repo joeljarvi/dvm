@@ -15,7 +15,7 @@ const FALLBACK_BIO = [
 ];
 const FALLBACK_PHONE = "+46708247484";
 const FALLBACK_EMAIL = "daniel@vonmalmborg.com";
-const INSTAGRAM_HANDLE = "danielvonmalmborg";
+const INSTAGRAM_HANDLE = "https://www.instagram.com/daniel.external/";
 const FALLBACK_LINKS = [
   {
     title: "multi2",
