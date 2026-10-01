@@ -64,7 +64,8 @@ export async function fetchAbout(): Promise<About | null> {
     }>(
       `{
         "about": *[_type == "about"][0]{
-          bio,
+          shortBio,
+          longBio, 
           phone,
           email,
           links[]{ title, url, description },
@@ -81,7 +82,9 @@ export async function fetchAbout(): Promise<About | null> {
     return {
       ...result.about,
       bioImageUrl:
-        result.about.bioImageUrl ?? result.latestCommissionedCoverUrl ?? undefined,
+        result.about.bioImageUrl ??
+        result.latestCommissionedCoverUrl ??
+        undefined,
     };
   } catch {
     return null;
