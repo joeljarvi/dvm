@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import NameMark from "@/components/NameMark";
+import { SuppressWatermarkCursor } from "@/components/WatermarkCursor";
 
 export default function Error404() {
   return (
-    <div className="relative flex flex-col gap-4 items-center justify-center h-screen font-diatype">
-      <p className="font-diatype text-[0.8rem] tracking-wide text-neutral-400 px-5.5 text-center max-w-md">
+    // A full-screen layer over the layout's Nav (z-80), which otherwise
+    // stays up on every route.
+    <div className="fixed inset-0 z-90 bg-background flex flex-col gap-4 items-center justify-center h-screen font-diatype">
+      <NameMark />
+      <SuppressWatermarkCursor />
+      <p className="absolute top-[62.5%] font-diatype text-[0.8rem] tracking-wide text-blue-700 px-5.5 text-center max-w-md">
         {" "}
-        404
-      </p>
-      <p className="font-diatype text-[0.8rem] tracking-wide text-neutral-400 px-5.5 text-center max-w-md">
-        {" "}
-        This page can&apos;t be found.
+        404. <br /> Page not found.
       </p>
       <Button
         variant="link"

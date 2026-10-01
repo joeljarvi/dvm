@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils";
 import Nav from "@/components/Nav";
 import { ReactLenis } from "lenis/react";
 import { motionCssVars } from "@/lib/motion";
+import { fetchSiteSettings } from "@/sanity/queries";
+import { WatermarkCursorProvider } from "@/components/ui/custom-cursor";
+import WatermarkCursor from "@/components/WatermarkCursor";
 
 export const metadata: Metadata = {
   title: "Daniel von Malmborg",
@@ -94,11 +97,13 @@ const diatype = localFont({
   variable: "--font-diatype",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { watermarkCursor } = await fetchSiteSettings();
+
   return (
     <html
       lang="en"
@@ -106,9 +111,12 @@ export default function RootLayout({
       className={`${selecta.variable}   ${diatype.variable} antialiased`}
     >
       <body className="">
-        <ReactLenis root />
-        {children}
-        <Nav />
+        <WatermarkCursorProvider on={watermarkCursor}>
+          <ReactLenis root />
+          {children}
+          <Nav />
+          <WatermarkCursor on={watermarkCursor} />
+        </WatermarkCursorProvider>
       </body>
     </html>
   );

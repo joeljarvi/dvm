@@ -22,6 +22,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
 
 import { cn } from "@/lib/utils";
+import { useWatermarkCursorSuppressed } from "@/lib/watermarkCursor";
 
 type Rect = { top: number; left: number; width: number; height: number };
 
@@ -40,6 +41,25 @@ function useCustomCursorContext(component: string) {
     throw new Error(`<${component}> must be rendered inside <CustomCursor>`);
   }
   return ctx;
+}
+
+// Site Settings' "Watermark cursor on" in Sanity (provided in the root
+// layout): the watermark is the cursor then (components/WatermarkCursor), so
+// the dot stands down.
+const WatermarkCursorContext = createContext(false);
+
+export function WatermarkCursorProvider({
+  on,
+  children,
+}: {
+  on: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <WatermarkCursorContext.Provider value={on}>
+      {children}
+    </WatermarkCursorContext.Provider>
+  );
 }
 
 const SPRING = { stiffness: 500, damping: 40, mass: 0.5 };
@@ -75,6 +95,7 @@ export function CustomCursor({
   hoverWidth,
   hoverHeight,
   pulsing = false,
+  hidden = false,
   children,
   ...props
 }: ComponentProps<"div"> & {
@@ -88,9 +109,15 @@ export function CustomCursor({
   hoverWidth?: number;
   hoverHeight?: number;
   pulsing?: boolean;
+  // Hides the dot outright, e.g. over a full-screen image.
+  hidden?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const targets = useRef(new Map<string, Rect>());
+  // Back to the dot wherever the watermark cursor steps aside.
+  const watermarkOn = useContext(WatermarkCursorContext);
+  const watermarkSuppressed = useWatermarkCursorSuppressed();
+  const watermark = watermarkOn && !watermarkSuppressed;
   const [pointerFine, setPointerFine] = useState(
     () =>
       typeof window !== "undefined" &&
@@ -241,7 +268,7 @@ export function CustomCursor({
             translateY: y,
             x: "-50%",
             y: "-50%",
-            opacity: visible ? 1 : 0,
+            opacity: visible && !hidden && !watermark ? 1 : 0,
             backgroundColor: ringed ? "transparent" : color,
             border: `1.5px solid ${color}`,
             transition: CURSOR_FILL_TRANSITION,

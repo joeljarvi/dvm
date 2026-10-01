@@ -1,26 +1,35 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { ms } from "./motion";
 
-// Home's landing reveal, before a section is picked, one panel at a time:
-// the "personal" label, then its covers in beneath it; then the
-// "commissioned" label, then its covers. Shared here so anything outside the
-// page can follow the same timeline.
+// Home's landing reveal, before a section is picked: the landing prompt's
+// words come in one at a time, then both panels' covers together. Shared
+// here so anything outside the page can follow the same timeline.
 //
 // Beats are ms from the home page's first mount, each advancing the step by
-// one. Like the intro, it plays once per page load — coming back home finds
-// it already spent.
-const BEATS = [300, 1000, 1700, 2400].map(ms);
+// one — one per word of the landing prompt (see LandingPrompt), then the
+// covers. Like the intro, it plays once per page load — coming back home
+// finds it already spent.
+const FIRST_WORD = 600;
+const PER_WORD = 800;
+const COVERS_AFTER = 1400;
 
+let words = 0;
 let step = 0;
 let started = false;
 const listeners = new Set<() => void>();
 
-/** Starts the timeline. Called by the home page on mount; a no-op after the
- * first time. */
-export function startLanding() {
+/** Starts the timeline for a prompt of `wordCount` words. Called by the home
+ * page on mount; a no-op after the first time. */
+export function startLanding(wordCount: number) {
   if (started) return;
   started = true;
-  BEATS.forEach((at, i) =>
+  words = wordCount;
+  const beats = Array.from(
+    { length: wordCount },
+    (_, i) => FIRST_WORD + PER_WORD * i,
+  );
+  beats.push((beats.at(-1) ?? FIRST_WORD - PER_WORD) + COVERS_AFTER);
+  beats.map(ms).forEach((at, i) =>
     setTimeout(() => {
       step = i + 1;
       listeners.forEach((l) => l());
@@ -41,14 +50,11 @@ export function useLanding() {
     () => step,
     () => 0,
   );
-  return {
-    personal: { label: s >= 1, images: s >= 2 },
-    commissioned: { label: s >= 3, images: s >= 4 },
-  };
+  return { words: Math.min(s, words), images: started && s > words };
 }
 
 /** Starts the landing timeline on mount and returns its state. */
-export function useLandingReveal() {
-  useEffect(startLanding, []);
+export function useLandingReveal(wordCount: number) {
+  useEffect(() => startLanding(wordCount), [wordCount]);
   return useLanding();
 }

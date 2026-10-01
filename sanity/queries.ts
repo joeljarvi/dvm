@@ -128,15 +128,29 @@ export async function fetchProjectBySlug(
 
 export async function fetchSiteSettings(): Promise<{
   underConstruction: boolean;
+  landingText: string | null;
+  watermarkCursor: boolean;
 }> {
   try {
-    const result = await client.fetch<{ underConstruction?: boolean } | null>(
-      `*[_type == "settings" && _id == "siteSettings"][0] { underConstruction }`,
+    const result = await client.fetch<{
+      underConstruction?: boolean;
+      landingText?: string | null;
+      watermarkCursor?: boolean;
+    } | null>(
+      `*[_type == "settings" && _id == "siteSettings"][0] { underConstruction, landingText, watermarkCursor }`,
       {},
       { next: { tags: ["settings"] } },
     );
-    return { underConstruction: result?.underConstruction ?? false };
+    return {
+      underConstruction: result?.underConstruction ?? false,
+      landingText: result?.landingText?.trim() || null,
+      watermarkCursor: result?.watermarkCursor ?? false,
+    };
   } catch {
-    return { underConstruction: false };
+    return {
+      underConstruction: false,
+      landingText: null,
+      watermarkCursor: false,
+    };
   }
 }

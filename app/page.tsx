@@ -16,6 +16,7 @@ export default async function Home() {
       commissioned={commissioned.length > 0 ? commissioned : clients}
       about={about}
       underConstruction={settings.underConstruction}
+      landingText={settings.landingText}
     />
   );
 }

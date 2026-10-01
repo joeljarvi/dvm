@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { REVEAL_CLASS } from "@/lib/motion";
+import { useSanityLoggedIn } from "@/lib/sanityUser";
+import { useSuppressWatermarkCursor } from "@/lib/watermarkCursor";
+import NameMark, { NAME_REVEAL_MS } from "@/components/NameMark";
 
 // The maintenance gate — driven by the "Under Construction" toggle in
 // Sanity's Site Settings singleton (see sanity/schemas/settings.ts).
@@ -21,28 +24,44 @@ export default function UnderConstruction({ active }: { active: boolean }) {
     setDismissed(!active);
   }, [active]);
 
+  // The name comes in word by word (see NameMark); the message once it's in.
+  const [messageShown, setMessageShown] = useState(false);
+  useEffect(() => {
+    if (dismissed) return;
+    const message = setTimeout(() => setMessageShown(true), NAME_REVEAL_MS);
+    return () => clearTimeout(message);
+  }, [dismissed]);
+
+  // Only editors logged in to the Studio get to see past the gate.
+  const loggedIn = useSanityLoggedIn();
+
+  // The gate shows the name itself.
+  useSuppressWatermarkCursor(!dismissed);
+
   return (
     <div
       aria-hidden={dismissed}
-      className={`fixed z-920 inset-0 bg-background/700 backdrop-blur-xs transition-opacity ${REVEAL_CLASS} flex flex-col gap-y-4 items-center justify-center ${
+      className={`fixed z-920 h-screen inset-0 bg-background backdrop-blur-xs transition-opacity ${REVEAL_CLASS} flex flex-col gap-y-4 items-center justify-center ${
         dismissed ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
-      <Button
-        variant="link"
-        size="sm"
-        className="absolute top-0 right-0 hover:text-blue-700"
-        onClick={() => setDismissed(true)}
-      >
-        Close
-      </Button>
+      {loggedIn && (
+        <Button
+          variant="link"
+          size="sm"
+          className="absolute top-0 right-0 hover:text-blue-700"
+          onClick={() => setDismissed(true)}
+        >
+          Close
+        </Button>
+      )}
+      <NameMark play={!dismissed} />
 
-      <p className="font-diatype text-[0.8rem] tracking-wide text-neutral-400 px-5.5 text-center max-w-md">
-        This site is currently undergoing some maintanence...{" "}
-      </p>
-      <p className="font-diatype text-[0.8rem] tracking-wide text-neutral-400 px-5.5 text-center max-w-md">
-        {" "}
-        Meanwhile, say hi to Daniel at <br />
+      <p
+        className={`absolute top-[62.5%] font-diatype text-[0.8rem] tracking-wide text-blue-700 px-12 lg:px-5.5 text-center max-w-6xl transition-opacity ${REVEAL_CLASS} ${messageShown ? "opacity-100" : "opacity-0"}`}
+      >
+        This site is currently undergoing some maintanence... <br />
+        Meanwhile, say hi to Daniel at{" "}
         <Link
           className="underline underline-offset-4 decoration-dotted hover:decoration-blue-700 hover:text-blue-700"
           href="mailto:daniel@danielvonmalmborg.com"

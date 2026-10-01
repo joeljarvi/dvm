@@ -60,7 +60,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
         Connect
       </h3>
 
-      <h3 className="lg:hidden order-first flex h-14 items-center px-5.5 font-normal text-[0.8rem] text-neutral-400 dark:text-neutral-500 whitespace-nowrap">
+      <h3 className="lg:hidden order-first flex h-14 items-center px-5.5 font-normal text-[0.8rem] text-blue-700 whitespace-nowrap">
         Daniel von Malmborg
       </h3>
 
@@ -99,7 +99,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
                 <Button
                   variant="link"
                   size="sm"
-                  className="text-neutral-400 hover:text-blue-700 cursor-pointer w-min text-left px-0 h-auto justify-start"
+                  className="text-blue-700 hover:text-blue-700 cursor-pointer w-min text-left px-0 h-auto justify-start"
                   asChild
                 >
                   <Link
@@ -111,7 +111,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
                   </Link>
                 </Button>
                 {link.description && (
-                  <p className="text-neutral-400 dark:text-neutral-500 font-normal font-diatype tracking-wide text-[0.8rem]">
+                  <p className="text-blue-700 font-normal font-diatype tracking-wide text-[0.8rem]">
                     {link.description}
                   </p>
                 )}
@@ -170,7 +170,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
       </motion.div>
       {/* Mobile: on the heading's line (the content's first row, below the
           pt-30), right-aligned. Desktop: pinned to the bottom of column 2. */}
-      <div className="fixed top-[62.5vh] right-0 h-14  flex   items-center justify-between px-0 pointer-events-none lg:sticky lg:top-auto lg:right-auto lg:bottom-0 lg:col-start-2 lg:row-start-4 lg:w-full lg:h-32 lg:items-end lg:justify-start lg:px-0 ">
+      <div className="fixed top-[62.5%] right-0 h-14  flex   items-center justify-between px-0 pointer-events-none lg:sticky lg:top-auto lg:right-auto lg:bottom-0 lg:col-start-2 lg:row-start-4 lg:w-full lg:h-32 lg:items-end lg:justify-start lg:px-0 ">
         <div className="flex flex-col  items-end lg:flex-row lg:items-center  w-full lg:justify-start gap-x-4 text-right lg:text-left pointer-events-auto">
           {(["bio", "links"] as const).map((v) => (
             <Button

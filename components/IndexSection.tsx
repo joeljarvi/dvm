@@ -89,9 +89,17 @@ export default function IndexSection({
   // This state is ONLY used for the mobile category.
   const [mobileCategory, setMobileCategory] =
     useState<Category>(initialCategory);
+  // Follows the open column when it's switched with Index up.
+  const [prevInitialCategory, setPrevInitialCategory] =
+    useState(initialCategory);
+  if (initialCategory !== prevInitialCategory) {
+    setPrevInitialCategory(initialCategory);
+    setMobileCategory(initialCategory);
+  }
 
   const visibility = useProjectVisibility();
   const [hovered, setHovered] = useState<Project | null>(null);
+  const [query, setQuery] = useState("");
 
   // Resolve URL/localStorage state on the client.
   useEffect(() => {
@@ -130,6 +138,15 @@ export default function IndexSection({
       ? list.filter((p) => p.featured)
       : FALLBACK[category];
 
+    // A search looks through everything, not just the selection.
+    const q = query.trim().toLowerCase();
+    if (q)
+      return all.filter((p) =>
+        [p.title, p.client, p.agency].some((field) =>
+          field?.toLowerCase().includes(q),
+        ),
+      );
+
     return visibility === "all" ? all : selected;
   };
 
@@ -167,7 +184,20 @@ export default function IndexSection({
         </div>
       )}
 
-      <div className="fixed top-[62.5vh] right-0 z-40 flex flex-col items-end lg:hidden">
+      {/* Desktop: across the top of column 4, in the header strip beside
+          "Commissioned Work". */}
+      <div className="hidden lg:flex absolute top-0 left-3/4 w-1/4 h-14 z-20 items-center px-5.5">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search"
+          aria-label="Search projects"
+          className="w-full bg-transparent border-0 p-0 outline-none font-diatype text-[0.8rem] tracking-wide text-blue-700 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 [&::-webkit-search-cancel-button]:hidden"
+        />
+      </div>
+
+      <div className="fixed top-[62.5%] right-0 z-40 flex flex-col items-end lg:hidden">
         <Button
           variant="link"
           size="sm"

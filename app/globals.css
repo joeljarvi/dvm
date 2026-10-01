@@ -208,7 +208,9 @@ body::-webkit-scrollbar {
 
 @media (min-width: 64rem) {
   .custom-cursor,
-  .custom-cursor * {
+  .custom-cursor *,
+  .watermark-cursor,
+  .watermark-cursor * {
     cursor: none !important;
   }
 }

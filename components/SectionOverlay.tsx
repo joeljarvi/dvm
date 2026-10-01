@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { CustomCursorTarget } from "@/components/ui/custom-cursor";
 import { HOVER_CLASS, REVEAL_CLASS } from "@/lib/motion";
 
@@ -29,44 +28,55 @@ export default function SectionOverlay({
   );
 }
 
-// The section's name. Sits above the column's images, which come in beneath
-// it during the landing reveal, and steps aside — fading out — while the
-// panel's images are hovered. Halfway down the screen on desktop. On mobile,
-// where the covers sit off-centre in their stacked halves, `mobileFrame`
-// places it — the panel lays out a stand-in for its visible cover there and
-// centres the label on it.
-export function SectionLabel({
-  section,
-  dismissed,
-  shown,
-  mobileFrame,
-}: {
-  section: string;
-  dismissed: boolean;
-  shown: boolean;
-  mobileFrame?: (label: ReactNode) => ReactNode;
-}) {
-  const label = (
-    <h2
-      className={`capitalize whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-neutral-400 transition-[color,opacity] ${HOVER_CLASS} group-hover:text-blue-700 group-hover/strip:opacity-0`}
-    >
-      {section}
-    </h2>
-  );
+// The landing prompt — Site Settings' Landing Text in Sanity — spread across
+// the screen above both panels' images: a row on desktop, a column on
+// mobile. Its words come in one at a time on the landing beats, in grey —
+// "Personal" and "Commissioned", wherever they fall in it, turning blue while
+// their panel's images are hovered.
+export const DEFAULT_LANDING_TEXT = "Please Select Personal Or Commissioned";
 
+export function landingWords(text: string | null | undefined) {
+  return (text?.trim() || DEFAULT_LANDING_TEXT).split(/\s+/).map((word) => {
+    const bare = word.toLowerCase().replace(/[^a-z]/g, "");
+    return {
+      text: word,
+      section:
+        bare === "personal" || bare === "commissioned" ? bare : undefined,
+    };
+  });
+}
+
+export function LandingPrompt({
+  prompt,
+  dismissed,
+  words,
+  hovered,
+}: {
+  prompt: ReturnType<typeof landingWords>;
+  dismissed: boolean;
+  hovered: "personal" | "commissioned" | null;
+  /** How many of the prompt's words are in. */
+  words: number;
+}) {
   return (
     <div
       aria-hidden
-      className={`pointer-events-none absolute inset-0 z-20 transition-opacity ${REVEAL_CLASS} ${
-        dismissed || !shown ? "opacity-0" : "opacity-100"
+      className={`pointer-events-none absolute inset-0 top-0 lg:top-[62.5%] z-20 flex flex-col lg:flex-row justify-between h-dvh lg:h-min items-center py-5.5 lg:py-5.5 px-5.5 whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-blue-700 transition-opacity ${REVEAL_CLASS} ${
+        dismissed ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="hidden lg:flex absolute inset-0 items-start justify-center px-5.5 pt-[50vh]">
-        {label}
-      </div>
-      <div className="lg:hidden absolute inset-0 flex items-center justify-center">
-        {mobileFrame ? mobileFrame(label) : label}
-      </div>
+      {prompt.map(({ text, section }, i) => (
+        <span
+          key={i}
+          className={`transition-[color,opacity] ${
+            section && hovered === section
+              ? `${HOVER_CLASS} text-blue-700`
+              : REVEAL_CLASS
+          } ${words > i ? "opacity-100" : "opacity-0"}`}
+        >
+          {text}
+        </span>
+      ))}
     </div>
   );
 }

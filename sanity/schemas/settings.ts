@@ -15,6 +15,21 @@ export const settings = defineType({
       type: 'boolean',
       initialValue: false,
     }),
+    defineField({
+      name: 'watermarkCursor',
+      title: 'Watermark cursor on',
+      description:
+        'Makes the full-screen watermark — "Daniel von Malmborg" across and down, crossing at the pointer with "von" as its tip — the cursor across the site, on desktop. Off: the blue circle.',
+      type: 'boolean',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'landingText',
+      title: 'Landing Text',
+      description:
+        'The sentence shown across the home page before a section is picked, one word at a time. The words "Personal" and "Commissioned" turn blue when their side is hovered. Leave empty for "Please Select Personal Or Commissioned".',
+      type: 'string',
+    }),
   ],
   preview: {
     prepare: () => ({ title: 'Site Settings' }),

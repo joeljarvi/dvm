@@ -6,9 +6,8 @@ import {
   useMemo,
   useRef,
   useState,
-  type ReactNode,
-  type RefObject,
 } from "react";
+import { motion } from "motion/react";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
 import type { ScrollCallback } from "lenis";
 import type { About, Project, ProjectMedia } from "@/lib/types";
@@ -29,10 +28,11 @@ import {
   HOVER_CLASS,
   FADE_CLASS,
   DURATION,
+  REVEAL_TRANSITION,
 } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import InfoLayout from "@/components/InfoLayout";
-import SectionOverlay, { SectionLabel } from "./SectionOverlay";
+import SectionOverlay, { LandingPrompt, landingWords } from "./SectionOverlay";
 import InfoOverlay from "./InfoOverlay";
 import AboutSection from "./AboutSection";
 import IndexSection from "./IndexSection";
@@ -41,7 +41,6 @@ import {
   CustomCursor,
   CustomCursorTarget,
 } from "@/components/ui/custom-cursor";
-import Link from "next/link";
 
 export function coverImages(
   project: Project,
@@ -73,7 +72,7 @@ function landingGap(section: Exclude<Section, null>, side: "before" | "after") {
   return `${inner ? "flex-1" : "flex-3"} lg:flex-1`;
 }
 
-const LANDING_COVER_WIDTH = "max-w-none lg:max-w-1/2";
+const LANDING_COVER_WIDTH = "max-w-1/2";
 
 export const COVER_STAGE_CLASS = "flex flex-col p-0 lg:py-28";
 export const COVER_FRAME_CLASS =
@@ -87,44 +86,6 @@ export const MEDIA_CLASS =
 export const mediaSrc = (src: string) =>
   src.startsWith("/") ? src : sanityImage(src, { w: 1400 });
 
-function LandingLabelFrame({
-  section,
-  media,
-  label,
-}: {
-  section: Exclude<Section, null>;
-  media: ProjectMedia;
-  label: ReactNode;
-}) {
-  return (
-    <div className="absolute inset-x-0 top-0 h-[50dvh] px-5.5 flex flex-col items-center justify-center">
-      <div aria-hidden className={landingGap(section, "before")} />
-      <div className={`relative inline-flex ${LANDING_COVER_WIDTH} max-h-full`}>
-        {media.type === "file" ? (
-          <video
-            src={media.url}
-            className={`${MEDIA_CLASS} invisible`}
-            preload="metadata"
-            muted
-            playsInline
-          />
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={mediaSrc(media.url)}
-            alt=""
-            className={`${MEDIA_CLASS} invisible`}
-          />
-        )}
-        <div className="absolute inset-0 flex items-center justify-center">
-          {label}
-        </div>
-      </div>
-      <div aria-hidden className={landingGap(section, "after")} />
-    </div>
-  );
-}
-
 function Cover({
   project,
   media,
@@ -135,6 +96,7 @@ function Cover({
   onEnter,
   muted = true,
   landingMode,
+  lifted,
   section,
 }: {
   project: Project;
@@ -143,6 +105,8 @@ function Cover({
 
   columnOpen: boolean;
   landingMode: boolean;
+  /** Landing mode, its panel hovered. */
+  lifted: boolean;
   expanded: boolean;
   onExpand: () => void;
   onStepImage: (delta: number) => void;
@@ -167,15 +131,17 @@ function Cover({
     <div
       ref={box}
       data-slug={project.slug ?? project.title}
-      // Exactly one panel tall (dvh, like the panel itself) — the infinite
-      // scroll's loop relies on it.
       className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
     >
       <div className={COVER_FRAME_CLASS}>
         {landingMode && (
           <div aria-hidden className={landingGap(section, "before")} />
         )}
-        <div
+        <motion.div
+          // In landing mode, lifts slightly while its panel is hovered (the
+          // panel's click target sits over the image there).
+          animate={{ y: lifted ? -6 : 0 }}
+          transition={REVEAL_TRANSITION}
           className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} transition-[max-width] ${REVEAL_CLASS}`}
         >
           {/* Landing veil, over the image only — what's between the covers
@@ -217,7 +183,7 @@ function Cover({
               className={MEDIA_CLASS}
             />
           )}
-        </div>
+        </motion.div>
         {landingMode && (
           <div aria-hidden className={landingGap(section, "after")} />
         )}
@@ -253,7 +219,6 @@ function Strip({
   scrollToSlug,
   onScrolled,
   muteSound = false,
-  labelShown = true,
   imagesShown = true,
 }: {
   section: Exclude<Section, null>;
@@ -271,9 +236,7 @@ function Strip({
 
   muteSound?: boolean;
 
-  /** Landing reveal: the section's name is up. */
-  labelShown?: boolean;
-  /** Landing reveal: the covers have come in over the name. */
+  /** Landing reveal: the covers have come in. */
   imagesShown?: boolean;
 }) {
   const lenisRef = useRef<LenisRef>(null);
@@ -410,23 +373,6 @@ function Strip({
         onClick={onOpen}
       />
 
-      <SectionLabel
-        section={section}
-        dismissed={opened !== null}
-        shown={labelShown}
-        mobileFrame={
-          activeMedia
-            ? (label) => (
-                <LandingLabelFrame
-                  section={section}
-                  media={activeMedia}
-                  label={label}
-                />
-              )
-            : undefined
-        }
-      />
-
       <ReactLenis
         ref={lenisRef}
         className={`relative z-10 transition-[opacity,translate] ${ENTRANCE_CLASS} ${
@@ -464,6 +410,7 @@ function Strip({
                 media={media}
                 columnOpen={opened === section}
                 landingMode={opened === null}
+                lifted={opened === null && pointerOver === section}
                 section={section}
                 expanded={expanded[i] ?? false}
                 onExpand={() => expandCover(i)}
@@ -520,11 +467,13 @@ export default function HomeClient({
   commissioned,
   about,
   underConstruction,
+  landingText,
 }: {
   personal: Project[];
   commissioned: Project[];
   about: About | null;
   underConstruction: boolean;
+  landingText?: string | null;
 }) {
   const { rows, settled } = useIntro();
 
@@ -538,7 +487,9 @@ export default function HomeClient({
 
   const [jumpSlug, setJumpSlug] = useState<string | null>(null);
 
-  const landing = useLandingReveal();
+  const prompt = useMemo(() => landingWords(landingText), [landingText]);
+  const landing = useLandingReveal(prompt.length);
+  const hovered = useHoveredSection();
 
   const row = (n: number) =>
     `transition-opacity ${FADE_CLASS} ${rows > n ? "" : "opacity-0"}`;
@@ -582,8 +533,7 @@ export default function HomeClient({
           scrollToSlug={jumpSlug}
           onScrolled={() => setJumpSlug(null)}
           muteSound={hash === "about" || hash === "index"}
-          labelShown={landing.personal.label}
-          imagesShown={landing.personal.images}
+          imagesShown={landing.images}
         />
         <Strip
           section="commissioned"
@@ -594,8 +544,14 @@ export default function HomeClient({
           scrollToSlug={jumpSlug}
           onScrolled={() => setJumpSlug(null)}
           muteSound={hash === "about" || hash === "index"}
-          labelShown={landing.commissioned.label}
-          imagesShown={landing.commissioned.images}
+          imagesShown={landing.images}
+        />
+
+        <LandingPrompt
+          prompt={prompt}
+          dismissed={opened !== null}
+          words={landing.words}
+          hovered={hovered}
         />
       </section>
 
