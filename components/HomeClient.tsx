@@ -73,7 +73,7 @@ function landingGap(section: Exclude<Section, null>, side: "before" | "after") {
   return `${inner ? "flex-1" : "flex-3"} lg:flex-1`;
 }
 
-const LANDING_COVER_WIDTH = "max-w-[33.3vw] lg:max-w-1/2";
+const LANDING_COVER_WIDTH = "max-w-1/2";
 
 export const COVER_STAGE_CLASS = "flex flex-col p-0 lg:py-28";
 export const COVER_FRAME_CLASS =
@@ -169,7 +169,7 @@ function Cover({
       data-slug={project.slug ?? project.title}
       // Exactly one panel tall (dvh, like the panel itself) — the infinite
       // scroll's loop relies on it.
-      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-dvh" : "h-dvh"} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
+      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
     >
       <div className={COVER_FRAME_CLASS}>
         {landingMode && (
