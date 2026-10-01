@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
   type RefObject,
 } from "react";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
@@ -19,16 +20,15 @@ import {
   type Section,
 } from "@/lib/hover";
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
+import { useLandingReveal } from "@/lib/landing";
 import { setHash, useHash } from "@/lib/hash";
 import { useInView } from "@/lib/inView";
 import {
   REVEAL_CLASS,
-  REVEAL_DELAY_CLASS,
   ENTRANCE_CLASS,
   HOVER_CLASS,
   FADE_CLASS,
   DURATION,
-  ms,
 } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import InfoLayout from "@/components/InfoLayout";
@@ -66,6 +66,69 @@ export function coverImages(
   return media.length ? media : [{ url: fallbackSrc, type: "image" }];
 }
 
+// Mobile landing mode stacks the panels, and each cover would sit centred in
+// its half with equal space above and below. Instead the space between the
+// two images is halved — personal's gap below, commissioned's gap above —
+// pulling them towards the middle; the difference goes to the outer side.
+// Desktop keeps them centred.
+function landingGap(section: Exclude<Section, null>, side: "before" | "after") {
+  const inner =
+    (section === "personal" && side === "after") ||
+    (section === "commissioned" && side === "before");
+  return `${inner ? "flex-1" : "flex-3"} lg:flex-1`;
+}
+
+// A cover's width cap in landing mode — shared by the cover and the
+// invisible copy that places the mobile label, so the two always match.
+const LANDING_COVER_WIDTH = "max-w-[33.3vw] lg:max-w-1/2";
+
+const MEDIA_CLASS =
+  "block max-w-full max-h-full w-auto h-auto object-contain object-center pointer-events-none";
+
+const mediaSrc = (src: string) =>
+  src.startsWith("/") ? src : sanityImage(src, { w: 1400 });
+
+// An invisible copy of a mobile landing cover, laid out exactly as the real
+// one (same height, spacers and width cap), with the section label centred on
+// it — so the label lands on the image wherever the spacers put it.
+function LandingLabelFrame({
+  section,
+  media,
+  label,
+}: {
+  section: Exclude<Section, null>;
+  media: ProjectMedia;
+  label: ReactNode;
+}) {
+  return (
+    <div className="absolute inset-x-0 top-0 h-[50dvh] px-5.5 flex flex-col items-center justify-center">
+      <div aria-hidden className={landingGap(section, "before")} />
+      <div className={`relative inline-flex ${LANDING_COVER_WIDTH} max-h-full`}>
+        {media.type === "file" ? (
+          <video
+            src={media.url}
+            className={`${MEDIA_CLASS} invisible`}
+            preload="metadata"
+            muted
+            playsInline
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={mediaSrc(media.url)}
+            alt=""
+            className={`${MEDIA_CLASS} invisible`}
+          />
+        )}
+        <div className="absolute inset-0 flex items-center justify-center">
+          {label}
+        </div>
+      </div>
+      <div aria-hidden className={landingGap(section, "after")} />
+    </div>
+  );
+}
+
 function Cover({
   project,
   media,
@@ -76,9 +139,11 @@ function Cover({
   onEnter,
   muted = true,
   landingMode,
+  section,
 }: {
   project: Project;
   media: ProjectMedia;
+  section: Exclude<Section, null>;
 
   columnOpen: boolean;
   landingMode: boolean;
@@ -108,9 +173,12 @@ function Cover({
       data-slug={project.slug ?? project.title}
       className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} flex flex-col p-0 lg:py-28 lg:px-0 max-w-full lg:max-w-full mx-auto`}
     >
-      <div className="relative w-full h-full flex items-center justify-center">
+      <div className="relative w-full h-full flex flex-col items-center justify-center">
+        {landingMode && (
+          <div aria-hidden className={landingGap(section, "before")} />
+        )}
         <div
-          className={`relative inline-flex ${landingMode ? "max-w-1/2" : "max-w-full"} max-h-full overflow-hidden transition-[max-width] ${REVEAL_CLASS}`}
+          className={`relative inline-flex ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} max-h-full overflow-hidden transition-[max-width] ${REVEAL_CLASS}`}
         >
           {/* Landing veil, over the image only — what's between the covers
               stays clear, so the section label beneath them reads sharp.
@@ -137,7 +205,7 @@ function Cover({
           {media.type === "file" ? (
             <video
               src={src}
-              className="block max-w-full max-h-full w-auto h-auto object-contain object-center pointer-events-none"
+              className={MEDIA_CLASS}
               autoPlay
               muted={muted}
               loop
@@ -146,43 +214,18 @@ function Cover({
             />
           ) : (
             <img
-              src={src.startsWith("/") ? src : sanityImage(src, { w: 1400 })}
+              src={mediaSrc(src)}
               alt={media.caption ?? ""}
-              className="block max-w-full max-h-full w-auto h-auto object-contain object-center pointer-events-none"
+              className={MEDIA_CLASS}
             />
           )}
         </div>
+        {landingMode && (
+          <div aria-hidden className={landingGap(section, "after")} />
+        )}
       </div>
     </div>
   );
-}
-
-// Landing reveal, before a section is picked: "personal" comes up first, then
-// "commissioned", then the covers land on top of both. Beats are ms from the
-// home page's first mount, each advancing the step by one. Like the intro, it
-// plays once per page load — coming back home finds it already spent.
-const LANDING_BEATS = [300, 900, 1600].map(ms);
-let landingPlayed = false;
-
-function useLandingReveal() {
-  const [step, setStep] = useState(() =>
-    landingPlayed ? LANDING_BEATS.length : 0,
-  );
-  useEffect(() => {
-    if (landingPlayed) return;
-    const timers = LANDING_BEATS.map((at, i) =>
-      setTimeout(() => {
-        setStep(i + 1);
-        if (i === LANDING_BEATS.length - 1) landingPlayed = true;
-      }, at),
-    );
-    return () => timers.forEach(clearTimeout);
-  }, []);
-  return {
-    personalLabel: step >= 1,
-    commissionedLabel: step >= 2,
-    images: step >= 3,
-  };
 }
 
 function BreakGalleryOnScroll({ onScroll }: { onScroll: () => void }) {
@@ -373,6 +416,17 @@ function Strip({
         section={section}
         dismissed={opened !== null}
         shown={labelShown}
+        mobileFrame={
+          activeMedia
+            ? (label) => (
+                <LandingLabelFrame
+                  section={section}
+                  media={activeMedia}
+                  label={label}
+                />
+              )
+            : undefined
+        }
       />
 
       <ReactLenis
@@ -407,6 +461,7 @@ function Strip({
                 media={media}
                 columnOpen={opened === section}
                 landingMode={opened === null}
+                section={section}
                 expanded={expanded[i] ?? false}
                 onExpand={() => expandCover(i)}
                 onStepImage={(delta) => stepImage(i, delta)}
@@ -420,8 +475,9 @@ function Strip({
 
       {shown && (
         <div
-          className={`pointer-events-none absolute inset-x-0 top-[62.5vh] z-10 flex flex-col gap-y-2 px-5.5 transition-opacity ${REVEAL_CLASS} ${
-            imagesShown && opened !== null ? REVEAL_DELAY_CLASS : "opacity-0"
+          // Held back through landing mode; fades in once a section is chosen.
+          className={`pointer-events-none absolute inset-x-0 top-[62.5%] z-10 flex flex-col gap-y-2 px-5.5 transition-opacity ${REVEAL_CLASS} ${
+            opened !== null ? "" : "opacity-0"
           }`}
         >
           <InfoLayout
@@ -523,8 +579,8 @@ export default function HomeClient({
           scrollToSlug={jumpSlug}
           onScrolled={() => setJumpSlug(null)}
           muteSound={hash === "about" || hash === "index"}
-          labelShown={landing.personalLabel}
-          imagesShown={landing.images}
+          labelShown={landing.personal.label}
+          imagesShown={landing.personal.images}
         />
         <Strip
           section="commissioned"
@@ -535,8 +591,8 @@ export default function HomeClient({
           scrollToSlug={jumpSlug}
           onScrolled={() => setJumpSlug(null)}
           muteSound={hash === "about" || hash === "index"}
-          labelShown={landing.commissionedLabel}
-          imagesShown={landing.images}
+          labelShown={landing.commissioned.label}
+          imagesShown={landing.commissioned.images}
         />
       </section>
 

@@ -55,9 +55,6 @@ export const motionCssVars = {
 /** The main reveal: duration + curve. */
 export const REVEAL_CLASS =
   "duration-(--motion-reveal) ease-(--motion-ease-reveal)";
-/** One reveal's worth of delay — for something that should only come in once
- * a reveal running alongside it (e.g. a home panel widening) has landed. */
-export const REVEAL_DELAY_CLASS = "delay-(--motion-reveal)";
 /** A slower entrance on the reveal curve. */
 export const ENTRANCE_CLASS =
   "duration-(--motion-entrance) ease-(--motion-ease-reveal)";

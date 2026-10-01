@@ -8,7 +8,7 @@ import { useIntro } from "@/lib/intro";
 import { useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
 import { switchSection } from "@/lib/navigation";
-import { REVEAL_CLASS, REVEAL_DELAY_CLASS } from "@/lib/motion";
+import { REVEAL_CLASS } from "@/lib/motion";
 import Link from "next/link";
 
 export default function Nav() {
@@ -56,17 +56,16 @@ export default function Nav() {
 
   const chosen = !onHome || opened !== null;
 
-  // Home's landing mode — no section picked yet — keeps the whole nav out of
-  // the way; once a section is chosen it fades in, after the panel has
-  // finished widening.
+  // Home's landing mode — no section picked yet — keeps the nav hidden; it
+  // fades in once a section is chosen.
   const topChrome = !onHome
     ? chrome
     : chosen
-      ? `${chrome} ${REVEAL_DELAY_CLASS}`
+      ? ""
       : "opacity-0 pointer-events-none";
 
   const corner = (place: string, visible = true, arrival = chrome) =>
-    `fixed ${place} z-[80] flex flex-row items-center gap-0  transition-opacity ${REVEAL_CLASS} ${arrival} ${
+    `fixed ${place} z-[80] flex flex-row items-center gap-0 transition-opacity ${REVEAL_CLASS} ${arrival} ${
       visible ? "" : "opacity-0 pointer-events-none"
     }`;
 
