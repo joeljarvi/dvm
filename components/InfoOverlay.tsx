@@ -24,6 +24,12 @@ export default function InfoOverlay({
   return (
     <div
       className={`fixed inset-0 z-[80] ${open ? "" : "pointer-events-none"}`}
+      // A closed drawer stays mounted (it fades out), so it must not catch
+      // anything: `pointer-events-none` alone is overridden by any
+      // `pointer-events-auto` inside it — e.g. Index's Selected / Show All,
+      // which sat right on top of About's Bio / Links. `inert` covers the
+      // whole subtree, focus included.
+      inert={!open}
       aria-hidden={!open}
     >
       <button
@@ -31,12 +37,12 @@ export default function InfoOverlay({
         tabIndex={open ? 0 : -1}
         aria-label="Close"
         onClick={onDismiss}
-        className={`absolute inset-0 bg-background/30 transition-opacity ${REVEAL_CLASS} ${
+        className={`absolute inset-0 bg-background/30 dark:bg-background/70 transition-opacity ${REVEAL_CLASS} ${
           open ? "opacity-100" : "opacity-0"
         }`}
       />
       <div
-        className={`absolute ${panelClassName} bg-background/60 backdrop-blur-xs ${shadow ? "shadow-2xl" : ""} transition-opacity ${REVEAL_CLASS} ${
+        className={`absolute ${panelClassName} bg-background/60 dark:bg-background/70 backdrop-blur-xs ${shadow ? "shadow-2xl" : ""} transition-opacity ${REVEAL_CLASS} ${
           open ? "opacity-100" : "opacity-0"
         }`}
       >

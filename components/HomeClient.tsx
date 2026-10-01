@@ -82,10 +82,20 @@ function landingGap(section: Exclude<Section, null>, side: "before" | "after") {
 // invisible copy that places the mobile label, so the two always match.
 const LANDING_COVER_WIDTH = "max-w-[33.3vw] lg:max-w-1/2";
 
-const MEDIA_CLASS =
+// A cover's box, shared with anything that has to show an image at exactly
+// the size a home cover would (the Index hover preview). The stage is one
+// panel tall with the desktop inset; inside it the image fits, uncropped,
+// within the media box. Horizontal inset is the column's px-5.5.
+export const COVER_STAGE_CLASS = "flex flex-col p-0 lg:py-28";
+export const COVER_FRAME_CLASS =
+  "relative w-full h-full flex flex-col items-center justify-center";
+export const COVER_BOX_CLASS =
+  "relative inline-flex max-h-full overflow-hidden";
+
+export const MEDIA_CLASS =
   "block max-w-full max-h-full w-auto h-auto object-contain object-center pointer-events-none";
 
-const mediaSrc = (src: string) =>
+export const mediaSrc = (src: string) =>
   src.startsWith("/") ? src : sanityImage(src, { w: 1400 });
 
 // An invisible copy of a mobile landing cover, laid out exactly as the real
@@ -171,14 +181,16 @@ function Cover({
     <div
       ref={box}
       data-slug={project.slug ?? project.title}
-      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} flex flex-col p-0 lg:py-28 lg:px-0 max-w-full lg:max-w-full mx-auto`}
+      // Exactly one panel tall (dvh, like the panel itself) — the infinite
+      // scroll's loop relies on it.
+      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-dvh" : "h-dvh"} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
     >
-      <div className="relative w-full h-full flex flex-col items-center justify-center">
+      <div className={COVER_FRAME_CLASS}>
         {landingMode && (
           <div aria-hidden className={landingGap(section, "before")} />
         )}
         <div
-          className={`relative inline-flex ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} max-h-full overflow-hidden transition-[max-width] ${REVEAL_CLASS}`}
+          className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} transition-[max-width] ${REVEAL_CLASS}`}
         >
           {/* Landing veil, over the image only — what's between the covers
               stays clear, so the section label beneath them reads sharp.
@@ -450,13 +462,19 @@ function Strip({
       >
         <BreakGalleryOnScroll onScroll={breakGallery} />
         <div className="flex flex-col items-start w-full px-5.5">
-          {projects.map((p, i) => {
+          {/* Lenis' infinite mode just wraps the scroll position back to 0 at
+              the end — it doesn't repeat anything. So the first cover is
+              repeated once at the bottom: the last screen then matches the
+              first, and the wrap is invisible. The copy is the first cover in
+              every respect (same index, frame and handlers). */}
+          {[...projects, ...projects.slice(0, 1)].map((p, n) => {
+            const i = n % projects.length;
             const images = columnImages[i];
             const frame = frames[i] ?? 0;
             const media = images[frame] ?? images[0];
             return media ? (
               <Cover
-                key={p.slug ?? `${p.title}-${i}`}
+                key={n === i ? (p.slug ?? `${p.title}-${i}`) : "loop"}
                 project={p}
                 media={media}
                 columnOpen={opened === section}

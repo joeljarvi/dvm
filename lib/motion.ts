@@ -113,6 +113,13 @@ export const staggerItem: Variants = {
   visible: { opacity: 1, y: 0, transition: REVEAL_TRANSITION },
 };
 
+// Same stagger, opacity only — content swapping in place, where a slide
+// would read as movement rather than a reveal.
+export const fadeItem: Variants = {
+  hidden: { opacity: 0, transition: REVEAL_TRANSITION },
+  visible: { opacity: 1, transition: REVEAL_TRANSITION },
+};
+
 // A drawer's content as one block — slides up from below into place on
 // reveal, and back down on exit (the same pair of states, just played in
 // each direction). No per-item stagger, unlike staggerItem above.
