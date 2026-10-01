@@ -73,7 +73,7 @@ function landingGap(section: Exclude<Section, null>, side: "before" | "after") {
   return `${inner ? "flex-1" : "flex-3"} lg:flex-1`;
 }
 
-const LANDING_COVER_WIDTH = "max-w-1/2";
+const LANDING_COVER_WIDTH = "max-w-none lg:max-w-1/2";
 
 export const COVER_STAGE_CLASS = "flex flex-col p-0 lg:py-28";
 export const COVER_FRAME_CLASS =
