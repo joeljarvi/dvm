@@ -52,31 +52,18 @@ export default function AboutSection({ about }: { about?: About | null }) {
   const [view, setView] = useState<"bio" | "links">("bio");
 
   return (
-    // One screen tall. Scrolls on mobile, where the stacked content can run
-    // past it; on desktop it never scrolls, so each panel (Bio, Links) has to
-    // fit. h-dvh rather than h-screen so the mobile browser chrome can't push
-    // the bottom out of view.
     <div
       data-lenis-prevent
       className="relative flex flex-col lg:grid pt-28 lg:pt-0 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden lg:overflow-hidden lg:grid-rows-[auto_auto_1fr_auto] lg:grid-cols-4 items-start justify-start w-full h-dvh   font-diatype font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-0  lg:tracking-normal  text-blue-700 lg:text-neutral-300      "
     >
-      {/* Both panels are always up now — no toggle left to switch between
-          them — so these just label the columns beneath, the same static
-          heading treatment IndexSection's Personal/Commissioned got once
-          its own toggle went away. */}
       <h3 className="hidden lg:flex col-start-2 lg:row-start-1 w-min h-14 items-center px-0 font-normal text-blue-700">
         Connect
       </h3>
-      {/* Mobile only: the name heads the page, above the contact links (both
-          order-first, so DOM order keeps this one on top). On desktop the
-          name is column 3's heading instead. */}
+
       <h3 className="lg:hidden order-first flex h-14 items-center px-5.5 font-normal text-[0.8rem] text-neutral-400 dark:text-neutral-500 whitespace-nowrap">
         Daniel von Malmborg
       </h3>
-      {/* What column 3 shows. Keyed on the panel, so each switch remounts it
-          and replays the reveal: opacity, top to bottom — heading, each
-          paragraph or link, then the image. `contents` keeps the wrapper out
-          of the grid. */}
+
       <motion.div
         key={view}
         className="contents"
@@ -86,16 +73,15 @@ export default function AboutSection({ about }: { about?: About | null }) {
       >
         <motion.h3
           variants={fadeItem}
-          // Desktop only — on mobile the name already heads the page.
           className="hidden lg:flex col-start-3 lg:row-start-1 h-14 items-center px-0 font-normal text-blue-700 whitespace-nowrap"
         >
           {view === "bio" ? "Daniel von Malmborg" : "Links"}
         </motion.h3>
 
-        <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8rem] font-normal pl-5.5 pr-0   lg:px-0 leading-tight tracking-wide gap-y-2 max-w-3/4 lg:max-w-full text-blue-700  mb-0 lg:mb-12">
+        <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8rem] font-normal pl-5.5 pr-0   lg:px-0 leading-tight tracking-wide gap-y-4 max-w-3/4 lg:max-w-full text-blue-700  mb-0 lg:mb-12">
           {view === "bio" ? (
-            about?.bio?.length ? (
-              <PortableText value={about.bio} components={bioComponents} />
+            about?.shortBio?.length ? (
+              <PortableText value={about.shortBio} components={bioComponents} />
             ) : (
               FALLBACK_BIO.map((paragraph, i) => (
                 <motion.p key={i} variants={fadeItem} className="indent-0 mb-0">
@@ -104,12 +90,11 @@ export default function AboutSection({ about }: { about?: About | null }) {
               ))
             )
           ) : (
-            // multi2, krejzy, …
             links.map((link) => (
               <motion.span
                 key={link.url}
                 variants={fadeItem}
-                className="flex flex-col items-start"
+                className="flex flex-col items-start "
               >
                 <Button
                   variant="link"
@@ -134,8 +119,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
             ))
           )}
         </div>
-        {/* order-first: on mobile the contact links lead, above the heading
-            and bio; on desktop the grid places them. */}
+
         <span className="order-first lg:order-0 col-start-1 lg:col-start-2 lg:row-start-2 lg:flex lg:flex-col grid grid-cols-4 gap-x-0  font-normal justify-start w-full lg:w-auto">
           <Button
             variant="link"
