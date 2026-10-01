@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import NameMark from "@/components/NameMark";
+import { CURSOR_IDLE, FADE_CLASS } from "@/lib/motion";
 import {
   useSuppressWatermarkCursor,
   useWatermarkCursorSuppressed,
@@ -23,11 +24,31 @@ export default function WatermarkCursor({ on }: { on: boolean }) {
     return () => document.documentElement.classList.remove("watermark-cursor");
   }, [active]);
 
+  // Fades out once the pointer has rested CURSOR_IDLE, back on its next move.
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    if (!active) return;
+    let timer = window.setTimeout(() => setIdle(true), CURSOR_IDLE);
+    const wake = () => {
+      setIdle(false);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setIdle(true), CURSOR_IDLE);
+    };
+    window.addEventListener("pointermove", wake);
+    window.addEventListener("pointerdown", wake);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointermove", wake);
+      window.removeEventListener("pointerdown", wake);
+      setIdle(false);
+    };
+  }, [active]);
+
   if (!active) return null;
   return (
     <div
       aria-hidden
-      className="hidden lg:block fixed inset-0 z-960 pointer-events-none"
+      className={`hidden lg:block fixed inset-0 z-960 pointer-events-none transition-opacity ${FADE_CLASS} ${idle ? "opacity-0" : ""}`}
     >
       <NameMark watermark instant />
     </div>

@@ -20,7 +20,6 @@ import {
 } from "@/lib/hover";
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { useLandingReveal } from "@/lib/landing";
-import { useSuppressWatermarkCursor } from "@/lib/watermarkCursor";
 import { setHash, useHash } from "@/lib/hash";
 import { useInView } from "@/lib/inView";
 import {
@@ -479,9 +478,6 @@ export default function HomeClient({
   const { rows, settled } = useIntro();
 
   const opened = useOpenedSection();
-  // Landing mode keeps the blue circle; the watermark cursor (if it's on)
-  // takes over once a section is chosen.
-  useSuppressWatermarkCursor(opened === null);
 
   const hash = useHash();
 

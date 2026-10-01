@@ -93,6 +93,8 @@ export const CURSOR_PULSE: Transition = {
   repeat: Infinity,
   ease: "easeInOut",
 };
+/** How long the pointer rests before the watermark cursor fades out, in ms. */
+export const CURSOR_IDLE = ms(3000);
 export const CURSOR_FILL_TRANSITION = `background-color ${DURATION.micro}ms ease-out, opacity ${DURATION.micro}ms ease-out`;
 
 // A drawer's content staggering in: each item STAGGER behind the last, all
