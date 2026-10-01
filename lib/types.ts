@@ -20,7 +20,8 @@ export type AboutLink = {
 };
 
 export type About = {
-  bio?: PortableTextBlock[];
+  shortBio?: PortableTextBlock[];
+  longBio?: PortableTextBlock[];
   bioImageUrl?: string;
   phone?: string;
   email?: string;

@@ -1,9 +1,5 @@
 import HomeClient from "@/components/HomeClient";
-import {
-  fetchAbout,
-  fetchProjects,
-  fetchSiteSettings,
-} from "@/sanity/queries";
+import { fetchAbout, fetchProjects, fetchSiteSettings } from "@/sanity/queries";
 import { clients, models } from "@/lib/data";
 
 export default async function Home() {
