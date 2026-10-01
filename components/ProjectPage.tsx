@@ -418,7 +418,7 @@ function Instructions({
         onClick={onReplay}
         className={`absolute top-4 left-5.5 px-0 h-auto ${buttonClass} text-neutral-400 ${fade(!open)}`}
       >
-        Press &quot;I&quot; for Instructions
+        Press I for Instructions
       </Button>
     </div>
   );
