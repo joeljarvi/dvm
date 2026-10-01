@@ -77,7 +77,7 @@ export default function ProjectPage({
   // Static: the watermark held at its starting position.
   const [still, setStill] = useState(false);
 
-  // P / Q: the image in a 3:4 or 1:1 frame, filling it; the same key again
+  // P / Q / L: the image in a 3:4, 1:1 or 16:9 frame, filling it; the same key again
   // goes back to its own shape.
   // Bumped to replay the full-screen instructions.
   // 0 is the intro on opening full screen, which hides itself; each replay
@@ -96,8 +96,8 @@ export default function ProjectPage({
   // B: the watermark in blue.
   const [blue, setBlue] = useState(false);
 
-  const [aspect, setAspect] = useState<"3/4" | "1/1" | null>(null);
-  const toggleAspect = (next: "3/4" | "1/1") =>
+  const [aspect, setAspect] = useState<"3/4" | "1/1" | "16/9" | null>(null);
+  const toggleAspect = (next: "3/4" | "1/1" | "16/9") =>
     setAspect((a) => (a === next ? null : next));
 
   useEffect(() => {
@@ -112,6 +112,7 @@ export default function ProjectPage({
       else if (key === "n") screenshot(true);
       else if (key === "p") toggleAspect("3/4");
       else if (key === "q") toggleAspect("1/1");
+      else if (key === "l") toggleAspect("16/9");
       else if (key === "b") setBlue((v) => !v);
       else if (key === "i") toggleGuide();
       else return;
@@ -210,7 +211,10 @@ export default function ProjectPage({
                   ? "h-full aspect-3/4"
                   : aspect === "1/1"
                     ? "h-full aspect-square"
-                    : ""
+                    : // Landscape: as wide as fits, both across and down.
+                      aspect === "16/9"
+                      ? "w-[min(100%,calc((100dvh-2.75rem)*16/9))] aspect-video"
+                      : ""
               }`}
             >
               <CustomCursorTarget asChild grow>
@@ -288,6 +292,11 @@ export default function ProjectPage({
                 label: "Press Q for 1:1",
                 onClick: () => toggleAspect("1/1"),
                 active: aspect === "1/1",
+              },
+              {
+                label: "Press L for 16:9",
+                onClick: () => toggleAspect("16/9"),
+                active: aspect === "16/9",
               },
               {
                 label: "Press B for Blue Text",
