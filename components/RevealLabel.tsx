@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  HOVER_CLASS,
+  QUICK_CLASS,
+  QUICK_DELAY_CLASS,
+  REVEAL_OUT_CLASS,
+} from "@/lib/motion";
+
 // Every nav label arrives the way the wordmark does: the initial lands first
 // and the rest fades in behind it. `shown` is the label's beat on the intro
 // timeline; labels that mount later than the intro just default to on.
@@ -21,20 +28,20 @@ export default function RevealLabel({
           through the nav's difference blend. */}
       <span
         aria-hidden
-        className={`size-3.5 shrink-0 rounded-full bg-current transition-opacity duration-200 ease-out group-hover/button:opacity-100 ${
+        className={`size-3.5 shrink-0 rounded-full bg-current transition-opacity ${HOVER_CLASS} group-hover/button:opacity-100 ${
           marked ? "opacity-100" : "opacity-0"
         }`}
       />
 
       <span className="whitespace-nowrap">
         <strong
-          className="transition-opacity duration-300 ease-out"
+          className={`transition-opacity ${QUICK_CLASS}`}
           style={{ opacity: shown ? 1 : 0 }}
         >
           {text.slice(0, 1)}
         </strong>
         <span
-          className="transition-opacity duration-700 delay-300 ease-out tracking-wide"
+          className={`transition-opacity ${REVEAL_OUT_CLASS} ${QUICK_DELAY_CLASS} tracking-wide`}
           style={{ opacity: shown ? 1 : 0 }}
         >
           {text.slice(1)}

@@ -122,3 +122,18 @@ export async function fetchProjectBySlug(
     return null;
   }
 }
+
+export async function fetchSiteSettings(): Promise<{
+  underConstruction: boolean;
+}> {
+  try {
+    const result = await client.fetch<{ underConstruction?: boolean } | null>(
+      `*[_type == "settings" && _id == "siteSettings"][0] { underConstruction }`,
+      {},
+      { next: { tags: ["settings"] } },
+    );
+    return { underConstruction: result?.underConstruction ?? false };
+  } catch {
+    return { underConstruction: false };
+  }
+}

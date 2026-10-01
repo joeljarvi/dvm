@@ -26,7 +26,13 @@ export const structure: StructureResolver = (S, context) =>
         context,
       }),
       S.divider(),
+      S.listItem()
+        .title('Site Settings')
+        .id('siteSettings')
+        .child(
+          S.document().schemaType('settings').documentId('siteSettings'),
+        ),
       ...S.documentTypeListItems().filter(
-        (item) => item.getId() !== 'project',
+        (item) => !['project', 'settings'].includes(item.getId() ?? ''),
       ),
     ])

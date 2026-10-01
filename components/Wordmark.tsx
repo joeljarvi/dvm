@@ -1,5 +1,7 @@
 "use client";
 
+import { FADE_CLASS } from "@/lib/motion";
+
 // Hovering the mark dissolves the lettering and leaves the coloured plates
 // behind. Fades `color` rather than `opacity` — opacity on the span would take
 // its background with it.
@@ -9,10 +11,9 @@
 // Letters are never removed from the DOM, only held at zero opacity, so the
 // mark keeps its full width from the first frame and nothing reflows.
 
-const part =
-  "inline-block transition-colors duration-500 ease-out group-hover:text-transparent";
+const part = `inline-block transition-colors ${FADE_CLASS} group-hover:text-transparent`;
 
-const glyph = "inline-block transition-opacity duration-500 ease-out";
+const glyph = `inline-block transition-opacity ${FADE_CLASS}`;
 
 // Split at the initial: it carries the plate, the tail carries the rest.
 const NAME = [

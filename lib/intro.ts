@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { ms } from "./motion";
 
 // The opening sequence, in one place. The card writes the name a word at a
 // time; the plates behind D, v and M fade up under it, and the card with them;
@@ -23,6 +24,7 @@ export const CARD_ROWS = 2;
 // labels, the section buttons in the nav — takes one of these slots in order.
 export const STAGGER_SLOTS = 4;
 
+// Scaled by the site-wide tempo (MOTION_SPEED in lib/motion.ts).
 const BEATS = [
   ...WORDS,
   PLATES,
@@ -33,7 +35,7 @@ const BEATS = [
     { length: STAGGER_SLOTS },
     (_, i) => SETTLE + (i + 1) * STAGGER,
   ),
-];
+].map(ms);
 
 // Phase boundaries, derived from the list above so they can't drift from it.
 const PLATED = WORDS.length + 1;

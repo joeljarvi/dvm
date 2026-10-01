@@ -21,13 +21,22 @@ import {
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
 import { useInView } from "@/lib/inView";
-import { REVEAL_CLASS } from "@/lib/motion";
+import {
+  REVEAL_CLASS,
+  REVEAL_DELAY_CLASS,
+  ENTRANCE_CLASS,
+  HOVER_CLASS,
+  FADE_CLASS,
+  DURATION,
+  ms,
+} from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import InfoLayout from "@/components/InfoLayout";
-import SectionOverlay from "./SectionOverlay";
+import SectionOverlay, { SectionLabel } from "./SectionOverlay";
 import InfoOverlay from "./InfoOverlay";
 import AboutSection from "./AboutSection";
 import IndexSection from "./IndexSection";
+import UnderConstruction from "./UnderConstruction";
 import {
   CustomCursor,
   CustomCursorTarget,
@@ -66,11 +75,13 @@ function Cover({
   onStepImage,
   onEnter,
   muted = true,
+  landingMode,
 }: {
   project: Project;
   media: ProjectMedia;
 
   columnOpen: boolean;
+  landingMode: boolean;
   expanded: boolean;
   onExpand: () => void;
   onStepImage: (delta: number) => void;
@@ -95,10 +106,25 @@ function Cover({
     <div
       ref={box}
       data-slug={project.slug ?? project.title}
-      className="relative shrink-0 w-full group h-screen flex flex-col p-0 lg:py-28 lg:px-0 max-w-full lg:max-w-full mx-auto"
+      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} flex flex-col p-0 lg:py-28 lg:px-0 max-w-full lg:max-w-full mx-auto`}
     >
       <div className="relative w-full h-full flex items-center justify-center">
-        <div className="relative inline-flex max-w-full max-h-full">
+        <div
+          className={`relative inline-flex ${landingMode ? "max-w-1/2" : "max-w-full"} max-h-full overflow-hidden transition-[max-width] ${REVEAL_CLASS}`}
+        >
+          {/* Landing veil, over the image only — what's between the covers
+              stays clear, so the section label beneath them reads sharp.
+              Hovering the panel fades the whole veil out; the blur itself is
+              never animated, since a changing backdrop-filter smears at the
+              edges of the image. */}
+          <div
+            aria-hidden
+            className={`absolute inset-0 z-[5] pointer-events-none bg-background/60 backdrop-blur-xs transition-opacity ${REVEAL_CLASS} ${
+              landingMode
+                ? "opacity-100 group-hover/strip:opacity-0"
+                : "opacity-0"
+            }`}
+          />
           <CustomCursorTarget asChild grow>
             <button
               type="button"
@@ -131,6 +157,34 @@ function Cover({
   );
 }
 
+// Landing reveal, before a section is picked: "personal" comes up first, then
+// "commissioned", then the covers land on top of both. Beats are ms from the
+// home page's first mount, each advancing the step by one. Like the intro, it
+// plays once per page load — coming back home finds it already spent.
+const LANDING_BEATS = [300, 900, 1600].map(ms);
+let landingPlayed = false;
+
+function useLandingReveal() {
+  const [step, setStep] = useState(() =>
+    landingPlayed ? LANDING_BEATS.length : 0,
+  );
+  useEffect(() => {
+    if (landingPlayed) return;
+    const timers = LANDING_BEATS.map((at, i) =>
+      setTimeout(() => {
+        setStep(i + 1);
+        if (i === LANDING_BEATS.length - 1) landingPlayed = true;
+      }, at),
+    );
+    return () => timers.forEach(clearTimeout);
+  }, []);
+  return {
+    personalLabel: step >= 1,
+    commissionedLabel: step >= 2,
+    images: step >= 3,
+  };
+}
+
 function BreakGalleryOnScroll({ onScroll }: { onScroll: () => void }) {
   const lenis = useLenis();
   useEffect(() => {
@@ -158,6 +212,8 @@ function Strip({
   scrollToSlug,
   onScrolled,
   muteSound = false,
+  labelShown = true,
+  imagesShown = true,
 }: {
   section: Exclude<Section, null>;
   projects: Project[];
@@ -173,6 +229,11 @@ function Strip({
   onScrolled?: () => void;
 
   muteSound?: boolean;
+
+  /** Landing reveal: the section's name is up. */
+  labelShown?: boolean;
+  /** Landing reveal: the covers have come in over the name. */
+  imagesShown?: boolean;
 }) {
   const lenisRef = useRef<LenisRef>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -191,10 +252,6 @@ function Strip({
     projects.map(() => false),
   );
 
-  // Videos always start muted — sound is opt-in per video, and switching to
-  // a different cover (or opening About/Index over it) mutes again rather
-  // than carrying sound over. Reset during render rather than in an effect,
-  // per https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
   const [soundOn, setSoundOn] = useState(false);
   const [prevActive, setPrevActive] = useState(active);
   const [prevMuteSound, setPrevMuteSound] = useState(muteSound);
@@ -283,8 +340,14 @@ function Strip({
     return () => window.removeEventListener("keydown", onKey);
   }, [listens]);
 
-  const width =
-    opened === null ? "w-[50vw]" : opened === section ? "w-screen" : "w-0";
+  // Side by side on desktop; stacked on mobile, where the panels split the
+  // height instead — so the chosen one grows by height, not width.
+  const size =
+    opened === null
+      ? "w-full h-1/2 lg:w-[50vw] lg:h-auto"
+      : opened === section
+        ? "w-full h-full lg:w-screen lg:h-auto"
+        : "w-full h-0 lg:w-0 lg:h-auto";
 
   const shown = projects[active] ?? projects[0];
   const shownImages = columnImages[active] ?? [];
@@ -296,7 +359,7 @@ function Strip({
       ref={containerRef}
       data-panel={section}
       onClick={onOpen}
-      className={`group relative h-auto ${width} overflow-hidden pb-0 transition-[width] ${REVEAL_CLASS} hover:text-blue-700 ${background}`}
+      className={`group group/strip relative ${size} overflow-hidden pb-0 transition-[width,height] ${REVEAL_CLASS} hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
       onMouseLeave={() => setHoveredSection(null)}
     >
@@ -306,9 +369,17 @@ function Strip({
         onClick={onOpen}
       />
 
+      <SectionLabel
+        section={section}
+        dismissed={opened !== null}
+        shown={labelShown}
+      />
+
       <ReactLenis
         ref={lenisRef}
-        className="w-full h-full overflow-y-auto overflow-x-hidden scrollbar-none [&::-webkit-scrollbar]:hidden"
+        className={`relative z-10 transition-[opacity,translate] ${ENTRANCE_CLASS} ${
+          imagesShown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        } w-full h-full overflow-y-auto overflow-x-hidden scrollbar-none [&::-webkit-scrollbar]:hidden`}
         options={{
           orientation: "vertical",
           gestureOrientation: "both",
@@ -318,10 +389,7 @@ function Strip({
           wheelMultiplier: 1,
           touchMultiplier: 2,
           infinite: true,
-          // Required by Lenis for `infinite` to actually apply on touch —
-          // without it, native touch scroll bypasses Lenis's virtual scroll
-          // entirely and just hits the real end of the content (this is
-          // what was happening on Safari/iOS).
+
           syncTouch: true,
           autoResize: true,
         }}
@@ -338,6 +406,7 @@ function Strip({
                 project={p}
                 media={media}
                 columnOpen={opened === section}
+                landingMode={opened === null}
                 expanded={expanded[i] ?? false}
                 onExpand={() => expandCover(i)}
                 onStepImage={(delta) => stepImage(i, delta)}
@@ -350,7 +419,11 @@ function Strip({
       </ReactLenis>
 
       {shown && (
-        <div className="pointer-events-none absolute inset-x-0 top-[62.5vh] z-10 flex flex-col gap-y-2 px-5.5 ">
+        <div
+          className={`pointer-events-none absolute inset-x-0 top-[62.5vh] z-10 flex flex-col gap-y-2 px-5.5 transition-opacity ${REVEAL_CLASS} ${
+            imagesShown && opened !== null ? REVEAL_DELAY_CLASS : "opacity-0"
+          }`}
+        >
           <InfoLayout
             title={shown.title}
             titleHref={shown.slug ? `/${section}/${shown.slug}` : undefined}
@@ -373,7 +446,7 @@ function Strip({
               e.stopPropagation();
               setSoundOn((v) => !v);
             }}
-            className={`col-start-4 justify-self-start pointer-events-auto  text-[0.8rem] tracking-wide hover:text-blue-700 transition-colors duration-200 ease-out cursor-pointer ${soundOn ? "text-blue-700" : "text-neutral-400 "}`}
+            className={`col-start-4 justify-self-start pointer-events-auto  text-[0.8rem] tracking-wide hover:text-blue-700 transition-colors ${HOVER_CLASS} cursor-pointer ${soundOn ? "text-blue-700" : "text-neutral-400 "}`}
           >
             {soundOn ? "Sound On" : "Sound Off"}
           </Button>
@@ -387,10 +460,12 @@ export default function HomeClient({
   personal,
   commissioned,
   about,
+  underConstruction,
 }: {
   personal: Project[];
   commissioned: Project[];
   about: About | null;
+  underConstruction: boolean;
 }) {
   const { rows, settled } = useIntro();
 
@@ -404,8 +479,10 @@ export default function HomeClient({
 
   const [jumpSlug, setJumpSlug] = useState<string | null>(null);
 
+  const landing = useLandingReveal();
+
   const row = (n: number) =>
-    `transition-opacity duration-500 ease-out ${rows > n ? "" : "opacity-0"}`;
+    `transition-opacity ${FADE_CLASS} ${rows > n ? "" : "opacity-0"}`;
 
   useEffect(() => () => setHoveredSection(null), []);
 
@@ -418,8 +495,8 @@ export default function HomeClient({
       return () => clearTimeout(reset);
     }
     const on = setTimeout(() => setDrawerOpening(true), 0);
-    // Matches the drawer's own fade (see REVEAL_DURATION in lib/motion.ts).
-    const off = setTimeout(() => setDrawerOpening(false), 700);
+    // Matches the drawer's own fade.
+    const off = setTimeout(() => setDrawerOpening(false), DURATION.reveal);
     return () => {
       clearTimeout(on);
       clearTimeout(off);
@@ -436,7 +513,7 @@ export default function HomeClient({
       pulsing={!settled || drawerOpening}
       className="contents"
     >
-      <section className="font-selecta relative flex  flex-row w-screen h-dvh overflow-hidden bg-background">
+      <section className="font-selecta relative flex flex-col lg:flex-row w-screen h-dvh overflow-hidden bg-background">
         <Strip
           section="personal"
           projects={personal}
@@ -446,6 +523,8 @@ export default function HomeClient({
           scrollToSlug={jumpSlug}
           onScrolled={() => setJumpSlug(null)}
           muteSound={hash === "about" || hash === "index"}
+          labelShown={landing.personalLabel}
+          imagesShown={landing.images}
         />
         <Strip
           section="commissioned"
@@ -456,6 +535,8 @@ export default function HomeClient({
           scrollToSlug={jumpSlug}
           onScrolled={() => setJumpSlug(null)}
           muteSound={hash === "about" || hash === "index"}
+          labelShown={landing.commissionedLabel}
+          imagesShown={landing.images}
         />
       </section>
 
@@ -478,6 +559,8 @@ export default function HomeClient({
           initialCategory={opened ?? "personal"}
         />
       </InfoOverlay>
+
+      <UnderConstruction active={underConstruction} />
     </CustomCursor>
   );
 }

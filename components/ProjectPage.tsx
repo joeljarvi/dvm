@@ -1,5 +1,6 @@
 "use client";
 
+import { HOVER_CLASS } from "@/lib/motion";
 import { useState } from "react";
 import type { Project } from "@/lib/types";
 import type { Category } from "@/sanity/queries";
@@ -99,7 +100,7 @@ export default function ProjectPage({
               size="sm"
               aria-pressed={soundOn}
               onClick={() => setSoundOn((v) => !v)}
-              className={`col-start-4 justify-self-start pointer-events-auto  text-[0.8rem] tracking-wide hover:text-blue-700 transition-colors duration-200 ease-out cursor-pointer ${soundOn ? "text-blue-700" : "text-neutral-400 "}`}
+              className={`col-start-4 justify-self-start pointer-events-auto  text-[0.8rem] tracking-wide hover:text-blue-700 transition-colors ${HOVER_CLASS} cursor-pointer ${soundOn ? "text-blue-700" : "text-neutral-400 "}`}
             >
               {soundOn ? "Sound On" : "Sound Off"}
             </Button>

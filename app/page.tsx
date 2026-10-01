@@ -1,12 +1,17 @@
 import HomeClient from "@/components/HomeClient";
-import { fetchAbout, fetchProjects } from "@/sanity/queries";
+import {
+  fetchAbout,
+  fetchProjects,
+  fetchSiteSettings,
+} from "@/sanity/queries";
 import { clients, models } from "@/lib/data";
 
 export default async function Home() {
-  const [personal, commissioned, about] = await Promise.all([
+  const [personal, commissioned, about, settings] = await Promise.all([
     fetchProjects("personal"),
     fetchProjects("commissioned"),
     fetchAbout(),
+    fetchSiteSettings(),
   ]);
 
   return (
@@ -14,6 +19,7 @@ export default async function Home() {
       personal={personal.length > 0 ? personal : models}
       commissioned={commissioned.length > 0 ? commissioned : clients}
       about={about}
+      underConstruction={settings.underConstruction}
     />
   );
 }

@@ -13,6 +13,11 @@ import {
   type Ref,
 } from "react";
 import { motion, useMotionValue, useSpring } from "motion/react";
+import {
+  CURSOR_PULSE,
+  CURSOR_SETTLE,
+  CURSOR_FILL_TRANSITION,
+} from "@/lib/motion";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
 
@@ -226,11 +231,7 @@ export function CustomCursor({
           data-slot="custom-cursor-dot"
           className="hidden lg:block pointer-events-none top-0 left-0 z-950 rounded-full"
           animate={pulsing ? { scale: [1, 1.4, 1] } : { scale: 1 }}
-          transition={
-            pulsing
-              ? { duration: 1.4, repeat: Infinity, ease: "easeInOut" }
-              : { duration: 0.2, ease: "easeOut" }
-          }
+          transition={pulsing ? CURSOR_PULSE : CURSOR_SETTLE}
           style={{
             position: layout === "demo" ? "absolute" : "fixed",
             width: springWidth,
@@ -243,8 +244,7 @@ export function CustomCursor({
             opacity: visible ? 1 : 0,
             backgroundColor: ringed ? "transparent" : color,
             border: `1.5px solid ${color}`,
-            transition:
-              "background-color 150ms ease-out, opacity 150ms ease-out",
+            transition: CURSOR_FILL_TRANSITION,
           }}
         />
       </div>

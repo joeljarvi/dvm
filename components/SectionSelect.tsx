@@ -1,5 +1,6 @@
 "use client";
 
+import { HOVER_CLASS } from "@/lib/motion";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -81,7 +82,7 @@ export default function SectionSelect({
             key={d.href}
             variant="link"
             onClick={() => setOpen(false)}
-            className={`w-auto px-0 h-full whitespace-nowrap cursor-pointer text-neutral-400 bg-transparent hover:text-blue-700 hover:bg-transparent transition-colors duration-200 ease-out ${
+            className={`w-auto px-0 h-full whitespace-nowrap cursor-pointer text-neutral-400 bg-transparent hover:text-blue-700 hover:bg-transparent transition-colors ${HOVER_CLASS} ${
               d.desktopOnly ? "hidden lg:inline-flex" : ""
             }`}
             asChild

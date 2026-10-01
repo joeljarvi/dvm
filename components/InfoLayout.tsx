@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import Counter from "@/components/Counter";
-import { REVEAL_TRANSITION } from "@/lib/motion";
+import { REVEAL_TRANSITION, QUICK_CLASS, FOLLOW_DELAY } from "@/lib/motion";
 
 export default function InfoLayout({
   title,
@@ -43,7 +43,7 @@ export default function InfoLayout({
 
   if (!title && !credited && frame === undefined) return null;
 
-  const titleClass = `transition-colors  duration-300 ease-out font-diatype font-normal tracking-wide group-hover:text-blue-700 ${
+  const titleClass = `transition-colors ${QUICK_CLASS} font-diatype font-normal tracking-wide group-hover:text-blue-700 ${
     highlight
       ? "text-blue-700 mix-blend-normal"
       : "mix-blend-difference text-neutral-400 dark:text-neutral-500   "
@@ -84,7 +84,7 @@ export default function InfoLayout({
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ ...REVEAL_TRANSITION, delay: 0.08 }}
+              transition={{ ...REVEAL_TRANSITION, delay: FOLLOW_DELAY }}
               className={
                 highlight
                   ? "text-blue-700 mix-blend-normal font-normal"

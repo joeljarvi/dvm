@@ -5,6 +5,7 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import Nav from "@/components/Nav";
 import { ReactLenis } from "lenis/react";
+import { motionCssVars } from "@/lib/motion";
 
 export const metadata: Metadata = {
   title: "Daniel von Malmborg",
@@ -101,6 +102,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      style={motionCssVars}
       className={`${selecta.variable}   ${diatype.variable} antialiased`}
     >
       <body className="">
