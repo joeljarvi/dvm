@@ -66,11 +66,6 @@ export function coverImages(
   return media.length ? media : [{ url: fallbackSrc, type: "image" }];
 }
 
-// Mobile landing mode stacks the panels, and each cover would sit centred in
-// its half with equal space above and below. Instead the space between the
-// two images is halved — personal's gap below, commissioned's gap above —
-// pulling them towards the middle; the difference goes to the outer side.
-// Desktop keeps them centred.
 function landingGap(section: Exclude<Section, null>, side: "before" | "after") {
   const inner =
     (section === "personal" && side === "after") ||
@@ -78,14 +73,8 @@ function landingGap(section: Exclude<Section, null>, side: "before" | "after") {
   return `${inner ? "flex-1" : "flex-3"} lg:flex-1`;
 }
 
-// A cover's width cap in landing mode — shared by the cover and the
-// invisible copy that places the mobile label, so the two always match.
 const LANDING_COVER_WIDTH = "max-w-[33.3vw] lg:max-w-1/2";
 
-// A cover's box, shared with anything that has to show an image at exactly
-// the size a home cover would (the Index hover preview). The stage is one
-// panel tall with the desktop inset; inside it the image fits, uncropped,
-// within the media box. Horizontal inset is the column's px-5.5.
 export const COVER_STAGE_CLASS = "flex flex-col p-0 lg:py-28";
 export const COVER_FRAME_CLASS =
   "relative w-full h-full flex flex-col items-center justify-center";
@@ -98,9 +87,6 @@ export const MEDIA_CLASS =
 export const mediaSrc = (src: string) =>
   src.startsWith("/") ? src : sanityImage(src, { w: 1400 });
 
-// An invisible copy of a mobile landing cover, laid out exactly as the real
-// one (same height, spacers and width cap), with the section label centred on
-// it — so the label lands on the image wherever the spacers put it.
 function LandingLabelFrame({
   section,
   media,
@@ -453,9 +439,8 @@ function Strip({
           duration: 1.2,
           smoothWheel: true,
           wheelMultiplier: 1,
-          touchMultiplier: 2,
+          touchMultiplier: 1,
           infinite: true,
-
           syncTouch: true,
           autoResize: true,
         }}
