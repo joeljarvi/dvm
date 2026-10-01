@@ -20,6 +20,7 @@ import {
 } from "@/lib/hover";
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { useLandingReveal } from "@/lib/landing";
+import { useSuppressWatermarkCursor } from "@/lib/watermarkCursor";
 import { setHash, useHash } from "@/lib/hash";
 import { useInView } from "@/lib/inView";
 import {
@@ -39,6 +40,7 @@ import IndexSection from "./IndexSection";
 import UnderConstruction from "./UnderConstruction";
 import {
   CustomCursor,
+  useWatermarkCursorOn,
   CustomCursorTarget,
 } from "@/components/ui/custom-cursor";
 
@@ -489,6 +491,20 @@ export default function HomeClient({
 
   const prompt = useMemo(() => landingWords(landingText), [landingText]);
   const landing = useLandingReveal(prompt.length);
+
+  // The watermark cursor (if it's on) holds back in landing mode until the
+  // prompt and the covers are in — the covers' entrance done. Coming back
+  // home finds the reveal spent, so it's there straight away.
+  const [revealed, setRevealed] = useState(() => landing.images);
+  useEffect(() => {
+    if (!landing.images) return;
+    const t = setTimeout(() => setRevealed(true), DURATION.entrance);
+    return () => clearTimeout(t);
+  }, [landing.images]);
+  const holding = opened === null && !revealed;
+  useSuppressWatermarkCursor(holding);
+  // No cursor at all meanwhile — the blue circle stays down too.
+  const watermarkOn = useWatermarkCursorOn();
   const hovered = useHoveredSection();
 
   const row = (n: number) =>
@@ -521,6 +537,7 @@ export default function HomeClient({
       dotHeight={8}
       ring={false}
       pulsing={!settled || drawerOpening}
+      hidden={watermarkOn && holding}
       className="contents"
     >
       <section className="font-selecta relative flex flex-col lg:flex-row w-screen h-dvh overflow-hidden bg-background">

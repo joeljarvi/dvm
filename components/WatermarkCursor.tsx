@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import NameMark from "@/components/NameMark";
 import { CURSOR_IDLE, FADE_CLASS } from "@/lib/motion";
+import { useOpenedSection } from "@/lib/section";
 import {
   useSuppressWatermarkCursor,
   useWatermarkCursorSuppressed,
@@ -16,7 +17,9 @@ import {
 export default function WatermarkCursor({ on }: { on: boolean }) {
   const suppressed = useWatermarkCursorSuppressed();
   // Never over the Studio — editors get their own pointer there.
-  const studio = usePathname().startsWith("/studio");
+  const pathname = usePathname();
+  const studio = pathname.startsWith("/studio");
+  const opened = useOpenedSection();
   const active = on && !suppressed && !studio;
 
   useEffect(() => {
@@ -44,11 +47,34 @@ export default function WatermarkCursor({ on }: { on: boolean }) {
     };
   }, [active]);
 
+  const landing = pathname === "/" && opened === null;
+
   if (!active) return null;
+  return <Mark idle={idle} landing={landing} />;
+}
+
+// Mounted each time the cursor comes up, so the landing fade-in starts fresh.
+function Mark({ idle, landing }: { idle: boolean; landing: boolean }) {
+  // On the landing page it fades in once the reveal releases it (see
+  // HomeClient); after that, waking from idle brings it back at once. The
+  // idle fade out stays everywhere.
+  const [entering, setEntering] = useState(landing);
+  useEffect(() => {
+    if (!entering) return;
+    // A frame at opacity 0 first, so the fade has somewhere to start from.
+    const frame = requestAnimationFrame(() => setEntering(false));
+    return () => cancelAnimationFrame(frame);
+  }, [entering]);
+  const [entered, setEntered] = useState(!landing);
+
+  const fade =
+    idle || !landing || !entered ? `transition-opacity ${FADE_CLASS}` : "";
+
   return (
     <div
       aria-hidden
-      className={`hidden lg:block fixed inset-0 z-960 pointer-events-none transition-opacity ${FADE_CLASS} ${idle ? "opacity-0" : ""}`}
+      onTransitionEnd={() => setEntered(true)}
+      className={`hidden lg:block fixed inset-0 z-960 pointer-events-none ${fade} ${idle || entering ? "opacity-0" : ""}`}
     >
       <NameMark watermark instant />
     </div>

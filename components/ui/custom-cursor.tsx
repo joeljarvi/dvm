@@ -62,6 +62,10 @@ export function WatermarkCursorProvider({
   );
 }
 
+export function useWatermarkCursorOn() {
+  return useContext(WatermarkCursorContext);
+}
+
 const SPRING = { stiffness: 500, damping: 40, mass: 0.5 };
 // Targets much bigger than a button (a full-bleed image, a full-panel
 // backdrop) would otherwise morph the ring up to their exact size — cap it
