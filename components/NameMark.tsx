@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue } from "motion/react";
 import { DURATION, REVEAL_CLASS, ms } from "@/lib/motion";
+import { lastPointer } from "@/lib/watermarkCursor";
 
 // "Daniel von Malmborg" spread around the screen: across it at the landing
 // prompt's height (see LandingPrompt), and turned on its side down its full
@@ -89,6 +90,13 @@ export default function NameMark({
       vonX.set(e.clientX);
     };
     centre();
+    // Following: open on the pointer if it's already been somewhere.
+    const at = lastPointer();
+    if (!still && at && desktop.matches) {
+      acrossY.set(at.y);
+      downX.set(at.x - window.innerWidth / 2);
+      vonX.set(at.x);
+    }
     desktop.addEventListener("change", centre);
     if (still) window.addEventListener("resize", centre);
     else window.addEventListener("pointermove", onMove);

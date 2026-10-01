@@ -6,6 +6,7 @@ import NameMark from "@/components/NameMark";
 import { CURSOR_IDLE, FADE_CLASS } from "@/lib/motion";
 import { useOpenedSection } from "@/lib/section";
 import {
+  usePointerKnown,
   useSuppressWatermarkCursor,
   useWatermarkCursorSuppressed,
 } from "@/lib/watermarkCursor";
@@ -20,7 +21,11 @@ export default function WatermarkCursor({ on }: { on: boolean }) {
   const pathname = usePathname();
   const studio = pathname.startsWith("/studio");
   const opened = useOpenedSection();
-  const active = on && !suppressed && !studio;
+  // Not until the pointer has moved — no watermark parked at its starting
+  // position (nor one rendered on the server) before there's a pointer to
+  // follow.
+  const pointerKnown = usePointerKnown();
+  const active = on && !suppressed && !studio && pointerKnown;
 
   useEffect(() => {
     document.documentElement.classList.toggle("watermark-cursor", active);

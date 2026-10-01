@@ -34,3 +34,34 @@ export function useWatermarkCursorSuppressed() {
     () => false,
   );
 }
+
+// Where the pointer last was, so the watermark can open on it rather than
+// sitting at its starting position until the first move. Null until the
+// pointer has moved at all this page load.
+let pointer: { x: number; y: number } | null = null;
+const pointerListeners = new Set<() => void>();
+if (typeof window !== "undefined") {
+  window.addEventListener("pointermove", (e) => {
+    const first = pointer === null;
+    pointer = { x: e.clientX, y: e.clientY };
+    if (first) pointerListeners.forEach((l) => l());
+  });
+}
+
+export function lastPointer() {
+  return pointer;
+}
+
+/** Whether the pointer has moved yet — the watermark cursor waits for it. */
+export function usePointerKnown() {
+  return useSyncExternalStore(
+    (l) => {
+      pointerListeners.add(l);
+      return () => {
+        pointerListeners.delete(l);
+      };
+    },
+    () => pointer !== null,
+    () => false,
+  );
+}
