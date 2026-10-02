@@ -49,7 +49,8 @@ export default function InfoLayout({
   const titleClass = `transition-colors ${QUICK_CLASS} font-diatype font-normal tracking-wide group-hover:text-blue-700 ${
     highlight
       ? "text-blue-700 mix-blend-normal"
-      : "mix-blend-difference text-neutral-400 dark:text-neutral-500   "
+      : // Always blue on mobile — only desktop greys it out of view.
+        "mix-blend-difference text-neutral-400 dark:text-neutral-500 max-lg:mix-blend-normal max-lg:text-blue-700 max-lg:dark:text-blue-700"
   }`;
 
   return (

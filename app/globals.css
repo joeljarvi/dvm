@@ -213,7 +213,7 @@ body::-webkit-scrollbar {
   }
 }
 
-/* Home → project page (see MORPH_NAME in components/HomeClient): the cover's
+/* Home → project page (see morphName in components/HomeClient): the cover's
    media grows into the full-screen one while the rest of the page — nav,
    info, the other column — crossfades away underneath, all on the site's
    main reveal. */

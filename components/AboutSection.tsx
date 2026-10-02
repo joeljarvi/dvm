@@ -58,9 +58,10 @@ export default function AboutSection({ about }: { about?: About | null }) {
   const [view, setView] = useState<"bio" | "links">("bio");
   // Hovering the name or the bio brings the bio image up behind everything,
   // dimmed and blurred — the way IndexSection previews a hovered project. On
-  // mobile, with no hover, it's always there behind the bio.
+  // mobile, with no hover, it's always there, behind Links too.
   const [bioHovered, setBioHovered] = useState(false);
-  const previewImage = view === "bio" && bioImageUrl ? bioImageUrl : null;
+  const previewImage = bioImageUrl ?? null;
+  const previewOnDesktop = view === "bio" && bioHovered;
   const hoverBio = {
     onMouseEnter: () => setBioHovered(true),
     onMouseLeave: () => setBioHovered(false),
@@ -75,7 +76,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
         // Fixed on mobile, so it stays put while the bio scrolls over it.
         <div
           className={`fixed lg:absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none ${
-            bioHovered ? "" : "lg:hidden"
+            previewOnDesktop ? "" : "lg:hidden"
           }`}
         >
           {/* Blurred on the full-height stage, not with a backdrop-blur over

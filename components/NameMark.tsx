@@ -11,9 +11,10 @@ import { lastPointer } from "@/lib/watermarkCursor";
 //
 // Reveals word by word while `play` is on — across first, then down.
 //
-// As a watermark on desktop, the names cross at the cursor: the across name
-// slides up and down with it, the turned one side to side, and the across
-// name's "von" leaves its line to sit where they meet, as the cursor's tip.
+// As a watermark, the names cross at the cursor — on mobile, at the finger:
+// the across name slides up and down with it, the turned one side to side,
+// and the across name's "von" leaves its line to sit where they meet, as the
+// cursor's tip.
 // Each block sits in its own full-screen layer that does the moving — the
 // turned block's own rotate/translate stay untouched.
 const WORD = "font-diatype text-[0.8rem] tracking-wide";
@@ -40,17 +41,21 @@ export default function NameMark({
   blue?: boolean;
   /** All words up at once — no word-by-word reveal. */
   instant?: boolean;
-  /** Over a full-screen image: the horizontal name shows on mobile too,
-   * and on desktop both follow the cursor. */
+  /** Over a full-screen image: both names follow the cursor (or, on
+   * mobile, the finger) and cross at it. */
   watermark?: boolean;
 }) {
   const [shown, setShown] = useState(instant ? WORDS : 0);
 
-  // As a watermark, blue while the pointer is pressed.
+  // As a watermark, blue while the pointer is pressed — desktop only; on
+  // mobile every touch is a press, so it stays grey.
   const [pressed, setPressed] = useState(false);
   useEffect(() => {
     if (!watermark) return;
-    const down = () => setPressed(true);
+    const desktop = window.matchMedia("(min-width: 64rem)");
+    const down = () => {
+      if (desktop.matches) setPressed(true);
+    };
     const up = () => setPressed(false);
     window.addEventListener("pointerdown", down);
     window.addEventListener("pointerup", up);
@@ -79,12 +84,11 @@ export default function NameMark({
     // places the across row by its middle, hence the half height.
     const centre = () => {
       const half = (acrossRow.current?.offsetHeight ?? 0) / 2;
-      acrossY.set(desktop.matches ? window.innerHeight * 0.625 + half : 0);
+      acrossY.set(window.innerHeight * 0.625 + half);
       downX.set(0);
       vonX.set(window.innerWidth / 2);
     };
-    const onMove = (e: PointerEvent) => {
-      if (!desktop.matches) return;
+    const follow = (e: { clientX: number; clientY: number }) => {
       acrossY.set(e.clientY);
       downX.set(e.clientX - window.innerWidth / 2);
       vonX.set(e.clientX);
@@ -92,18 +96,19 @@ export default function NameMark({
     centre();
     // Following: open on the pointer if it's already been somewhere.
     const at = lastPointer();
-    if (!still && at && desktop.matches) {
-      acrossY.set(at.y);
-      downX.set(at.x - window.innerWidth / 2);
-      vonX.set(at.x);
-    }
+    if (!still && at) follow({ clientX: at.x, clientY: at.y });
     desktop.addEventListener("change", centre);
     if (still) window.addEventListener("resize", centre);
-    else window.addEventListener("pointermove", onMove);
+    else {
+      // A touch has no hover — it jumps there on the tap, then follows a drag.
+      window.addEventListener("pointerdown", follow);
+      window.addEventListener("pointermove", follow);
+    }
     return () => {
       desktop.removeEventListener("change", centre);
       window.removeEventListener("resize", centre);
-      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", follow);
+      window.removeEventListener("pointermove", follow);
     };
   }, [watermark, still, acrossY, downX, vonX]);
 
@@ -128,7 +133,7 @@ export default function NameMark({
       >
         <div
           ref={acrossRow}
-          className={`pointer-events-none fixed inset-x-0 top-[62.5%] ${watermark ? "grid lg:top-0 lg:-translate-y-1/2" : "hidden lg:grid"} grid-cols-3 justify-center items-center h-min py-5.5 px-5.5 ${tint}`}
+          className={`pointer-events-none fixed inset-x-0 ${watermark ? "grid top-0 -translate-y-1/2" : "hidden lg:grid top-[62.5%]"} grid-cols-3 justify-center items-center h-min py-5.5 px-5.5 ${tint}`}
         >
           <p data-name-word data-across="start" className={word(1)}>
             Daniel
@@ -137,7 +142,7 @@ export default function NameMark({
             data-name-word
             className={word(
               2,
-              `text-center ${watermark ? "lg:invisible" : ""}`,
+              `text-center ${watermark ? "invisible" : ""}`,
             )}
           >
             von
@@ -170,13 +175,13 @@ export default function NameMark({
           </p>
         </div>
       </motion.div>
-      {/* As a watermark on desktop, the across line's "von" — held out of
-          the row above — sits where the lines cross, centred on the
-          pointer: its tip. */}
+      {/* As a watermark, the across line's "von" — held out of the row
+          above — sits where the lines cross, centred on the pointer: its
+          tip. */}
       {watermark && (
         <motion.div
           style={{ x: vonX, y: acrossY }}
-          className="hidden lg:block pointer-events-none fixed top-0 left-0 z-924"
+          className="pointer-events-none fixed top-0 left-0 z-924"
         >
           <p
             data-name-word

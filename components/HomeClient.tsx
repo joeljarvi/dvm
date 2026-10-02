@@ -114,10 +114,13 @@ const MEDIA_FIT =
   "block max-h-[100cqh] w-auto h-auto object-contain object-center pointer-events-none";
 export const MEDIA_CLASS = `${MEDIA_FIT} max-w-[100cqw]`;
 
-// The shared view-transition name a cover's media and the project page's
-// full-screen media both take — so following a title, the one grows into the
-// other while the rest of the page crossfades (see globals.css).
-export const MORPH_NAME = "project-media";
+// The view-transition name a project's cover media and its project page's
+// full-screen media share — so following a title, the one grows into the
+// other while the rest of the page crossfades (see globals.css). One per
+// project, held for good: a single name passed from cover to cover as they
+// scroll in would sit on two of them for a moment, which React rejects.
+export const morphName = (project: Project) =>
+  `project-media-${(project.slug ?? project.title).replace(/[^\w-]/g, "-")}`;
 
 export const mediaSrc = (src: string) =>
   src.startsWith("/") ? src : sanityImage(src, { w: 1400 });
@@ -150,8 +153,8 @@ function Cover({
   onStepImage: (delta: number) => void;
   onEnter: () => void;
   muted?: boolean;
-  /** The cover showing in the open column: its media is the one that grows
-   * into the project page when its title is followed. */
+  /** Takes the project's morph name (see morphName) — every cover but the
+   * repeat of the first at the end of the loop, which would duplicate it. */
   morph?: boolean;
   /** Timing for the column's layout change (see useColumnTempo). */
   layoutClass: string;
@@ -228,13 +231,17 @@ function Cover({
             onClick={handleClick}
           />
 
-          {morph ? (
-            <ViewTransition name={MORPH_NAME} share="morph" default="none">
-              {mediaNode}
-            </ViewTransition>
-          ) : (
-            mediaNode
-          )}
+          {/* Wrapped the same way for good — adding or dropping the wrapper
+              would remount the media, and a remounted video sits at the
+              browser's default size until its metadata is back: a visible
+              jump. */}
+          <ViewTransition
+            name={morph ? morphName(project) : undefined}
+            share={morph ? "morph" : "none"}
+            default="none"
+          >
+            {mediaNode}
+          </ViewTransition>
         </motion.div>
         <div aria-hidden className={landingGap(section, "after", landingMode, layoutClass)} />
       </div>
@@ -304,7 +311,7 @@ function Strip({
   );
 
   // Back from a project page: open on its cover and the image it was on,
-  // so the full-screen image shrinks back into it (see MORPH_NAME).
+  // so the full-screen image shrinks back into it (see morphName).
   const [returnTo] = useState(() => {
     const r = peekReturn();
     const index = r ? projects.findIndex((p) => p.slug === r.slug) : -1;
@@ -489,7 +496,7 @@ function Strip({
                 onStepImage={(delta) => stepImage(i, delta)}
                 onEnter={() => enterCover(i)}
                 muted={!(i === active && soundOn)}
-                morph={n === i && i === active && opened === section}
+                morph={n === i}
                 layoutClass={layoutClass}
               />
             ) : null;

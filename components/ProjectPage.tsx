@@ -7,7 +7,7 @@ import Link from "next/link";
 import type { Project } from "@/lib/types";
 import type { Category } from "@/sanity/queries";
 import { sanityImage } from "@/lib/image";
-import { coverImages, MORPH_NAME } from "@/components/HomeClient";
+import { coverImages, morphName } from "@/components/HomeClient";
 import {
   clearDetailFrame,
   peekDetailFrame,
@@ -200,7 +200,7 @@ export default function ProjectPage({
                 className="absolute inset-0 z-10 cursor-pointer"
                 onClick={step}
               />
-              <ViewTransition name={MORPH_NAME} share="morph" default="none">
+              <ViewTransition name={morphName(project)} share="morph" default="none">
                 {mediaEl(
                   aspect
                     ? "block w-full h-full object-cover object-center pointer-events-none"
