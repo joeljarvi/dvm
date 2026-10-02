@@ -7,13 +7,7 @@ import { fadeItem, staggerContainer } from "@/lib/motion";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { Button } from "@/components/ui/button";
 import type { About } from "@/lib/types";
-import {
-  COVER_BOX_CLASS,
-  COVER_FRAME_CLASS,
-  COVER_STAGE_CLASS,
-  MEDIA_CLASS,
-  mediaSrc,
-} from "@/components/HomeClient";
+import BlurredPreview from "@/components/BlurredPreview";
 
 // Shown when Sanity has no About document yet — same degradation pattern
 // as the rest of the site (see FALLBACK in IndexSection).
@@ -57,9 +51,9 @@ export default function AboutSection({ about }: { about?: About | null }) {
   // column 2, the way IndexSection's Selected / Show All does.
   const [view, setView] = useState<"bio" | "links">("bio");
   // The bio image sits behind everything, dimmed and blurred — the way
-  // IndexSection previews a hovered project. On desktop, Links has it in the
-  // background throughout, while Bio brings it up only as the name or the
-  // bio is hovered; on mobile, with no hover, it's always there.
+  // IndexSection previews a hovered project. On desktop it comes up only while
+  // the name or the bio is hovered, never over Links; on mobile, with no
+  // hover, it's always there.
   const previewImage = bioImageUrl ?? null;
   const [bioHovered, setBioHovered] = useState(false);
   const hoverBio =
@@ -69,7 +63,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
           onMouseLeave: () => setBioHovered(false),
         }
       : {};
-  const previewOnDesktop = view === "links" || bioHovered;
+  const previewOnDesktop = view === "bio" && bioHovered;
 
   return (
     <div
@@ -83,19 +77,10 @@ export default function AboutSection({ about }: { about?: About | null }) {
             previewOnDesktop ? "" : "lg:hidden"
           }`}
         >
-          {/* Blurred on the full-height stage, not with a backdrop-blur over
-              it — Safari draws that with a hard edge (see IndexSection). */}
-          <div className={`h-dvh blur-xs max-lg:py-28 ${COVER_STAGE_CLASS}`}>
-            <div className={COVER_FRAME_CLASS}>
-              <div className={`${COVER_BOX_CLASS} max-w-full`}>
-                <img
-                  src={mediaSrc(previewImage)}
-                  alt=""
-                  className={`${MEDIA_CLASS} opacity-30 dark:opacity-10`}
-                />
-              </div>
-            </div>
-          </div>
+          <BlurredPreview
+            media={{ url: previewImage, type: "image" }}
+            className="max-lg:py-28"
+          />
         </div>
       )}
 

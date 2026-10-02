@@ -4,14 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Project } from "@/lib/types";
 import { clients, models } from "@/lib/data";
-import {
-  COVER_BOX_CLASS,
-  COVER_FRAME_CLASS,
-  COVER_STAGE_CLASS,
-  MEDIA_CLASS,
-  coverImages,
-  mediaSrc,
-} from "@/components/HomeClient";
+import { coverImages } from "@/components/HomeClient";
+import BlurredPreview from "./BlurredPreview";
 import {
   setProjectVisibility,
   useProjectVisibility,
@@ -173,35 +167,7 @@ export default function IndexSection({
     <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-diatype font-normal text-[0.8rem] tracking-wide text-neutral-300 dark:text-neutral-600 pt-30 lg:pt-0">
       {preview && (
         <div className="hidden lg:block absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none">
-          {/* Blurred here, on the full-height stage, rather than with a
-              backdrop-blur over it: Safari draws a backdrop filter with a
-              hard edge, and clips `filter: blur()` at the filtered
-              element's own box. The stage's padding keeps the image well
-              inside that box, so the blur fades out before the clip. */}
-          <div className={`h-dvh blur-xs ${COVER_STAGE_CLASS}`}>
-            <div className={COVER_FRAME_CLASS}>
-              <div className={`${COVER_BOX_CLASS} max-w-full`}>
-                {preview.type === "file" ? (
-                  <video
-                    key={preview.url}
-                    src={preview.url}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    aria-label={hovered?.title}
-                    className={`${MEDIA_CLASS} opacity-30 dark:opacity-10`}
-                  />
-                ) : (
-                  <img
-                    src={mediaSrc(preview.url)}
-                    alt={hovered?.title ?? ""}
-                    className={`${MEDIA_CLASS} opacity-30 dark:opacity-10`}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
+          <BlurredPreview media={preview} alt={hovered?.title} />
         </div>
       )}
 
