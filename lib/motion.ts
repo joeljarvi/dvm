@@ -98,6 +98,8 @@ export const FOLLOW_DELAY = s(ms(80));
 
 /** How long the pointer rests before the watermark cursor fades out, in ms. */
 export const CURSOR_IDLE = ms(3000);
+/** About's image (desktop): how long each blurred and sharp spell lasts. */
+export const ABOUT_BLUR_CYCLE = ms(3000);
 
 // A drawer's content staggering in: each item STAGGER behind the last, all
 // using the shared reveal transition. Apply `staggerContainer` to the
