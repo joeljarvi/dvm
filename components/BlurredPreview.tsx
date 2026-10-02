@@ -17,7 +17,11 @@ import {
  * - nothing between stage and media clips (unlike a cover's box), so the blur
  *   is never cut at the media's edge;
  * - the stage's padding keeps the media well inside the stage's box, where
- *   Safari clips the blur, so it fades out before it gets there.
+ *   Safari clips the blur, so it fades out before it gets there;
+ * - the stage is filled with the page's background, inside the blur, so the
+ *   media's edge blurs into that colour — against transparency Safari leaves
+ *   a fringe there. The fill's own edge then sits on the same background and
+ *   doesn't show.
  */
 export default function BlurredPreview({
   media,
@@ -31,7 +35,7 @@ export default function BlurredPreview({
 }) {
   return (
     <div
-      className={`h-dvh blur-xs opacity-30 dark:opacity-10 ${COVER_STAGE_CLASS} ${className}`}
+      className={`w-full h-dvh bg-background blur-xs opacity-30 dark:opacity-10 ${COVER_STAGE_CLASS} ${className}`}
     >
       <div className={COVER_FRAME_CLASS}>
         <div className="relative inline-flex max-h-full max-w-full">
