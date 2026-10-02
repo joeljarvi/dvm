@@ -15,13 +15,8 @@ export const metadata: Metadata = {
 const diatype = localFont({
   src: [
     {
-      path: "../public/fonts/ABCDiatypeTrial-Regular.otf",
+      path: "../public/fonts/ABCDiatype-Regular.woff2",
       weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/ABCDiatypeTrial-Medium.otf",
-      weight: "500",
       style: "normal",
     },
   ],
