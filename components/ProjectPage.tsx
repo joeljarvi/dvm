@@ -243,7 +243,7 @@ export default function ProjectPage({
             variant="link"
             size="sm"
             onClick={back}
-            className={`px-5.5 py-4 h-14 w-auto bg-transparent hover:bg-transparent text-neutral-400 hover:text-blue-700 active:text-blue-700 transition-colors ${HOVER_CLASS} cursor-pointer ${
+            className={`px-5.5 py-4 h-14 w-auto bg-transparent hover:bg-transparent text-neutral-400 hover:text-blue-700 active:text-blue-700 dark:hover:text-blue-700 dark:active:text-blue-700 transition-colors ${HOVER_CLASS} cursor-pointer ${
               category === "personal" ? "justify-end" : "justify-start"
             }`}
           >
@@ -259,7 +259,7 @@ export default function ProjectPage({
               variant="link"
               size="sm"
               asChild
-              className={`max-lg:px-5.5 max-lg:h-14 ${barButton} text-blue-700`}
+              className={`max-lg:px-5.5 max-lg:h-14 ${barButton} text-blue-700 dark:text-blue-700 dark:hover:text-blue-700`}
             >
               <Link href={home} onClick={leave}>
                 Back

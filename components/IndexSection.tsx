@@ -175,7 +175,12 @@ export default function IndexSection({
     <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-diatype font-normal text-[0.8rem] tracking-wide text-neutral-300 dark:text-neutral-600 pt-30 lg:pt-0">
       {previewImage && (
         <div className="hidden lg:block absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none">
-          <div className={`h-dvh ${COVER_STAGE_CLASS}`}>
+          {/* Blurred here, on the full-height stage, rather than with a
+              backdrop-blur over it: Safari draws a backdrop filter with a
+              hard edge, and clips `filter: blur()` at the filtered
+              element's own box. The stage's padding keeps the image well
+              inside that box, so the blur fades out before the clip. */}
+          <div className={`h-dvh blur-xs ${COVER_STAGE_CLASS}`}>
             <div className={COVER_FRAME_CLASS}>
               <div className={`${COVER_BOX_CLASS} max-w-full`}>
                 <img
@@ -186,8 +191,6 @@ export default function IndexSection({
               </div>
             </div>
           </div>
-
-          <div aria-hidden className="absolute inset-0 backdrop-blur-xs" />
         </div>
       )}
 

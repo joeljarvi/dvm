@@ -96,11 +96,7 @@ export default function InfoLayout({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ ...REVEAL_TRANSITION, delay: FOLLOW_DELAY }}
-              className={
-                highlight
-                  ? "text-blue-700 mix-blend-normal font-normal"
-                  : "mix-blend-difference text-neutral-400 dark:text-neutral-500 font-normal"
-              }
+              className={titleClass}
             >
               {agency}
             </motion.h3>
