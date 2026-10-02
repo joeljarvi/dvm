@@ -9,7 +9,7 @@ import WatermarkCursor from "@/components/WatermarkCursor";
 
 export const metadata: Metadata = {
   title: "Daniel von Malmborg",
-  description: "Photographer & Creative Director",
+  description: "Photographer & Producer",
 };
 
 const diatype = localFont({
