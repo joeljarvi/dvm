@@ -1,5 +1,3 @@
-export type View = "personal" | "commissioned" | null;
-
 export type ProjectMedia = {
   url: string;
   type: "image" | "file";

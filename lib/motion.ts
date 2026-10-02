@@ -30,12 +30,19 @@ export const DURATION = {
   reveal: ms(700),
   /** Larger entrances, e.g. the home covers landing. */
   entrance: ms(1000),
-  /** One breath of the cursor's loading pulse. */
-  pulse: ms(1400),
+  /** Home: picking Personal or Commissioned out of landing mode. */
+  select: ms(1000),
+  /** Home: swapping straight from one open column to the other. */
+  switch: ms(450),
 } as const;
 
 // Curves.
 export const REVEAL_EASE = [0.22, 1, 0.36, 1] as const;
+/** Eases in as well as out, so a column growing across the screen never
+ * lurches off the mark — only a soft start, then the long settle. */
+export const SELECT_EASE = [0.45, 0, 0.15, 1] as const;
+/** The same shape, tighter, for the brief column swap. */
+export const SWITCH_EASE = [0.33, 0, 0.15, 1] as const;
 const cubic = (c: readonly number[]) => `cubic-bezier(${c.join(",")})`;
 
 // Written onto <html> by app/layout.tsx. `--default-transition-duration` is
@@ -48,7 +55,11 @@ export const motionCssVars = {
   "--motion-fade": `${DURATION.fade}ms`,
   "--motion-reveal": `${DURATION.reveal}ms`,
   "--motion-entrance": `${DURATION.entrance}ms`,
+  "--motion-select": `${DURATION.select}ms`,
+  "--motion-switch": `${DURATION.switch}ms`,
   "--motion-ease-reveal": cubic(REVEAL_EASE),
+  "--motion-ease-select": cubic(SELECT_EASE),
+  "--motion-ease-switch": cubic(SWITCH_EASE),
 } as CSSProperties;
 
 // Tailwind class sets. Pair with a `transition-*` property class.
@@ -58,14 +69,16 @@ export const REVEAL_CLASS =
 /** A slower entrance on the reveal curve. */
 export const ENTRANCE_CLASS =
   "duration-(--motion-entrance) ease-(--motion-ease-reveal)";
+/** Home's columns: choosing one out of landing mode, and swapping between
+ * the two once one's open (see HomeClient). */
+export const SELECT_CLASS =
+  "duration-(--motion-select) ease-(--motion-ease-select)";
+export const SWITCH_CLASS =
+  "duration-(--motion-switch) ease-(--motion-ease-switch)";
 /** Hover colour changes and other quick feedback. */
 export const HOVER_CLASS = "duration-(--motion-hover) ease-out";
 export const QUICK_CLASS = "duration-(--motion-quick) ease-out";
-export const QUICK_DELAY_CLASS = "delay-(--motion-quick)";
 export const FADE_CLASS = "duration-(--motion-fade) ease-out";
-/** The reveal's duration on a plain ease-out, for fades that shouldn't take
- * the reveal curve. */
-export const REVEAL_OUT_CLASS = "duration-(--motion-reveal) ease-out";
 
 // motion (framer) takes seconds.
 const s = (msValue: number) => msValue / 1000;
@@ -83,24 +96,13 @@ export const STAGGER = s(ms(60));
 /** Offset of a secondary line behind the first (InfoLayout's agency). */
 export const FOLLOW_DELAY = s(ms(80));
 
-/** The cursor dot: settling back to rest, and its loading pulse. */
-export const CURSOR_SETTLE: Transition = {
-  duration: s(ms(200)),
-  ease: "easeOut",
-};
-export const CURSOR_PULSE: Transition = {
-  duration: s(DURATION.pulse),
-  repeat: Infinity,
-  ease: "easeInOut",
-};
 /** How long the pointer rests before the watermark cursor fades out, in ms. */
 export const CURSOR_IDLE = ms(3000);
-export const CURSOR_FILL_TRANSITION = `background-color ${DURATION.micro}ms ease-out, opacity ${DURATION.micro}ms ease-out`;
 
 // A drawer's content staggering in: each item STAGGER behind the last, all
 // using the shared reveal transition. Apply `staggerContainer` to the
 // animating ancestor (`initial="hidden"`, `animate={open ? "visible" :
-// "hidden"}`) and `staggerItem` to whichever descendants should reveal —
+// "hidden"}`) and `fadeItem` to whichever descendants should reveal —
 // variants propagate through plain elements in between, so nothing between
 // the two needs to be a motion component itself.
 export const staggerContainer: Variants = {
@@ -110,13 +112,8 @@ export const staggerContainer: Variants = {
   },
 };
 
-export const staggerItem: Variants = {
-  hidden: { opacity: 0, y: 12, transition: REVEAL_TRANSITION },
-  visible: { opacity: 1, y: 0, transition: REVEAL_TRANSITION },
-};
-
-// Same stagger, opacity only — content swapping in place, where a slide
-// would read as movement rather than a reveal.
+// Opacity only — content swapping in place, where a slide would read as
+// movement rather than a reveal.
 export const fadeItem: Variants = {
   hidden: { opacity: 0, transition: REVEAL_TRANSITION },
   visible: { opacity: 1, transition: REVEAL_TRANSITION },
@@ -124,7 +121,7 @@ export const fadeItem: Variants = {
 
 // A drawer's content as one block — slides up from below into place on
 // reveal, and back down on exit (the same pair of states, just played in
-// each direction). No per-item stagger, unlike staggerItem above.
+// each direction). No per-item stagger, unlike fadeItem above.
 export const slideReveal: Variants = {
   hidden: { opacity: 0, y: 24, transition: REVEAL_TRANSITION },
   visible: { opacity: 1, y: 0, transition: REVEAL_TRANSITION },

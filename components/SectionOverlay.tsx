@@ -1,4 +1,3 @@
-import { CustomCursorTarget } from "@/components/ui/custom-cursor";
 import { HOVER_CLASS, REVEAL_CLASS } from "@/lib/motion";
 
 export default function SectionOverlay({
@@ -15,16 +14,14 @@ export default function SectionOverlay({
     // Just the click target now — the veil itself is drawn over each cover
     // (see Cover in HomeClient), so the section label underneath the images
     // stays sharp where they don't cover it.
-    <CustomCursorTarget asChild>
-      <button
-        type="button"
-        onClick={onClick}
-        aria-label={`Show ${section}`}
-        className={`absolute z-900 inset-0 cursor-pointer ${
-          dismissed ? "pointer-events-none" : ""
-        }`}
-      />
-    </CustomCursorTarget>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`Show ${section}`}
+      className={`absolute z-900 inset-0 cursor-pointer ${
+        dismissed ? "pointer-events-none" : ""
+      }`}
+    />
   );
 }
 

@@ -18,10 +18,6 @@ import { useRegisterModal } from "@/lib/modalStack";
 import { useSuppressWatermarkCursor } from "@/lib/watermarkCursor";
 import NameMark from "@/components/NameMark";
 import { Button } from "@/components/ui/button";
-import {
-  CustomCursor,
-  CustomCursorTarget,
-} from "@/components/ui/custom-cursor";
 
 // The single-project counterpart to a home Strip's Cover — clicking its
 // title on home lands here, with just the one project shown, same
@@ -158,27 +154,17 @@ export default function ProjectPage({
   const barButton = `pointer-events-auto ${barText}`;
 
   return (
-    <CustomCursor
-      layout="fixed"
-      color="#1447e6"
-      dotWidth={8}
-      dotHeight={8}
-      ring={false}
-      hidden={fullScreen}
-      className="contents"
-    >
+    <>
       <main className="font-selecta relative flex w-screen h-dvh overflow-hidden bg-background">
         <div className="relative shrink-0 w-full h-screen flex flex-col p-0 lg:py-28 lg:px-0 max-w-full px-5.5 lg:max-w-1/2 mx-auto">
           <div className="relative w-full h-full flex items-center justify-center">
             <div className="relative inline-flex max-w-full max-h-full">
-              <CustomCursorTarget asChild grow>
-                <button
-                  type="button"
-                  aria-label={`Cycle images of ${project.title}`}
-                  className="absolute inset-0 z-10 cursor-pointer"
-                  onClick={step}
-                />
-              </CustomCursorTarget>
+              <button
+                type="button"
+                aria-label={`Cycle images of ${project.title}`}
+                className="absolute inset-0 z-10 cursor-pointer"
+                onClick={step}
+              />
 
               {mediaEl(
                 "block max-w-full max-h-full w-auto h-auto object-contain object-center pointer-events-none",
@@ -207,15 +193,13 @@ export default function ProjectPage({
                       : ""
               }`}
             >
-              <CustomCursorTarget asChild grow>
-                <button
-                  type="button"
-                  tabIndex={fullScreen ? 0 : -1}
-                  aria-label={`Cycle images of ${project.title}`}
-                  className="absolute inset-0 z-10 cursor-pointer"
-                  onClick={step}
-                />
-              </CustomCursorTarget>
+              <button
+                type="button"
+                tabIndex={fullScreen ? 0 : -1}
+                aria-label={`Cycle images of ${project.title}`}
+                className="absolute inset-0 z-10 cursor-pointer"
+                onClick={step}
+              />
               <ViewTransition name={MORPH_NAME} share="morph" default="none">
                 {mediaEl(
                   aspect
@@ -243,7 +227,7 @@ export default function ProjectPage({
             variant="link"
             size="sm"
             onClick={back}
-            className={`px-5.5 py-4 h-14 w-auto bg-transparent hover:bg-transparent text-neutral-400 hover:text-blue-700 active:text-blue-700 dark:hover:text-blue-700 dark:active:text-blue-700 transition-colors ${HOVER_CLASS} cursor-pointer ${
+            className={`px-5.5 py-4 h-14 w-auto bg-transparent hover:bg-transparent text-neutral-400 dark:text-neutral-500 hover:text-blue-700 active:text-blue-700 dark:hover:text-blue-700 dark:active:text-blue-700 transition-colors ${HOVER_CLASS} cursor-pointer ${
               category === "personal" ? "justify-end" : "justify-start"
             }`}
           >
@@ -259,7 +243,7 @@ export default function ProjectPage({
               variant="link"
               size="sm"
               asChild
-              className={`max-lg:px-5.5 max-lg:h-14 ${barButton} text-blue-700 dark:text-blue-700 dark:hover:text-blue-700`}
+              className={`max-lg:px-5.5 max-lg:h-14 ${barButton} text-neutral-400 dark:text-neutral-500 dark:hover:text-blue-700`}
             >
               <Link href={home} onClick={leave}>
                 Back
@@ -279,6 +263,6 @@ export default function ProjectPage({
           </div>
         </div>
       </main>
-    </CustomCursor>
+    </>
   );
 }

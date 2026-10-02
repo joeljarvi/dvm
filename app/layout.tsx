@@ -1,85 +1,16 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
 import Nav from "@/components/Nav";
 import { ReactLenis } from "lenis/react";
 import { motionCssVars } from "@/lib/motion";
 import { fetchSiteSettings } from "@/sanity/queries";
-import { WatermarkCursorProvider } from "@/components/ui/custom-cursor";
 import WatermarkCursor from "@/components/WatermarkCursor";
 
 export const metadata: Metadata = {
   title: "Daniel von Malmborg",
   description: "Photographer & Creative Director",
 };
-
-const selecta = localFont({
-  src: [
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-Thin.woff2",
-      weight: "100",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-ThinItalic.woff2",
-      weight: "100",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-Light.woff2",
-      weight: "300",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-LightItalic.woff2",
-      weight: "300",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-Regular.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-Italic.woff2",
-      weight: "400",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-Medium.woff2",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-MediumItalic.woff2",
-      weight: "500",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-Bold.woff2",
-      weight: "700",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-BoldItalic.woff2",
-      weight: "700",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-Black.woff2",
-      weight: "900",
-      style: "normal",
-    },
-    {
-      path: "../public/fonts/SelectaTrialUnlicensed-BlackItalic.woff2",
-      weight: "900",
-      style: "italic",
-    },
-  ],
-  variable: "--font-selecta",
-});
 
 const diatype = localFont({
   src: [
@@ -108,15 +39,13 @@ export default async function RootLayout({
     <html
       lang="en"
       style={motionCssVars}
-      className={`${selecta.variable}   ${diatype.variable} antialiased`}
+      className={`  ${diatype.variable} antialiased`}
     >
       <body className="">
-        <WatermarkCursorProvider on={watermarkCursor}>
-          <ReactLenis root />
-          {children}
-          <Nav />
-          <WatermarkCursor on={watermarkCursor} />
-        </WatermarkCursorProvider>
+        <ReactLenis root />
+        {children}
+        <Nav />
+        <WatermarkCursor on={watermarkCursor} />
       </body>
     </html>
   );

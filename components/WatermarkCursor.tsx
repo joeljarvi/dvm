@@ -13,8 +13,7 @@ import {
 
 // Site Settings' "Watermark cursor on": the full-screen watermark (see
 // NameMark) as the cursor on every page, desktop only — the names crossing
-// at the pointer, "von" its tip. Hides the system pointer while it's up;
-// the blue circle (CustomCursor) stands down on its own.
+// at the pointer, "von" its tip. Hides the system pointer while it's up.
 export default function WatermarkCursor({ on }: { on: boolean }) {
   const suppressed = useWatermarkCursorSuppressed();
   // Never over the Studio — editors get their own pointer there.

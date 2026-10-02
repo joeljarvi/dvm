@@ -14,7 +14,6 @@ import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
 import type { ScrollCallback } from "lenis";
 import type { About, Project, ProjectMedia } from "@/lib/types";
 import { sanityImage } from "@/lib/image";
-import { useIntro } from "@/lib/intro";
 import {
   setHoveredSection,
   useHoveredSection,
@@ -30,9 +29,9 @@ import {
   REVEAL_CLASS,
   ENTRANCE_CLASS,
   HOVER_CLASS,
-  FADE_CLASS,
-  DURATION,
   REVEAL_TRANSITION,
+  SELECT_CLASS,
+  SWITCH_CLASS,
 } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import InfoLayout from "@/components/InfoLayout";
@@ -41,11 +40,6 @@ import InfoOverlay from "./InfoOverlay";
 import AboutSection from "./AboutSection";
 import IndexSection from "./IndexSection";
 import UnderConstruction from "./UnderConstruction";
-import {
-  CustomCursor,
-  useWatermarkCursorOn,
-  CustomCursorTarget,
-} from "@/components/ui/custom-cursor";
 
 export function coverImages(
   project: Project,
@@ -70,11 +64,37 @@ export function coverImages(
   return media.length ? media : [{ url: fallbackSrc, type: "image" }];
 }
 
-function landingGap(section: Exclude<Section, null>, side: "before" | "after") {
+// Always there, and shrunk to nothing out of landing mode rather than
+// removed — so the cover glides to its place instead of jumping there.
+function landingGap(
+  section: Exclude<Section, null>,
+  side: "before" | "after",
+  landingMode: boolean,
+  layoutClass: string,
+) {
   const inner =
     (section === "personal" && side === "after") ||
     (section === "commissioned" && side === "before");
-  return `${inner ? "flex-1" : "flex-3"} lg:flex-1`;
+  const grow = landingMode
+    ? `${inner ? "grow" : "grow-3"} lg:grow`
+    : "grow-0";
+  return `basis-0 shrink-0 ${grow} transition-[flex-grow] ${layoutClass}`;
+}
+
+/**
+ * How the columns move when the open one changes: unhurried, like the
+ * landing, when one is first picked (or landing mode comes back), and brief
+ * when swapping straight from one to the other. Held until the next change,
+ * so a transition keeps its timing all the way through.
+ */
+function useColumnTempo(opened: Section) {
+  const [prev, setPrev] = useState(opened);
+  const [tempo, setTempo] = useState(SELECT_CLASS);
+  if (opened !== prev) {
+    setPrev(opened);
+    setTempo(prev !== null && opened !== null ? SWITCH_CLASS : SELECT_CLASS);
+  }
+  return tempo;
 }
 
 const LANDING_COVER_WIDTH = "max-w-1/2";
@@ -115,6 +135,7 @@ function Cover({
   lifted,
   section,
   morph = false,
+  layoutClass,
 }: {
   project: Project;
   media: ProjectMedia;
@@ -132,6 +153,8 @@ function Cover({
   /** The cover showing in the open column: its media is the one that grows
    * into the project page when its title is followed. */
   morph?: boolean;
+  /** Timing for the column's layout change (see useColumnTempo). */
+  layoutClass: string;
 }) {
   const src = media.url;
 
@@ -143,7 +166,7 @@ function Cover({
 
   // Capped like the box around it (half the frame in landing mode), and
   // animated with it, so the box never has to crop it mid-transition.
-  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw]" : "max-w-[100cqw]"} transition-[max-width] ${ENTRANCE_CLASS}`;
+  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw]" : "max-w-[100cqw]"} transition-[max-width] ${layoutClass}`;
 
   const mediaNode =
     media.type === "file" ? (
@@ -174,18 +197,16 @@ function Cover({
     <div
       ref={box}
       data-slug={project.slug ?? project.title}
-      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
+      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height] ${layoutClass} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
     >
       <div className={COVER_FRAME_CLASS}>
-        {landingMode && (
-          <div aria-hidden className={landingGap(section, "before")} />
-        )}
+        <div aria-hidden className={landingGap(section, "before", landingMode, layoutClass)} />
         <motion.div
           // In landing mode, lifts slightly while its panel is hovered (the
           // panel's click target sits over the image there).
           animate={{ y: lifted ? -6 : 0 }}
           transition={REVEAL_TRANSITION}
-          className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} transition-[max-width] ${ENTRANCE_CLASS}`}
+          className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} transition-[max-width] ${layoutClass}`}
         >
           {/* Landing veil, over the image only — what's between the covers
               stays clear, so the section label beneath them reads sharp.
@@ -194,20 +215,18 @@ function Cover({
               edges of the image. */}
           <div
             aria-hidden
-            className={`absolute inset-0 z-[5] pointer-events-none bg-background/60 backdrop-blur-xs transition-opacity ${ENTRANCE_CLASS} ${
+            className={`absolute inset-0 z-[5] pointer-events-none bg-background/60 backdrop-blur-xs transition-opacity ${layoutClass} ${
               landingMode
                 ? "opacity-100 group-hover/strip:opacity-0"
                 : "opacity-0"
             }`}
           />
-          <CustomCursorTarget asChild grow>
-            <button
-              type="button"
-              aria-label={`Cycle images of ${project.title}`}
-              className="absolute inset-0 z-10 cursor-pointer"
-              onClick={handleClick}
-            />
-          </CustomCursorTarget>
+          <button
+            type="button"
+            aria-label={`Cycle images of ${project.title}`}
+            className="absolute inset-0 z-10 cursor-pointer"
+            onClick={handleClick}
+          />
 
           {morph ? (
             <ViewTransition name={MORPH_NAME} share="morph" default="none">
@@ -217,9 +236,7 @@ function Cover({
             mediaNode
           )}
         </motion.div>
-        {landingMode && (
-          <div aria-hidden className={landingGap(section, "after")} />
-        )}
+        <div aria-hidden className={landingGap(section, "after", landingMode, layoutClass)} />
       </div>
     </div>
   );
@@ -253,6 +270,7 @@ function Strip({
   onScrolled,
   muteSound = false,
   imagesShown = true,
+  layoutClass,
 }: {
   section: Exclude<Section, null>;
   projects: Project[];
@@ -271,6 +289,8 @@ function Strip({
 
   /** Landing reveal: the covers have come in. */
   imagesShown?: boolean;
+
+  layoutClass: string;
 }) {
   const lenisRef = useRef<LenisRef>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -415,7 +435,7 @@ function Strip({
       ref={containerRef}
       data-panel={section}
       onClick={onOpen}
-      className={`group group/strip relative ${size} overflow-hidden pb-0 transition-[width,height] ${ENTRANCE_CLASS} hover:text-blue-700 ${background}`}
+      className={`group group/strip relative ${size} overflow-hidden pb-0 transition-[width,height] ${layoutClass} hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
       onMouseLeave={() => setHoveredSection(null)}
     >
@@ -470,6 +490,7 @@ function Strip({
                 onEnter={() => enterCover(i)}
                 muted={!(i === active && soundOn)}
                 morph={n === i && i === active && opened === section}
+                layoutClass={layoutClass}
               />
             ) : null;
           })}
@@ -531,9 +552,8 @@ export default function HomeClient({
   underConstruction: boolean;
   landingText?: string | null;
 }) {
-  const { rows, settled } = useIntro();
-
   const opened = useOpenedSection();
+  const layoutClass = useColumnTempo(opened);
   // Both columns have read where to come back to (see Strip); spent now.
   useEffect(() => clearReturn(), []);
 
@@ -552,43 +572,12 @@ export default function HomeClient({
   // prompt and the covers are in — the covers' entrance done.
   const holding = opened === null && !landing.done;
   useSuppressWatermarkCursor(holding);
-  // No cursor at all meanwhile — the blue circle stays down too.
-  const watermarkOn = useWatermarkCursorOn();
   const hovered = useHoveredSection();
-
-  const row = (n: number) =>
-    `transition-opacity ${FADE_CLASS} ${rows > n ? "" : "opacity-0"}`;
 
   useEffect(() => () => setHoveredSection(null), []);
 
-  // Pulse the cursor while something's loading in: the opening intro, or a
-  // drawer opening — then settle it once everything's actually on screen.
-  const [drawerOpening, setDrawerOpening] = useState(false);
-  useEffect(() => {
-    if (hash !== "about" && hash !== "index") {
-      const reset = setTimeout(() => setDrawerOpening(false), 0);
-      return () => clearTimeout(reset);
-    }
-    const on = setTimeout(() => setDrawerOpening(true), 0);
-    // Matches the drawer's own fade.
-    const off = setTimeout(() => setDrawerOpening(false), DURATION.reveal);
-    return () => {
-      clearTimeout(on);
-      clearTimeout(off);
-    };
-  }, [hash]);
-
   return (
-    <CustomCursor
-      layout="fixed"
-      color="#1447e6"
-      dotWidth={8}
-      dotHeight={8}
-      ring={false}
-      pulsing={!settled || drawerOpening}
-      hidden={watermarkOn && holding}
-      className="contents"
-    >
+    <>
       <section className="font-selecta relative flex flex-col lg:flex-row w-screen h-dvh overflow-hidden bg-background">
         <Strip
           section="personal"
@@ -600,6 +589,7 @@ export default function HomeClient({
           onScrolled={() => setJumpSlug(null)}
           muteSound={hash === "about" || hash === "index"}
           imagesShown={landing.images}
+          layoutClass={layoutClass}
         />
         <Strip
           section="commissioned"
@@ -611,6 +601,7 @@ export default function HomeClient({
           onScrolled={() => setJumpSlug(null)}
           muteSound={hash === "about" || hash === "index"}
           imagesShown={landing.images}
+          layoutClass={layoutClass}
         />
 
         <LandingPrompt
@@ -642,6 +633,6 @@ export default function HomeClient({
       </InfoOverlay>
 
       <UnderConstruction active={underConstruction} />
-    </CustomCursor>
+    </>
   );
 }

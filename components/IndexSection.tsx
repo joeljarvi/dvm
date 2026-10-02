@@ -15,7 +15,6 @@ import {
 import {
   setProjectVisibility,
   useProjectVisibility,
-  type Visibility,
 } from "@/lib/projectVisibility";
 import { Button } from "./ui/button";
 
@@ -166,14 +165,13 @@ export default function IndexSection({
       ? "text-blue-700 dark:text-blue-700"
       : "text-neutral-400 dark:text-neutral-500";
 
-  const previewImage = hovered
-    ? (coverImages(hovered, PLACEHOLDER_IMAGE).find((m) => m.type === "image")
-        ?.url ?? PLACEHOLDER_IMAGE)
-    : null;
+  // The hovered project's cover, as it leads its column on home — a video
+  // cover plays here too.
+  const preview = hovered ? coverImages(hovered, PLACEHOLDER_IMAGE)[0] : null;
 
   return (
     <div className="relative h-full flex flex-col lg:grid lg:grid-cols-4 items-start w-full font-diatype font-normal text-[0.8rem] tracking-wide text-neutral-300 dark:text-neutral-600 pt-30 lg:pt-0">
-      {previewImage && (
+      {preview && (
         <div className="hidden lg:block absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none">
           {/* Blurred here, on the full-height stage, rather than with a
               backdrop-blur over it: Safari draws a backdrop filter with a
@@ -183,11 +181,24 @@ export default function IndexSection({
           <div className={`h-dvh blur-xs ${COVER_STAGE_CLASS}`}>
             <div className={COVER_FRAME_CLASS}>
               <div className={`${COVER_BOX_CLASS} max-w-full`}>
-                <img
-                  src={mediaSrc(previewImage)}
-                  alt={hovered?.title ?? ""}
-                  className={`${MEDIA_CLASS} opacity-30 dark:opacity-10`}
-                />
+                {preview.type === "file" ? (
+                  <video
+                    key={preview.url}
+                    src={preview.url}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    aria-label={hovered?.title}
+                    className={`${MEDIA_CLASS} opacity-30 dark:opacity-10`}
+                  />
+                ) : (
+                  <img
+                    src={mediaSrc(preview.url)}
+                    alt={hovered?.title ?? ""}
+                    className={`${MEDIA_CLASS} opacity-30 dark:opacity-10`}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -247,7 +258,7 @@ export default function IndexSection({
             `}
           >
             <div className="hidden lg:flex absolute top-0 left-0 w-full h-32 items-start justify-start px-5.5 pointer-events-none bg-linear-to-b from-background from-25% via-background/10 via-55% to-transparent">
-              <h3 className="h-14 flex items-center font-normal text-[0.8rem] text-blue-700">
+              <h3 className="h-14 flex items-center font-normal text-[0.8rem] text-blue-700 hover:text-blue-600">
                 {LABEL[category]}
               </h3>
             </div>
