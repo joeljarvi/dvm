@@ -4,12 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import Counter from "@/components/Counter";
-import {
-  REVEAL_TRANSITION,
-  QUICK_CLASS,
-  FOLLOW_DELAY,
-  DURATION,
-} from "@/lib/motion";
+import { REVEAL_TRANSITION, QUICK_CLASS, FOLLOW_DELAY } from "@/lib/motion";
 
 export default function InfoLayout({
   title,
@@ -113,16 +108,8 @@ export default function InfoLayout({
   );
 }
 
-// The link to a project's page: hovering it brings in a single dot before
-// the text, the size of the home cursor's (8px), opening its own room so the
-// text slides right, and the text itself turns to "Show Fullscreen" — where
-// the link goes. `bg-current` keeps the dot the text's colour, blend
-// included.
-const DOT_TRANSITION = {
-  duration: DURATION.hover / 1000,
-  ease: "easeOut",
-} as const;
-
+// The link to a project's page: while hovered, its text turns to
+// "Show Fullscreen" — where the link goes.
 function ProjectLink({
   href,
   children,
@@ -132,26 +119,13 @@ function ProjectLink({
 }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <Link href={href} className="pointer-events-auto">
-      <motion.span
-        initial="rest"
-        animate="rest"
-        whileHover="hover"
-        onHoverStart={() => setHovered(true)}
-        onHoverEnd={() => setHovered(false)}
-        className="inline-flex items-center"
-      >
-        <motion.span
-          aria-hidden
-          variants={{
-            rest: { width: 0, marginRight: 0, opacity: 0 },
-            hover: { width: 8, marginRight: 6, opacity: 1 },
-          }}
-          transition={DOT_TRANSITION}
-          className="h-2 shrink-0 rounded-full bg-current"
-        />
-        {hovered ? "Show Fullscreen" : children}
-      </motion.span>
+    <Link
+      href={href}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="pointer-events-auto"
+    >
+      {hovered ? "Show Fullscreen" : children}
     </Link>
   );
 }
