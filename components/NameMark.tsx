@@ -130,7 +130,7 @@ export default function NameMark({
           ref={acrossRow}
           className={`pointer-events-none fixed inset-x-0 top-[62.5%] ${watermark ? "grid lg:top-0 lg:-translate-y-1/2" : "hidden lg:grid"} grid-cols-3 justify-center items-center h-min py-5.5 px-5.5 ${tint}`}
         >
-          <p data-name-word className={word(1)}>
+          <p data-name-word data-across="start" className={word(1)}>
             Daniel
           </p>
           <p
@@ -142,7 +142,7 @@ export default function NameMark({
           >
             von
           </p>
-          <p data-name-word className={word(3, "text-right")}>
+          <p data-name-word data-across="end" className={word(3, "text-right")}>
             Malmborg
           </p>
         </div>

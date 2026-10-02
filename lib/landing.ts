@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { ms } from "./motion";
+import { DURATION, ms } from "./motion";
 
 // Home's landing reveal, before a section is picked: the landing prompt's
 // words come in one at a time, then both panels' covers together. Shared
@@ -7,7 +7,8 @@ import { ms } from "./motion";
 //
 // Beats are ms from the home page's first mount, each advancing the step by
 // one — one per word of the landing prompt (see LandingPrompt), then the
-// covers. Like the intro, it plays once per page load — coming back home
+// covers, then `done` once the covers' entrance has finished (what the nav
+// and the watermark cursor wait for). Like the intro, it plays once per page load — coming back home
 // finds it already spent.
 const FIRST_WORD = 600;
 const PER_WORD = 800;
@@ -29,7 +30,9 @@ export function startLanding(wordCount: number) {
     (_, i) => FIRST_WORD + PER_WORD * i,
   );
   beats.push((beats.at(-1) ?? FIRST_WORD - PER_WORD) + COVERS_AFTER);
-  beats.map(ms).forEach((at, i) =>
+  const scaled = beats.map(ms);
+  scaled.push(scaled.at(-1)! + DURATION.entrance);
+  scaled.forEach((at, i) =>
     setTimeout(() => {
       step = i + 1;
       listeners.forEach((l) => l());
@@ -50,7 +53,11 @@ export function useLanding() {
     () => step,
     () => 0,
   );
-  return { words: Math.min(s, words), images: started && s > words };
+  return {
+    words: Math.min(s, words),
+    images: started && s > words,
+    done: started && s > words + 1,
+  };
 }
 
 /** Starts the landing timeline on mount and returns its state. */

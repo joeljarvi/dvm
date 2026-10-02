@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { closeTop } from "@/lib/modalStack";
 import { useIntro } from "@/lib/intro";
 import { useOpenedSection } from "@/lib/section";
+import { useLanding } from "@/lib/landing";
 import { setHash, useHash } from "@/lib/hash";
 import { switchSection } from "@/lib/navigation";
 import { REVEAL_CLASS } from "@/lib/motion";
@@ -20,6 +21,7 @@ export default function Nav() {
   const hash = useHash();
 
   const opened = useOpenedSection();
+  const landing = useLanding();
 
   const chrome = arrived ? "" : "opacity-0 pointer-events-none";
 
@@ -56,13 +58,15 @@ export default function Nav() {
 
   const chosen = !onHome || opened !== null;
 
-  // Home's landing mode — no section picked yet — keeps the nav hidden; it
-  // fades in once a section is chosen.
+  // Home's landing mode — no section picked yet — keeps the nav hidden
+  // until the landing reveal is done (prompt, then covers); then it fades in
+  // blurred, and sharpens once a section is chosen.
   const topChrome = !onHome
     ? chrome
-    : chosen
+    : chosen || landing.done
       ? ""
       : "opacity-0 pointer-events-none";
+  const blur = onHome && !chosen ? "blur-[2px]" : "";
 
   const corner = (place: string, visible = true, arrival = chrome) =>
     `fixed ${place} z-[80] flex flex-row items-center gap-0 transition-opacity ${REVEAL_CLASS} ${arrival} ${
@@ -91,7 +95,7 @@ export default function Nav() {
               data-nav="personal"
               variant="link"
               size="sm"
-              className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(personalActive)}`}
+              className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${blur} ${linkBlend(personalActive)}`}
               onClick={() => switchSection("personal", onHome)}
             >
               Personal
@@ -102,7 +106,7 @@ export default function Nav() {
               data-nav="personal"
               variant="link"
               size="sm"
-              className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(personalActive)}`}
+              className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${blur} ${linkBlend(personalActive)}`}
               asChild
             >
               <Link href="/#personal">Personal</Link>
@@ -118,7 +122,7 @@ export default function Nav() {
               data-nav="commissioned"
               variant="link"
               size="sm"
-              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(commissionedActive)}`}
+              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${blur} ${linkBlend(commissionedActive)}`}
               onClick={() => switchSection("commissioned", onHome)}
             >
               Commissioned
@@ -128,7 +132,7 @@ export default function Nav() {
               data-nav="commissioned"
               variant="link"
               size="sm"
-              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(commissionedActive)}`}
+              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${blur} ${linkBlend(commissionedActive)}`}
               asChild
             >
               <Link href="/#commissioned">Commissioned</Link>
@@ -149,7 +153,7 @@ export default function Nav() {
             <Button
               variant="link"
               size="sm"
-              className={`justify-start  hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
+              className={`justify-start  hover:text-blue-700 ${cornerLink} ${blur} ${linkBlend(aboutActive)}`}
               onClick={() => setHash(hash === "about" ? "" : "about")}
             >
               About
@@ -158,7 +162,7 @@ export default function Nav() {
             <Button
               variant="link"
               size="sm"
-              className={`justify-start hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
+              className={`justify-start hover:text-blue-700 ${cornerLink} ${blur} ${linkBlend(aboutActive)}`}
               asChild
             >
               <Link href="/about">About</Link>
@@ -179,7 +183,7 @@ export default function Nav() {
             <Button
               variant="link"
               size="sm"
-              className={`justify-end hover:text-blue-700  ${cornerLink} ${linkBlend(indexActive)}`}
+              className={`justify-end hover:text-blue-700  ${cornerLink} ${blur} ${linkBlend(indexActive)}`}
               onClick={() => setHash(hash === "index" ? "" : "index")}
             >
               Index
@@ -188,7 +192,7 @@ export default function Nav() {
             <Button
               variant="link"
               size="sm"
-              className={`justify-end  hover:text-blue-700 ${cornerLink} ${linkBlend(indexActive)}`}
+              className={`justify-end  hover:text-blue-700 ${cornerLink} ${blur} ${linkBlend(indexActive)}`}
               asChild
             >
               <Link href="/archive">Index</Link>

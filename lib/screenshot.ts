@@ -7,6 +7,9 @@
 //
 // `cropToMedia` trims it to the image itself — its own aspect ratio, none of
 // the viewport around it — keeping whatever of the watermark falls on it.
+// The across name's ends (`[data-across]`) are moved in to the image's own
+// edges then, the same gutter in from them as from the screen's, so the
+// line spans the image rather than running off it.
 export async function captureLayer(
   layer: HTMLElement,
   { cropToMedia = false }: { cropToMedia?: boolean } = {},
@@ -92,7 +95,17 @@ export async function captureLayer(
     ctx.textBaseline = "middle";
     // From the text's centre — for a turned word, its box on screen is
     // already the rotated one.
-    ctx.translate(r.left + r.width / 2, r.top + r.height / 2);
+    let cx = r.left + r.width / 2;
+    const end = word.dataset.across;
+    if (cropToMedia && mediaRect && end) {
+      const row = word.parentElement;
+      const gutter = row ? parseFloat(getComputedStyle(row).paddingLeft) : 0;
+      cx =
+        end === "start"
+          ? mediaRect.left + gutter + r.width / 2
+          : mediaRect.right - gutter - r.width / 2;
+    }
+    ctx.translate(cx, r.top + r.height / 2);
     if (word.closest("[data-turned]")) ctx.rotate(Math.PI / 2);
     ctx.fillText(word.textContent, 0, 0);
     ctx.restore();

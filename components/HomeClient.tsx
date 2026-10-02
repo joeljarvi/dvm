@@ -493,15 +493,8 @@ export default function HomeClient({
   const landing = useLandingReveal(prompt.length);
 
   // The watermark cursor (if it's on) holds back in landing mode until the
-  // prompt and the covers are in — the covers' entrance done. Coming back
-  // home finds the reveal spent, so it's there straight away.
-  const [revealed, setRevealed] = useState(() => landing.images);
-  useEffect(() => {
-    if (!landing.images) return;
-    const t = setTimeout(() => setRevealed(true), DURATION.entrance);
-    return () => clearTimeout(t);
-  }, [landing.images]);
-  const holding = opened === null && !revealed;
+  // prompt and the covers are in — the covers' entrance done.
+  const holding = opened === null && !landing.done;
   useSuppressWatermarkCursor(holding);
   // No cursor at all meanwhile — the blue circle stays down too.
   const watermarkOn = useWatermarkCursorOn();
