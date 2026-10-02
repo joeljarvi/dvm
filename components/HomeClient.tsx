@@ -620,7 +620,7 @@ export default function HomeClient({
       </section>
 
       <InfoOverlay open={hash === "about"} onDismiss={() => setHash("")}>
-        <AboutSection about={about} open={hash === "about"} />
+        <AboutSection about={about} />
       </InfoOverlay>
       <InfoOverlay
         open={hash === "index"}
