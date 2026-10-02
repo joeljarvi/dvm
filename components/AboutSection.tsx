@@ -6,8 +6,14 @@ import { motion } from "motion/react";
 import { fadeItem, staggerContainer } from "@/lib/motion";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { Button } from "@/components/ui/button";
-import { sanityImage } from "@/lib/image";
 import type { About } from "@/lib/types";
+import {
+  COVER_BOX_CLASS,
+  COVER_FRAME_CLASS,
+  COVER_STAGE_CLASS,
+  MEDIA_CLASS,
+  mediaSrc,
+} from "@/components/HomeClient";
 
 // Shown when Sanity has no About document yet — same degradation pattern
 // as the rest of the site (see FALLBACK in IndexSection).
@@ -50,12 +56,39 @@ export default function AboutSection({ about }: { about?: About | null }) {
   // Column 3 holds one of the two at a time; the switch sits at the bottom of
   // column 2, the way IndexSection's Selected / Show All does.
   const [view, setView] = useState<"bio" | "links">("bio");
+  // Hovering the name or the bio brings the bio image up behind everything,
+  // dimmed and blurred — the way IndexSection previews a hovered project.
+  const [bioHovered, setBioHovered] = useState(false);
+  const previewImage =
+    view === "bio" && bioHovered && bioImageUrl ? bioImageUrl : null;
+  const hoverBio = {
+    onMouseEnter: () => setBioHovered(true),
+    onMouseLeave: () => setBioHovered(false),
+  };
 
   return (
     <div
       data-lenis-prevent
       className="relative flex flex-col lg:grid pt-28 lg:pt-0 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden lg:overflow-hidden lg:grid-rows-[auto_auto_1fr_auto] lg:grid-cols-4 items-start justify-start w-full h-dvh   font-diatype font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 gap-y-16 lg:gap-y-0  lg:tracking-normal  text-blue-700 lg:text-neutral-300      "
     >
+      {previewImage && (
+        <div className="hidden lg:block absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none">
+          <div className={`h-dvh ${COVER_STAGE_CLASS}`}>
+            <div className={COVER_FRAME_CLASS}>
+              <div className={`${COVER_BOX_CLASS} max-w-full`}>
+                <img
+                  src={mediaSrc(previewImage)}
+                  alt=""
+                  className={`${MEDIA_CLASS} opacity-30 dark:opacity-10`}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div aria-hidden className="absolute inset-0 backdrop-blur-xs" />
+        </div>
+      )}
+
       <h3 className="hidden lg:flex col-start-2 lg:row-start-1 w-min h-14 items-center px-0 font-normal text-blue-700">
         Connect
       </h3>
@@ -73,12 +106,16 @@ export default function AboutSection({ about }: { about?: About | null }) {
       >
         <motion.h3
           variants={fadeItem}
+          {...(view === "bio" ? hoverBio : {})}
           className="hidden lg:flex col-start-3 lg:row-start-1 h-14 items-center px-0 font-normal text-blue-700 whitespace-nowrap"
         >
           {view === "bio" ? "Daniel von Malmborg" : "Links"}
         </motion.h3>
 
-        <div className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8rem] font-normal pl-5.5 pr-0   lg:px-0 leading-tight tracking-wide gap-y-4 max-w-3/4 lg:max-w-full text-blue-700  mb-0 lg:mb-12">
+        <div
+          {...(view === "bio" ? hoverBio : {})}
+          className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8rem] font-normal pl-5.5 pr-0   lg:px-0 leading-tight tracking-wide gap-y-4 max-w-3/4 lg:max-w-full text-blue-700  mb-0 lg:mb-12"
+        >
           {view === "bio" ? (
             about?.shortBio?.length ? (
               <PortableText value={about.shortBio} components={bioComponents} />
@@ -99,7 +136,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
                 <Button
                   variant="link"
                   size="sm"
-                  className="text-blue-700 hover:text-blue-700 cursor-pointer w-min text-left px-0 h-auto justify-start"
+                  className="text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left px-0 h-auto justify-start"
                   asChild
                 >
                   <Link
@@ -124,7 +161,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
           <Button
             variant="link"
             size="sm"
-            className="text-blue-700 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 h-auto  justify-start"
+            className="text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 h-auto  justify-start"
             asChild
           >
             <Link href={`tel:${phone}`} className=" ">
@@ -134,7 +171,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
           <Button
             variant="link"
             size="sm"
-            className="text-blue-700 hover:text-blue-700 cursor-pointer w-min  text-left lg:px-0 h-auto  justify-start"
+            className="text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min  text-left lg:px-0 h-auto  justify-start"
             asChild
           >
             <Link href={`mailto:${email}`}>Email</Link>
@@ -142,7 +179,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
           <Button
             variant="link"
             size="sm"
-            className="text-blue-700 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 h-auto   justify-start"
+            className="text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 h-auto   justify-start"
             asChild
           >
             <Link
@@ -155,18 +192,6 @@ export default function AboutSection({ about }: { about?: About | null }) {
             </Link>
           </Button>
         </span>
-        {view === "bio" && bioImageUrl && (
-          <motion.div
-            variants={fadeItem}
-            className="row-start-3 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full max-w-3/4 lg:max-w-full flex justify-start items-start pl-5.5 pr-0  mb-16 lg:pl-0 lg:pr-0 lg:pb-0 pb-28"
-          >
-            <img
-              src={sanityImage(bioImageUrl, { w: 800 })}
-              alt=""
-              className="w-full lg:w-full  object-cover lg:aspect-video"
-            />
-          </motion.div>
-        )}
       </motion.div>
       {/* Mobile: on the heading's line (the content's first row, below the
           pt-30), right-aligned. Desktop: pinned to the bottom of column 2. */}
@@ -179,7 +204,10 @@ export default function AboutSection({ about }: { about?: About | null }) {
               size="sm"
               aria-pressed={view === v}
               className={` capitalize text-right lg:px-0 lg:text-center justify-end lg:justify-center hover:text-blue-700 dark:hover:text-blue-700 ${view === v ? "text-blue-700 dark:text-blue-700" : "text-neutral-400 dark:text-neutral-500"}`}
-              onClick={() => setView(v)}
+              onClick={() => {
+                setView(v);
+                setBioHovered(false);
+              }}
             >
               {v}
             </Button>

@@ -56,6 +56,16 @@ export default function Nav() {
 
   const chosen = !onHome || opened !== null;
 
+  // Over About, Personal and Commissioned both read plain grey — neither is
+  // the one showing, and there's no image underneath to blend against.
+  const sectionLink = (active: boolean) => (aboutActive ? null : active);
+
+  // Over Index, the same plain grey — but on desktop only; on mobile they
+  // keep their usual state.
+  const overIndex = indexActive
+    ? "lg:text-neutral-400 lg:dark:text-neutral-500 lg:mix-blend-normal lg:hover:text-blue-700 lg:dark:hover:text-blue-700"
+    : "";
+
   // Home's landing mode — no section picked yet — keeps the nav hidden; it
   // fades in once a section is chosen.
   const topChrome = !onHome
@@ -75,11 +85,14 @@ export default function Nav() {
   // Blended against whatever's behind it while its section isn't the one
   // showing; once it is, it drops the blend and just reads blue. Hovered,
   // any link reads blue — an inactive one drops its blend for that too, or
-  // the difference would turn the blue orange. Kept out of cornerLink so the
-  // states never fight over the same element.
-  const linkBlend = (active: boolean) =>
-    active
-      ? "text-blue-700 mix-blend-normal dark:hover:text-blue-700"
+  // the difference would turn the blue orange. `null`: plain grey, no blend
+  // (see sectionLink). Kept out of cornerLink so the states never fight over
+  // the same element.
+  const linkBlend = (active: boolean | null) =>
+    active === null
+      ? "text-neutral-400 dark:text-neutral-500 mix-blend-normal hover:text-blue-700 dark:hover:text-blue-700"
+      : active
+      ? "text-blue-700 dark:text-blue-700 mix-blend-normal dark:hover:text-blue-700"
       : "mix-blend-difference hover:mix-blend-normal dark:text-neutral-500 hover:text-blue-700 dark:hover:text-blue-700";
 
   return (
@@ -92,7 +105,7 @@ export default function Nav() {
               data-nav="personal"
               variant="link"
               size="sm"
-              className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(personalActive)}`}
+              className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(sectionLink(personalActive))} ${overIndex}`}
               onClick={() => switchSection("personal", onHome)}
             >
               Personal
@@ -103,7 +116,7 @@ export default function Nav() {
               data-nav="personal"
               variant="link"
               size="sm"
-              className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(personalActive)}`}
+              className={`justify-start  hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(sectionLink(personalActive))} ${overIndex}`}
               asChild
             >
               <Link href="/#personal">Personal</Link>
@@ -119,7 +132,7 @@ export default function Nav() {
               data-nav="commissioned"
               variant="link"
               size="sm"
-              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(commissionedActive)}`}
+              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(sectionLink(commissionedActive))} ${overIndex}`}
               onClick={() => switchSection("commissioned", onHome)}
             >
               Commissioned
@@ -129,7 +142,7 @@ export default function Nav() {
               data-nav="commissioned"
               variant="link"
               size="sm"
-              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(commissionedActive)}`}
+              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(sectionLink(commissionedActive))} ${overIndex}`}
               asChild
             >
               <Link href="/#commissioned">Commissioned</Link>

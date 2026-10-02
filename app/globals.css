@@ -214,3 +214,26 @@ body::-webkit-scrollbar {
     cursor: none !important;
   }
 }
+
+/* Home → project page (see MORPH_NAME in components/HomeClient): the cover's
+   media grows into the full-screen one while the rest of the page — nav,
+   info, the other column — crossfades away underneath, all on the site's
+   main reveal. */
+::view-transition-group(.morph) {
+  animation-duration: var(--motion-reveal);
+  animation-timing-function: var(--motion-ease-reveal);
+  z-index: 1;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--motion-reveal);
+  animation-timing-function: var(--motion-ease-reveal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+  }
+}

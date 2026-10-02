@@ -3,9 +3,11 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  ViewTransition,
 } from "react";
 import { motion } from "motion/react";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
@@ -21,6 +23,7 @@ import {
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { useLandingReveal } from "@/lib/landing";
 import { useSuppressWatermarkCursor } from "@/lib/watermarkCursor";
+import { clearReturn, peekReturn, setDetailFrame } from "@/lib/detailFrame";
 import { setHash, useHash } from "@/lib/hash";
 import { useInView } from "@/lib/inView";
 import {
@@ -91,6 +94,11 @@ const MEDIA_FIT =
   "block max-h-[100cqh] w-auto h-auto object-contain object-center pointer-events-none";
 export const MEDIA_CLASS = `${MEDIA_FIT} max-w-[100cqw]`;
 
+// The shared view-transition name a cover's media and the project page's
+// full-screen media both take — so following a title, the one grows into the
+// other while the rest of the page crossfades (see globals.css).
+export const MORPH_NAME = "project-media";
+
 export const mediaSrc = (src: string) =>
   src.startsWith("/") ? src : sanityImage(src, { w: 1400 });
 
@@ -106,6 +114,7 @@ function Cover({
   landingMode,
   lifted,
   section,
+  morph = false,
 }: {
   project: Project;
   media: ProjectMedia;
@@ -120,6 +129,9 @@ function Cover({
   onStepImage: (delta: number) => void;
   onEnter: () => void;
   muted?: boolean;
+  /** The cover showing in the open column: its media is the one that grows
+   * into the project page when its title is followed. */
+  morph?: boolean;
 }) {
   const src = media.url;
 
@@ -131,7 +143,26 @@ function Cover({
 
   // Capped like the box around it (half the frame in landing mode), and
   // animated with it, so the box never has to crop it mid-transition.
-  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw]" : "max-w-[100cqw]"} transition-[max-width] ${REVEAL_CLASS}`;
+  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw]" : "max-w-[100cqw]"} transition-[max-width] ${ENTRANCE_CLASS}`;
+
+  const mediaNode =
+    media.type === "file" ? (
+      <video
+        src={src}
+        className={mediaClass}
+        autoPlay
+        muted={muted}
+        loop
+        playsInline
+        aria-label={media.caption}
+      />
+    ) : (
+      <img
+        src={mediaSrc(src)}
+        alt={media.caption ?? ""}
+        className={mediaClass}
+      />
+    );
 
   const handleClick = () => {
     if (!columnOpen) return;
@@ -154,7 +185,7 @@ function Cover({
           // panel's click target sits over the image there).
           animate={{ y: lifted ? -6 : 0 }}
           transition={REVEAL_TRANSITION}
-          className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} transition-[max-width] ${REVEAL_CLASS}`}
+          className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} transition-[max-width] ${ENTRANCE_CLASS}`}
         >
           {/* Landing veil, over the image only — what's between the covers
               stays clear, so the section label beneath them reads sharp.
@@ -163,7 +194,7 @@ function Cover({
               edges of the image. */}
           <div
             aria-hidden
-            className={`absolute inset-0 z-[5] pointer-events-none bg-background/60 backdrop-blur-xs transition-opacity ${REVEAL_CLASS} ${
+            className={`absolute inset-0 z-[5] pointer-events-none bg-background/60 backdrop-blur-xs transition-opacity ${ENTRANCE_CLASS} ${
               landingMode
                 ? "opacity-100 group-hover/strip:opacity-0"
                 : "opacity-0"
@@ -178,22 +209,12 @@ function Cover({
             />
           </CustomCursorTarget>
 
-          {media.type === "file" ? (
-            <video
-              src={src}
-              className={mediaClass}
-              autoPlay
-              muted={muted}
-              loop
-              playsInline
-              aria-label={media.caption}
-            />
+          {morph ? (
+            <ViewTransition name={MORPH_NAME} share="morph" default="none">
+              {mediaNode}
+            </ViewTransition>
           ) : (
-            <img
-              src={mediaSrc(src)}
-              alt={media.caption ?? ""}
-              className={mediaClass}
-            />
+            mediaNode
           )}
         </motion.div>
         {landingMode && (
@@ -262,8 +283,27 @@ function Strip({
     [projects, fallbackSrc],
   );
 
-  const [active, setActive] = useState(0);
-  const [frames, setFrames] = useState<number[]>(() => projects.map(() => 0));
+  // Back from a project page: open on its cover and the image it was on,
+  // so the full-screen image shrinks back into it (see MORPH_NAME).
+  const [returnTo] = useState(() => {
+    const r = peekReturn();
+    const index = r ? projects.findIndex((p) => p.slug === r.slug) : -1;
+    return index < 0 ? null : { index, frame: r!.frame };
+  });
+  const [active, setActive] = useState(returnTo?.index ?? 0);
+  const [frames, setFrames] = useState<number[]>(() =>
+    projects.map((_, i) => (i === returnTo?.index ? returnTo.frame : 0)),
+  );
+  // Scrolled there before the first paint — inside the view transition's
+  // new snapshot, so the morph lands on the cover where it sits.
+  useLayoutEffect(() => {
+    if (!returnTo) return;
+    containerRef.current
+      ?.querySelector<HTMLElement>(
+        `[data-slug="${CSS.escape(projects[returnTo.index].slug ?? "")}"]`,
+      )
+      ?.scrollIntoView({ block: "start" });
+  }, [returnTo, projects]);
   const [expanded, setExpanded] = useState<boolean[]>(() =>
     projects.map(() => false),
   );
@@ -375,7 +415,7 @@ function Strip({
       ref={containerRef}
       data-panel={section}
       onClick={onOpen}
-      className={`group group/strip relative ${size} overflow-hidden pb-0 transition-[width,height] ${REVEAL_CLASS} hover:text-blue-700 ${background}`}
+      className={`group group/strip relative ${size} overflow-hidden pb-0 transition-[width,height] ${ENTRANCE_CLASS} hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
       onMouseLeave={() => setHoveredSection(null)}
     >
@@ -429,6 +469,7 @@ function Strip({
                 onStepImage={(delta) => stepImage(i, delta)}
                 onEnter={() => enterCover(i)}
                 muted={!(i === active && soundOn)}
+                morph={n === i && i === active && opened === section}
               />
             ) : null;
           })}
@@ -445,6 +486,9 @@ function Strip({
           <InfoLayout
             title={shown.title}
             titleHref={shown.slug ? `/${section}/${shown.slug}` : undefined}
+            onTitleClick={() =>
+              shown.slug && setDetailFrame(shown.slug, frames[active] ?? 0)
+            }
             model={section === "personal" ? shown.client : undefined}
             client={section === "commissioned" ? shown.client : undefined}
             agency={shown.agency}
@@ -490,6 +534,8 @@ export default function HomeClient({
   const { rows, settled } = useIntro();
 
   const opened = useOpenedSection();
+  // Both columns have read where to come back to (see Strip); spent now.
+  useEffect(() => clearReturn(), []);
 
   const hash = useHash();
 

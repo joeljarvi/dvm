@@ -159,6 +159,13 @@ export default function IndexSection({
     router.push(`/#${category}`);
   };
 
+  // Selected / Show All: the one in effect reads blue, the other grey — in
+  // dark mode too, where the link variant's own grey would otherwise win.
+  const toggleColor = (on: boolean) =>
+    on
+      ? "text-blue-700 dark:text-blue-700"
+      : "text-neutral-400 dark:text-neutral-500";
+
   const previewImage = hovered
     ? (coverImages(hovered, PLACEHOLDER_IMAGE).find((m) => m.type === "image")
         ?.url ?? PLACEHOLDER_IMAGE)
@@ -174,7 +181,7 @@ export default function IndexSection({
                 <img
                   src={mediaSrc(previewImage)}
                   alt={hovered?.title ?? ""}
-                  className={`${MEDIA_CLASS} opacity-30`}
+                  className={`${MEDIA_CLASS} opacity-30 dark:opacity-10`}
                 />
               </div>
             </div>
@@ -193,7 +200,7 @@ export default function IndexSection({
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search"
           aria-label="Search projects"
-          className="w-full bg-transparent border-0 p-0 outline-none font-diatype text-[0.8rem] tracking-wide text-blue-700 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 [&::-webkit-search-cancel-button]:hidden"
+          className="w-full bg-transparent border-0 p-0 outline-none font-diatype text-[0.8rem] tracking-wide text-blue-700 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:placeholder:text-blue-700 dark:focus:placeholder:text-blue-700 [&::-webkit-search-cancel-button]:hidden"
         />
       </div>
 
@@ -201,7 +208,8 @@ export default function IndexSection({
         <Button
           variant="link"
           size="sm"
-          className="text-neutral-400 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto justify-start"
+          aria-pressed={visibility === "selected"}
+          className={`hover:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto justify-start ${toggleColor(visibility === "selected")}`}
           onClick={() => setProjectVisibility("selected")}
         >
           Selected
@@ -210,7 +218,8 @@ export default function IndexSection({
         <Button
           variant="link"
           size="sm"
-          className="text-neutral-400 hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto justify-start"
+          aria-pressed={visibility === "all"}
+          className={`hover:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 lg:h-auto justify-start ${toggleColor(visibility === "all")}`}
           onClick={() => setProjectVisibility("all")}
         >
           Show All
@@ -269,7 +278,7 @@ export default function IndexSection({
                     variant="link"
                     size="sm"
                     onClick={() => select(project, category)}
-                    className={`truncate h-auto justify-start text-neutral-400 dark:text-neutral-500 text-left cursor-pointer hover:text-blue-700 ${
+                    className={`truncate h-auto justify-start text-blue-700 dark:text-blue-700 text-left cursor-pointer hover:text-blue-700 dark:hover:text-blue-700 ${
                       project.client ? "" : "capitalize"
                     }`}
                   >
@@ -285,9 +294,8 @@ export default function IndexSection({
                   <Button
                     variant="link"
                     size="sm"
-                    className={`px-0 hover:text-blue-700 ${
-                      visibility === "selected" ? "text-blue-700" : ""
-                    }`}
+                    aria-pressed={visibility === "selected"}
+                    className={`px-0 hover:text-blue-700 dark:hover:text-blue-700 ${toggleColor(visibility === "selected")}`}
                     onClick={() => setProjectVisibility("selected")}
                   >
                     Selected
@@ -296,9 +304,8 @@ export default function IndexSection({
                   <Button
                     variant="link"
                     size="sm"
-                    className={`px-0 hover:text-blue-700 text-neutral-400 dark:text-neutral-500 ${
-                      visibility === "all" ? "text-blue-700" : ""
-                    }`}
+                    aria-pressed={visibility === "all"}
+                    className={`px-0 hover:text-blue-700 dark:hover:text-blue-700 ${toggleColor(visibility === "all")}`}
                     onClick={() => setProjectVisibility("all")}
                   >
                     Show All

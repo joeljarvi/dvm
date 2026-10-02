@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // React's <ViewTransition> on route changes: a home cover's image grows
+  // into the project page's full-screen one (see "project-media").
+  experimental: {
+    viewTransition: true,
+  },
   // `/index` cannot be an app-router directory: normalizePagePath escapes it
   // to `/index/index` to keep it clear of the root page, which also
   // normalizes to `/index` — and Next 16's segment-cache output writes and

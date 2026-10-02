@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import Counter from "@/components/Counter";
@@ -9,6 +6,7 @@ import { REVEAL_TRANSITION, QUICK_CLASS, FOLLOW_DELAY } from "@/lib/motion";
 export default function InfoLayout({
   title,
   titleHref,
+  onTitleClick,
   model,
   client,
   agency,
@@ -22,6 +20,8 @@ export default function InfoLayout({
   /** Where the title links to — its own project page. Omit to render it as
    * plain text, e.g. on the project page itself. */
   titleHref?: string;
+  /** Called as the title link is followed. */
+  onTitleClick?: () => void;
 
   model?: string;
   client?: string;
@@ -66,7 +66,9 @@ export default function InfoLayout({
               className={`${titleClass} capitalize`}
             >
               {titleHref ? (
-                <ProjectLink href={titleHref}>{title}</ProjectLink>
+                <ProjectLink href={titleHref} onClick={onTitleClick}>
+                  {title}
+                </ProjectLink>
               ) : (
                 title
               )}
@@ -78,7 +80,9 @@ export default function InfoLayout({
         {credited && (
           <h3 className={titleClass}>
             {titleHref && !showTitle ? (
-              <ProjectLink href={titleHref}>{credited.text}</ProjectLink>
+              <ProjectLink href={titleHref} onClick={onTitleClick}>
+                {credited.text}
+              </ProjectLink>
             ) : (
               credited.text
             )}
@@ -108,24 +112,33 @@ export default function InfoLayout({
   );
 }
 
-// The link to a project's page: while hovered, its text turns to
-// "Show Fullscreen" — where the link goes.
+// The link to a project's page: while hovered, its text crossfades to
+// "Show Fullscreen" — where the link goes. Both texts sit stacked in one
+// grid cell, so the link keeps the width of the longer one either way and
+// never shrinks out from under the pointer mid-swap.
 function ProjectLink({
   href,
+  onClick,
   children,
 }: {
   href: string;
+  onClick?: () => void;
   children: React.ReactNode;
 }) {
-  const [hovered, setHovered] = useState(false);
+  const fade = `col-start-1 row-start-1 transition-opacity ${QUICK_CLASS}`;
   return (
     <Link
       href={href}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="pointer-events-auto"
+      onClick={onClick}
+      className="group/link pointer-events-auto inline-grid"
     >
-      {hovered ? "Show Fullscreen" : children}
+      <span className={`${fade} group-hover/link:opacity-0`}>{children}</span>
+      <span
+        aria-hidden
+        className={`${fade} opacity-0 group-hover/link:opacity-100`}
+      >
+        Show Fullscreen
+      </span>
     </Link>
   );
 }

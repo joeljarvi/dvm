@@ -1,12 +1,18 @@
 "use client";
 
 import { HOVER_CLASS, REVEAL_CLASS } from "@/lib/motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, ViewTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { Project } from "@/lib/types";
 import type { Category } from "@/sanity/queries";
 import { sanityImage } from "@/lib/image";
-import { coverImages } from "@/components/HomeClient";
+import { coverImages, MORPH_NAME } from "@/components/HomeClient";
+import {
+  clearDetailFrame,
+  peekDetailFrame,
+  setReturnFrame,
+} from "@/lib/detailFrame";
 import { captureLayer } from "@/lib/screenshot";
 import { useRegisterModal } from "@/lib/modalStack";
 import { useSuppressWatermarkCursor } from "@/lib/watermarkCursor";
@@ -28,7 +34,9 @@ export default function ProjectPage({
   category: Category;
 }) {
   const media = coverImages(project, "/personal_placeholder.png");
-  const [frame, setFrame] = useState(0);
+  // Opens on the image its home cover was showing, if that's how we came.
+  const [frame, setFrame] = useState(() => peekDetailFrame(project.slug));
+  useEffect(() => clearDetailFrame(), []);
   const [soundOn, setSoundOn] = useState(false);
 
   const current = media[frame] ?? media[0];
@@ -50,9 +58,19 @@ export default function ProjectPage({
   // Full screen: just the current image, edge to edge but for the gutter,
   // over everything including the nav — the name on top as a watermark.
   // The page opens in it (the home titles link straight here), so closing
-  // it — Close, or Escape via the shared modal stack — leaves the page.
+  // it leaves the page.
   const fullScreen = true;
-  useRegisterModal(fullScreen, back);
+  // Back (bottom right) is a plain link home, to the project's own section; Escape goes
+  // the same way. Home then opens on this image, so it shrinks back into its
+  // own cover.
+  const home = `/#${category}`;
+  const leave = () => {
+    if (project.slug) setReturnFrame(project.slug, frame);
+  };
+  useRegisterModal(fullScreen, () => {
+    leave();
+    router.push(home);
+  });
   // Full screen has its own watermark — the site-wide cursor one steps aside.
   useSuppressWatermarkCursor(fullScreen);
 
@@ -198,13 +216,14 @@ export default function ProjectPage({
                   onClick={step}
                 />
               </CustomCursorTarget>
-              {fullScreen &&
-                mediaEl(
+              <ViewTransition name={MORPH_NAME} share="morph" default="none">
+                {mediaEl(
                   aspect
                     ? "block w-full h-full object-cover object-center pointer-events-none"
                     : "block max-w-full max-h-[calc(100dvh-2.75rem)] w-auto h-auto object-contain object-center pointer-events-none",
                   true,
                 )}
+              </ViewTransition>
             </div>
           </div>
           <NameMark play={fullScreen} watermark still={still} blue={blue} />
@@ -233,16 +252,18 @@ export default function ProjectPage({
         </span>
 
         <div className="fixed bottom-0 inset-x-0 z-110 grid grid-cols-4 pointer-events-none">
-          {/* Mobile: Close alone, in the bottom-right corner like the nav's
+          {/* Mobile: Back alone, in the bottom-right corner like the nav's
               corner links. */}
           <div className="col-start-4 row-start-1 flex flex-row items-center justify-end lg:justify-start gap-x-4">
             <Button
               variant="link"
               size="sm"
-              onClick={back}
+              asChild
               className={`max-lg:px-5.5 max-lg:h-14 ${barButton} text-blue-700`}
             >
-              Close
+              <Link href={home} onClick={leave}>
+                Back
+              </Link>
             </Button>
             {showSoundToggle && (
               <Button
