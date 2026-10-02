@@ -70,16 +70,17 @@ export default function Nav() {
     }`;
 
   const cornerLink =
-    "px-5.5 py-4 w-auto h-full bg-transparent  h-14 hover:bg-transparent hover:text-neutral-400 active:text-blue-700 active:bg-transparent ";
+    "px-5.5 py-4 w-auto h-full bg-transparent  h-14 hover:bg-transparent active:text-blue-700 active:bg-transparent ";
 
   // Blended against whatever's behind it while its section isn't the one
-  // showing; once it is, it drops the blend and just reads blue. The dark
-  // neutral only applies while inactive — kept out of cornerLink so it can
-  // never fight the active state's plain text-blue-700 for the same element.
+  // showing; once it is, it drops the blend and just reads blue. Hovered,
+  // any link reads blue — an inactive one drops its blend for that too, or
+  // the difference would turn the blue orange. Kept out of cornerLink so the
+  // states never fight over the same element.
   const linkBlend = (active: boolean) =>
     active
-      ? "text-blue-700 mix-blend-normal"
-      : "mix-blend-difference dark:text-neutral-500 dark:hover:text-neutral-400";
+      ? "text-blue-700 mix-blend-normal dark:hover:text-blue-700"
+      : "mix-blend-difference hover:mix-blend-normal dark:text-neutral-500 hover:text-blue-700 dark:hover:text-blue-700";
 
   return (
     <>
