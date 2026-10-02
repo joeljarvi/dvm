@@ -61,7 +61,7 @@ export function LandingPrompt({
   return (
     <div
       aria-hidden
-      className={`pointer-events-none absolute inset-0 top-0 lg:top-[62.5%] z-20 flex flex-col lg:flex-row justify-between h-dvh lg:h-min items-center py-5.5 lg:py-5.5 px-5.5 whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-blue-700 transition-opacity ${REVEAL_CLASS} ${
+      className={`pointer-events-none absolute inset-0 top-0 lg:top-[62.5%] z-20 flex flex-col lg:flex-row justify-between h-dvh lg:h-min items-center py-5.5 lg:py-5.5 px-5.5 whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-neutral-400 dark:text-neutral-500 transition-opacity ${REVEAL_CLASS} ${
         dismissed ? "opacity-0" : "opacity-100"
       }`}
     >

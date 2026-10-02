@@ -158,7 +158,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
         {view === "bio" && bioImageUrl && (
           <motion.div
             variants={fadeItem}
-            className="row-start-3 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full max-w-3/4 lg:max-w-full flex justify-start items-start pl-5.5 pr-0  mb-16 lg:pl-0 lg:pr-0 lg:pb-0 pb-14"
+            className="row-start-3 lg:col-start-2 lg:col-span-2 lg:row-start-3 w-full h-full max-w-3/4 lg:max-w-full flex justify-start items-start pl-5.5 pr-0  mb-16 lg:pl-0 lg:pr-0 lg:pb-0 pb-28"
           >
             <img
               src={sanityImage(bioImageUrl, { w: 800 })}

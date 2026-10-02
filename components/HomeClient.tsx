@@ -77,13 +77,19 @@ function landingGap(section: Exclude<Section, null>, side: "before" | "after") {
 const LANDING_COVER_WIDTH = "max-w-1/2";
 
 export const COVER_STAGE_CLASS = "flex flex-col p-0 lg:py-28";
+// The frame is a size container, and the media is capped in its units
+// (cqw/cqh) rather than as a percentage of the box around it. That box
+// shrink-wraps the media, so a percentage there is circular — Safari
+// resolves it as no cap at all, shows the image at full size, and the box's
+// overflow-hidden crops it to its top-left corner.
 export const COVER_FRAME_CLASS =
-  "relative w-full h-full flex flex-col items-center justify-center";
+  "relative w-full h-full flex flex-col items-center justify-center [container-type:size]";
 export const COVER_BOX_CLASS =
   "relative inline-flex max-h-full overflow-hidden";
 
-export const MEDIA_CLASS =
-  "block max-w-full max-h-full w-auto h-auto object-contain object-center pointer-events-none";
+const MEDIA_FIT =
+  "block max-h-[100cqh] w-auto h-auto object-contain object-center pointer-events-none";
+export const MEDIA_CLASS = `${MEDIA_FIT} max-w-[100cqw]`;
 
 export const mediaSrc = (src: string) =>
   src.startsWith("/") ? src : sanityImage(src, { w: 1400 });
@@ -122,6 +128,10 @@ function Cover({
   useEffect(() => {
     if (inView) onEnter();
   }, [inView, onEnter]);
+
+  // Capped like the box around it (half the frame in landing mode), and
+  // animated with it, so the box never has to crop it mid-transition.
+  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw]" : "max-w-[100cqw]"} transition-[max-width] ${REVEAL_CLASS}`;
 
   const handleClick = () => {
     if (!columnOpen) return;
@@ -171,7 +181,7 @@ function Cover({
           {media.type === "file" ? (
             <video
               src={src}
-              className={MEDIA_CLASS}
+              className={mediaClass}
               autoPlay
               muted={muted}
               loop
@@ -182,7 +192,7 @@ function Cover({
             <img
               src={mediaSrc(src)}
               alt={media.caption ?? ""}
-              className={MEDIA_CLASS}
+              className={mediaClass}
             />
           )}
         </motion.div>

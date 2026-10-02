@@ -184,9 +184,9 @@ export default function IndexSection({
         </div>
       )}
 
-      {/* Desktop: across the top of column 4, in the header strip beside
-          "Commissioned Work". */}
-      <div className="hidden lg:flex absolute top-0 left-3/4 w-1/4 h-14 z-20 items-center px-5.5">
+      {/* Desktop: along the bottom of column 4, level with the nav's
+          bottom links. */}
+      <div className="hidden lg:flex absolute bottom-0 left-3/4 w-1/4 h-14 z-20 items-center px-5.5">
         <input
           type="search"
           value={query}

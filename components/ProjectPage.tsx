@@ -1,6 +1,6 @@
 "use client";
 
-import { DURATION, HOVER_CLASS, REVEAL_CLASS, ms } from "@/lib/motion";
+import { HOVER_CLASS, REVEAL_CLASS } from "@/lib/motion";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Project } from "@/lib/types";
@@ -10,7 +10,6 @@ import { coverImages } from "@/components/HomeClient";
 import { captureLayer } from "@/lib/screenshot";
 import { useRegisterModal } from "@/lib/modalStack";
 import { useSuppressWatermarkCursor } from "@/lib/watermarkCursor";
-import InfoLayout from "@/components/InfoLayout";
 import NameMark from "@/components/NameMark";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,8 +17,8 @@ import {
   CustomCursorTarget,
 } from "@/components/ui/custom-cursor";
 
-// The single-project counterpart to a home Strip's Cover — clicking the
-// title in InfoLayout lands here, with just the one project shown, same
+// The single-project counterpart to a home Strip's Cover — clicking its
+// title on home lands here, with just the one project shown, same
 // click-to-cycle gallery and cursor treatment as the home page.
 export default function ProjectPage({
   project,
@@ -50,10 +49,10 @@ export default function ProjectPage({
 
   // Full screen: just the current image, edge to edge but for the gutter,
   // over everything including the nav — the name on top as a watermark.
-  // A layer on the shared modal stack, so Escape (handled by the nav) closes
-  // it like any other.
-  const [fullScreen, setFullScreen] = useState(false);
-  useRegisterModal(fullScreen, () => setFullScreen(false));
+  // The page opens in it (the home titles link straight here), so closing
+  // it — Close, or Escape via the shared modal stack — leaves the page.
+  const fullScreen = true;
+  useRegisterModal(fullScreen, back);
   // Full screen has its own watermark — the site-wide cursor one steps aside.
   useSuppressWatermarkCursor(fullScreen);
 
@@ -77,25 +76,11 @@ export default function ProjectPage({
   // Static: the watermark held at its starting position.
   const [still, setStill] = useState(false);
 
-  // P / Q / L: the image in a 3:4, 1:1 or 16:9 frame, filling it; the same key again
-  // goes back to its own shape.
-  // Bumped to replay the full-screen instructions.
-  // 0 is the intro on opening full screen, which hides itself; each replay
-  // after it stays up until I is pressed again.
-  const [guideRun, setGuideRun] = useState(0);
-  const [guideHidden, setGuideHidden] = useState(false);
-  const toggleGuide = () => {
-    if (guideRun > 0 && !guideHidden) {
-      setGuideHidden(true);
-    } else {
-      setGuideHidden(false);
-      setGuideRun((n) => n + 1);
-    }
-  };
-
   // B: the watermark in blue.
   const [blue, setBlue] = useState(false);
 
+  // P / Q / L: the image in a 3:4, 1:1 or 16:9 frame, filling it; the same
+  // key again goes back to its own shape.
   const [aspect, setAspect] = useState<"3/4" | "1/1" | "16/9" | null>(null);
   const toggleAspect = (next: "3/4" | "1/1" | "16/9") =>
     setAspect((a) => (a === next ? null : next));
@@ -114,7 +99,6 @@ export default function ProjectPage({
       else if (key === "q") toggleAspect("1/1");
       else if (key === "l") toggleAspect("16/9");
       else if (key === "b") setBlue((v) => !v);
-      else if (key === "i") toggleGuide();
       else return;
       e.preventDefault();
     };
@@ -185,18 +169,6 @@ export default function ProjectPage({
           </div>
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 top-[62.5vh] z-10 flex flex-col gap-y-2 px-5.5">
-          <InfoLayout
-            title={project.title}
-            model={category === "personal" ? project.client : undefined}
-            client={category === "commissioned" ? project.client : undefined}
-            agency={project.agency}
-            frame={frame + 1}
-            total={media.length}
-            highlight
-          />
-        </div>
-
         <div
           ref={layer}
           aria-hidden={!fullScreen}
@@ -260,77 +232,17 @@ export default function ProjectPage({
           </Button>
         </span>
 
-        {/* Desktop, in full screen: the keys, top-left — see Instructions.
-            Re-keyed to play again from "Instructions". */}
-        {fullScreen && (
-          <Instructions
-            key={guideRun}
-            autoHide={guideRun === 0}
-            hidden={guideHidden}
-            onReplay={toggleGuide}
-            buttonClass={barText}
-            items={[
-              {
-                label: "Press Enter to Screen Shot",
-                onClick: () => screenshot(),
-              },
-              {
-                label: "Press S for Static",
-                onClick: () => setStill((v) => !v),
-                active: still,
-              },
-              {
-                label: "Press N for No Frame",
-                onClick: () => screenshot(true),
-              },
-              {
-                label: "Press P for 3:4",
-                onClick: () => toggleAspect("3/4"),
-                active: aspect === "3/4",
-              },
-              {
-                label: "Press Q for 1:1",
-                onClick: () => toggleAspect("1/1"),
-                active: aspect === "1/1",
-              },
-              {
-                label: "Press L for 16:9",
-                onClick: () => toggleAspect("16/9"),
-                active: aspect === "16/9",
-              },
-              {
-                label: "Press B for Blue Text",
-                onClick: () => setBlue((v) => !v),
-                active: blue,
-              },
-            ]}
-          />
-        )}
-
         <div className="fixed bottom-0 inset-x-0 z-110 grid grid-cols-4 pointer-events-none">
-          {/* Mobile: Full Screen alone, in the bottom-right corner like the
-              nav's corner links. */}
+          {/* Mobile: Close alone, in the bottom-right corner like the nav's
+              corner links. */}
           <div className="col-start-4 row-start-1 flex flex-row items-center justify-end lg:justify-start gap-x-4">
             <Button
               variant="link"
               size="sm"
-              aria-pressed={fullScreen}
-              onClick={() => {
-                if (!fullScreen) {
-                  setGuideRun(0);
-                  setGuideHidden(false);
-                }
-                setFullScreen((v) => !v);
-              }}
-              className={`max-lg:px-5.5 max-lg:h-14 ${barButton} ${fullScreen ? "text-blue-700" : "text-neutral-400"}`}
+              onClick={back}
+              className={`max-lg:px-5.5 max-lg:h-14 ${barButton} text-blue-700`}
             >
-              {/* Mobile calls it by what it adds: the watermark. */}
-              <span className="lg:hidden">
-                {fullScreen ? "Hide" : "Watermark"}
-              </span>
-              <span className="hidden lg:inline">
-                {fullScreen ? "Close" : "Full Screen"}
-              </span>
+              Close
             </Button>
             {showSoundToggle && (
               <Button
@@ -347,88 +259,5 @@ export default function ProjectPage({
         </div>
       </main>
     </CustomCursor>
-  );
-}
-
-// Full screen's key list: its lines fade in one by one. The first time —
-// opening full screen — they hold, then fade away together, leaving a single
-// "Press I for Instructions" button in their place. That (or the I key)
-// plays them again, and they stay until it's pressed once more. Each line is clickable too; `active` ones (a
-// toggle that's on) read blue.
-const GUIDE_FIRST = ms(300);
-const GUIDE_PER = ms(300);
-const GUIDE_HOLD = ms(2500);
-
-function Instructions({
-  items,
-  autoHide,
-  hidden,
-  onReplay,
-  buttonClass,
-}: {
-  items: { label: string; onClick: () => void; active?: boolean }[];
-  /** Fade away by itself once shown — the intro only. */
-  autoHide: boolean;
-  hidden: boolean;
-  onReplay: () => void;
-  buttonClass: string;
-}) {
-  const [shown, setShown] = useState(0);
-  const [autoClosed, setAutoClosed] = useState(false);
-  const open = !hidden && !autoClosed;
-  const count = items.length;
-
-  useEffect(() => {
-    const timers = Array.from({ length: count }, (_, i) =>
-      setTimeout(() => setShown(i + 1), GUIDE_FIRST + GUIDE_PER * i),
-    );
-    if (autoHide)
-      timers.push(
-        setTimeout(
-          () => setAutoClosed(true),
-          GUIDE_FIRST + GUIDE_PER * (count - 1) + DURATION.reveal + GUIDE_HOLD,
-        ),
-      );
-    return () => timers.forEach(clearTimeout);
-  }, [count, autoHide]);
-
-  // Clickable only while showing — hidden lines would otherwise sit,
-  // invisible, over the "Instructions" button.
-  const fade = (visible: boolean) =>
-    `transition-opacity ${REVEAL_CLASS} ${
-      visible
-        ? "opacity-100 pointer-events-auto"
-        : "opacity-0 pointer-events-none"
-    }`;
-
-  return (
-    <div className="hidden lg:block fixed top-0 left-0 z-110 pt-4 px-5.5 pointer-events-none">
-      <div
-        className={`flex flex-col items-start gap-y-1 transition-opacity ${REVEAL_CLASS} ${open ? "" : "opacity-0"}`}
-      >
-        {items.map(({ label, onClick, active }, i) => (
-          <Button
-            key={label}
-            variant="link"
-            size="sm"
-            aria-pressed={active}
-            onClick={onClick}
-            className={`px-0 h-auto ${buttonClass} ${
-              active ? "text-blue-700" : "text-neutral-400"
-            } ${fade(open && shown > i)}`}
-          >
-            {label}
-          </Button>
-        ))}
-      </div>
-      <Button
-        variant="link"
-        size="sm"
-        onClick={onReplay}
-        className={`absolute top-4 left-5.5 px-0 h-auto ${buttonClass} text-neutral-400 ${fade(!open)}`}
-      >
-        Press I for Instructions
-      </Button>
-    </div>
   );
 }
