@@ -8,7 +8,7 @@ import { useIntro } from "@/lib/intro";
 import { useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
 import { switchSection } from "@/lib/navigation";
-import { REVEAL_CLASS } from "@/lib/motion";
+import { AFTER_SELECT, REVEAL_CLASS } from "@/lib/motion";
 import Link from "next/link";
 
 /**
@@ -25,6 +25,16 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
   const hash = useHash();
 
   const opened = useOpenedSection();
+
+  // Picked out of landing mode: the nav comes in last, after the columns
+  // have moved (see AFTER_SELECT). Any other
+  // change — back to landing, an overlay, a swap — at once.
+  const [prevOpened, setPrevOpened] = useState(opened);
+  const [arrivalDelay, setArrivalDelay] = useState("");
+  if (opened !== prevOpened) {
+    setPrevOpened(opened);
+    setArrivalDelay(prevOpened === null && opened !== null ? AFTER_SELECT : "");
+  }
 
   const chrome = arrived ? "" : "opacity-0 pointer-events-none";
 
@@ -80,12 +90,12 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
   const topChrome = !onHome
     ? chrome
     : chosen
-      ? ""
+      ? arrivalDelay
       : "opacity-0 pointer-events-none";
 
   // Hidden (landing mode, or before the intro's in), out of the tab order
   // too.
-  const hidden = (arrival: string) => arrival !== "";
+  const hidden = (arrival: string) => arrival.includes("opacity-0");
 
   const corner = (place: string, visible = true, arrival = chrome) =>
     // Above About and Index (InfoOverlay, z-80); below the full-screen

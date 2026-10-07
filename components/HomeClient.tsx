@@ -32,6 +32,9 @@ import {
   HOVER_CLASS,
   SELECT_CLASS,
   SWITCH_CLASS,
+  COVER_STEP_CLASS,
+  AFTER_SELECT,
+  AFTER_SWITCH,
 } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import InfoLayout from "@/components/InfoLayout";
@@ -65,6 +68,37 @@ export function coverImages(
     return [cover, ...media.filter((m) => m.url !== project.coverImageUrl)];
   }
   return media.length ? media : [{ url: fallbackSrc, type: "image" }];
+}
+
+// Leaving landing mode, the cover settles first — its gaps even out, its
+// width eases to its open size, inside the column as it is — quickly, on the
+// swap's curve (COVER_STEP_CLASS). Only then do the columns resize, carrying
+// it into place (and, on mobile, the cover's height grows with its panel):
+// AFTER_COVER holds them back for that first step. Coming back into landing
+// mode, and swapping columns, it all moves at once.
+const AFTER_COVER = "delay-(--motion-cover-step)";
+
+// Always there, and shrunk to nothing out of landing mode rather than
+// removed — so the cover glides to its place instead of jumping there.
+// The gap on the side facing the other panel ("inner") takes a third of what
+// the outer one does, drawing the two covers together: above and below each
+// other on mobile, side by side on desktop (the frame runs as a row there).
+function landingGap(
+  section: Exclude<Section, null>,
+  side: "before" | "after",
+  landingMode: boolean,
+  tempo: string,
+) {
+  const inner =
+    (section === "personal" && side === "after") ||
+    (section === "commissioned" && side === "before");
+  // Out of landing mode: on mobile the gaps close. On desktop they even out
+  // instead of closing — the cover ends up centred either way, but this way
+  // only the outer gap changes, so the cover just glides across. Closing
+  // both at once let flexbox share out the shrinking space unevenly, and
+  // the cover lurched.
+  const grow = landingMode ? (inner ? "grow" : "grow-3") : "grow-0 lg:grow";
+  return `basis-0 shrink-0 ${grow} transition-[flex-grow] ${tempo}`;
 }
 
 /**
@@ -151,6 +185,7 @@ function Cover({
   alt,
   landingMode,
   panelHovered,
+  section,
   morph = false,
   repeat = false,
   priority = false,
@@ -161,6 +196,8 @@ function Cover({
 
   columnOpen: boolean;
   landingMode: boolean;
+  /** Which column it's in — sets which of its landing gaps faces the other. */
+  section: Exclude<Section, null>;
   /** Its panel is under the pointer. */
   panelHovered: boolean;
   expanded: boolean;
@@ -193,7 +230,13 @@ function Cover({
   // Capped like the box around it (half the frame in landing mode on
   // mobile), and animated with it, so the box never has to crop it
   // mid-transition.
-  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw] lg:max-w-[100cqw]" : OPEN_MEDIA_WIDTH} transition-[max-width] ${layoutClass}`;
+  // Just out of landing mode (the select tempo): the cover's own step —
+  // gaps, width — comes first and quick, and its height waits with the
+  // columns (see AFTER_COVER). Otherwise all in step with the columns.
+  const leavingLanding = !landingMode && layoutClass === SELECT_CLASS;
+  const coverTempo = leavingLanding ? COVER_STEP_CLASS : layoutClass;
+
+  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw] lg:max-w-[100cqw]" : OPEN_MEDIA_WIDTH} transition-[max-width] ${coverTempo}`;
 
   // A video plays throughout once its column is open, but in landing mode
   // only while its panel is hovered — paused where it was when it isn't.
@@ -247,12 +290,15 @@ function Cover({
       ref={box}
       aria-hidden={repeat || undefined}
       data-slug={project.slug ?? project.title}
-      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height] ${layoutClass} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
+      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : `h-screen ${leavingLanding ? AFTER_COVER : ""}`} transition-[height] ${layoutClass} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
     >
-      {/* Centred in its column, landing mode or open. */}
-      <div className={COVER_FRAME_CLASS}>
+      <div className={`${COVER_FRAME_CLASS} lg:flex-row`}>
         <div
-          className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : OPEN_COVER_WIDTH} transition-[max-width] ${layoutClass}`}
+          aria-hidden
+          className={landingGap(section, "before", landingMode, coverTempo)}
+        />
+        <div
+          className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : OPEN_COVER_WIDTH} transition-[max-width] ${coverTempo}`}
         >
           {/* Landing veil, over the image only — what's between the covers
               stays clear, so the section label beneath them reads sharp.
@@ -291,6 +337,10 @@ function Cover({
             {mediaNode}
           </ViewTransition>
         </div>
+        <div
+          aria-hidden
+          className={landingGap(section, "after", landingMode, coverTempo)}
+        />
       </div>
     </div>
   );
@@ -549,6 +599,9 @@ function Strip({
   const shownImages = columnImages[active] ?? [];
   const activeMedia = shownImages[frames[active] ?? 0] ?? shownImages[0];
   // Not in landing mode — only once a column is open.
+  // Just picked out of landing mode: the info and the sound button come in
+  // once the columns have moved (see AFTER_SELECT).
+  const justPicked = opened !== null && layoutClass === SELECT_CLASS;
   const showSoundToggle =
     opened !== null && listens && activeMedia?.type === "file";
 
@@ -559,7 +612,7 @@ function Strip({
       // The other column, closed down to nothing: nothing in it to reach.
       inert={opened !== null && opened !== section}
       onClick={onOpen}
-      className={`group group/strip relative ${size} overflow-hidden pb-0 transition-[width,height] ${layoutClass} hover:text-blue-700 ${background}`}
+      className={`group group/strip relative ${size} overflow-hidden pb-0 transition-[width,height] ${layoutClass} ${opened !== null && layoutClass === SELECT_CLASS ? AFTER_COVER : ""} hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
       onMouseLeave={() => setHoveredSection(null)}
     >
@@ -607,6 +660,7 @@ function Strip({
                 media={media}
                 columnOpen={opened === section}
                 landingMode={opened === null}
+                section={section}
                 panelHovered={pointerOver === section}
                 expanded={expanded[i] ?? false}
                 onExpand={() => expandCover(i)}
@@ -626,11 +680,19 @@ function Strip({
 
       {shown && (
         <div
-          // Held back through landing mode; fades in once a section is chosen.
-          // Out of reach until then too — no tab stops in it.
-          inert={opened === null}
+          // Shown in the open column only, fading in once the columns have
+          // moved — picked out of landing mode, or swapped to (AFTER_SELECT,
+          // AFTER_SWITCH); fading out at once. Out of reach while hidden too
+          // — no tab stops in it.
+          inert={opened !== section}
           className={`pointer-events-none absolute inset-x-0 top-[62.5%] z-10 flex flex-col gap-y-2 px-5.5 transition-opacity ${REVEAL_CLASS} ${
-            opened !== null ? "" : "opacity-0"
+            opened === section
+              ? justPicked
+                ? AFTER_SELECT
+                : layoutClass === SWITCH_CLASS
+                  ? AFTER_SWITCH
+                  : ""
+              : "opacity-0"
           }`}
         >
           <InfoLayout
@@ -649,7 +711,13 @@ function Strip({
       )}
 
       {showSoundToggle && (
-        <div className="hidden lg:grid fixed bottom-0 inset-x-0 z-40 grid-cols-4 pointer-events-none">
+        <div
+          // Fades in as it appears — after the columns have moved, when just
+          // picked out of landing mode (with the nav; see AFTER_SELECT).
+          className={`hidden lg:grid fixed bottom-0 inset-x-0 z-40 grid-cols-4 pointer-events-none transition-opacity ${REVEAL_CLASS} starting:opacity-0 ${
+            justPicked ? AFTER_SELECT : ""
+          }`}
+        >
           <Button
             variant="link"
             size="sm"

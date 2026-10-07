@@ -47,29 +47,7 @@ export default function NameMark({
 }) {
   const [shown, setShown] = useState(instant ? WORDS : 0);
 
-  // As a watermark, blue while the pointer is pressed — desktop only; on
-  // mobile every touch is a press, so it stays grey.
-  const [pressed, setPressed] = useState(false);
-  useEffect(() => {
-    if (!watermark) return;
-    const desktop = window.matchMedia("(min-width: 64rem)");
-    const down = () => {
-      if (desktop.matches) setPressed(true);
-    };
-    const up = () => setPressed(false);
-    window.addEventListener("pointerdown", down);
-    window.addEventListener("pointerup", up);
-    window.addEventListener("pointercancel", up);
-    return () => {
-      window.removeEventListener("pointerdown", down);
-      window.removeEventListener("pointerup", up);
-      window.removeEventListener("pointercancel", up);
-    };
-  }, [watermark]);
-  const tint =
-    blue || pressed
-      ? "text-blue-700"
-      : "text-neutral-400 dark:text-neutral-500";
+  const tint = blue ? "text-blue-700" : "text-neutral-400 dark:text-neutral-500";
 
   const acrossY = useMotionValue(0);
   const downX = useMotionValue(0);

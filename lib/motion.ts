@@ -36,6 +36,9 @@ export const DURATION = {
   selectDesktop: ms(850),
   /** Home: swapping straight from one open column to the other. */
   switch: ms(550),
+  /** Home: leaving landing mode, the cover settling before the columns
+   * move (see AFTER_COVER in HomeClient). */
+  coverStep: ms(400),
 } as const;
 
 // Curves.
@@ -62,6 +65,7 @@ export const motionCssVars = {
   "--motion-select": `${DURATION.select}ms`,
   "--motion-select-desktop": `${DURATION.selectDesktop}ms`,
   "--motion-switch": `${DURATION.switch}ms`,
+  "--motion-cover-step": `${DURATION.coverStep}ms`,
   "--motion-ease-reveal": cubic(REVEAL_EASE),
   "--motion-ease-select": cubic(SELECT_EASE),
   "--motion-ease-select-desktop": cubic(SELECT_EASE_DESKTOP),
@@ -81,6 +85,19 @@ export const SELECT_CLASS =
   "duration-(--motion-select) ease-(--motion-ease-select) lg:duration-(--motion-select-desktop) lg:ease-(--motion-ease-select-desktop)";
 export const SWITCH_CLASS =
   "duration-(--motion-switch) ease-(--motion-ease-switch)";
+// Leaving landing mode, in order: the cover's gaps settle (cover step); the
+// columns resize (select — desktop's or mobile's); then InfoLayout, the nav
+// and the buttons fade in. AFTER_SELECT holds that last step back until the
+// first two are done.
+export const AFTER_SELECT =
+  "delay-[calc(var(--motion-cover-step)_+_var(--motion-select))] lg:delay-[calc(var(--motion-cover-step)_+_var(--motion-select-desktop))]";
+// Swapping columns: the incoming column's InfoLayout fades in once the swap
+// is done.
+export const AFTER_SWITCH = "delay-(--motion-switch)";
+
+/** The cover's quick first step out of landing mode, on the swap's curve. */
+export const COVER_STEP_CLASS =
+  "duration-(--motion-cover-step) ease-(--motion-ease-switch)";
 /** Hover colour changes and other quick feedback. */
 export const HOVER_CLASS = "duration-(--motion-hover) ease-out";
 export const QUICK_CLASS = "duration-(--motion-quick) ease-out";
