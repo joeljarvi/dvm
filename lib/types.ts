@@ -17,13 +17,25 @@ export type AboutLink = {
   description: string;
 };
 
+export type ConnectLink = {
+  label: string;
+  url: string;
+};
+
+export type Connect = {
+  email?: string;
+  phone?: string;
+  instagram?: string;
+  other?: ConnectLink[];
+};
+
 export type About = {
   shortBio?: PortableTextBlock[];
   longBio?: PortableTextBlock[];
   bioImageUrl?: string;
-  phone?: string;
-  email?: string;
   links?: AboutLink[];
+  /** From the separate Connect document. */
+  connect?: Connect;
 };
 
 export type Project = {

@@ -28,17 +28,6 @@ export const about = defineType({
       options: { hotspot: true },
     }),
     defineField({
-      name: "phone",
-      title: "Phone",
-      type: "string",
-    }),
-    defineField({
-      name: "email",
-      title: "Email",
-      type: "string",
-      validation: (Rule) => Rule.email(),
-    }),
-    defineField({
       name: "links",
       title: "Links",
       type: "array",

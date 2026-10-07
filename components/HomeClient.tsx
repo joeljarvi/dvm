@@ -97,7 +97,9 @@ function useColumnTempo(opened: Section) {
   return tempo;
 }
 
-const LANDING_COVER_WIDTH = "max-w-1/2";
+// Halved on mobile only, where the landing panels split the height. On
+// desktop the cover is already the size it will be once its column opens.
+const LANDING_COVER_WIDTH = "max-w-1/2 lg:max-w-full";
 
 export const COVER_STAGE_CLASS = "flex flex-col p-0 lg:py-28";
 // The frame is a size container, and the media is capped in its units
@@ -167,9 +169,10 @@ function Cover({
     if (inView) onEnter();
   }, [inView, onEnter]);
 
-  // Capped like the box around it (half the frame in landing mode), and
-  // animated with it, so the box never has to crop it mid-transition.
-  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw]" : "max-w-[100cqw]"} transition-[max-width] ${layoutClass}`;
+  // Capped like the box around it (half the frame in landing mode on
+  // mobile), and animated with it, so the box never has to crop it
+  // mid-transition.
+  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw] lg:max-w-[100cqw]" : "max-w-[100cqw]"} transition-[max-width] ${layoutClass}`;
 
   const mediaNode =
     media.type === "file" ? (
@@ -435,7 +438,9 @@ function Strip({
   const shown = projects[active] ?? projects[0];
   const shownImages = columnImages[active] ?? [];
   const activeMedia = shownImages[frames[active] ?? 0] ?? shownImages[0];
-  const showSoundToggle = listens && activeMedia?.type === "file";
+  // Not in landing mode — only once a column is open.
+  const showSoundToggle =
+    opened !== null && listens && activeMedia?.type === "file";
 
   return (
     <div

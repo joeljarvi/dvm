@@ -127,7 +127,7 @@ function ProjectLink({
     <Link
       href={href}
       onClick={onClick}
-      className="group/link pointer-events-auto inline-grid"
+      className="group/link pointer-events-auto inline-grid cursor-zoom-in"
     >
       <span className={`${fade} group-hover/link:opacity-0`}>{children}</span>
       <span

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion, type Variants } from "motion/react";
 import type { Project } from "@/lib/types";
 import { clients, models } from "@/lib/data";
 import { coverImages } from "@/components/HomeClient";
@@ -11,6 +12,25 @@ import {
   useProjectVisibility,
 } from "@/lib/projectVisibility";
 import { Button } from "./ui/button";
+import { REVEAL_TRANSITION, STAGGER, fadeItem } from "@/lib/motion";
+
+// A client's dropdown of titles: opens, then the titles fade in one by one;
+// closing, they fade out one by one from the last, then it closes.
+const submenu: Variants = {
+  hidden: {
+    height: 0,
+    transition: {
+      ...REVEAL_TRANSITION,
+      when: "afterChildren",
+      staggerChildren: STAGGER,
+      staggerDirection: -1,
+    },
+  },
+  visible: {
+    height: "auto",
+    transition: { ...REVEAL_TRANSITION, staggerChildren: STAGGER },
+  },
+};
 
 export type Category = "commissioned" | "personal";
 
@@ -37,6 +57,28 @@ const CATEGORY_STORAGE_KEY = "index-section-category";
 
 const projectKey = (project: Project, i: number) =>
   project.slug ?? `${project.title}-${i}`;
+
+// A client's projects, together under its name, in the order the client
+// first appears. A project with no client stands alone under its title.
+// "&" reads as "and", so "Björk & Berries" and "björk and berries" are one
+// client, shown as "Björk and Berries" (spelled as it first appears).
+const spellOutAmpersand = (name: string) =>
+  name
+    .replace(/\s*&\s*/g, " and ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const groupByClient = (entries: Project[]) => {
+  const groups = new Map<string, { name: string; items: Project[] }>();
+  for (const project of entries) {
+    const name = spellOutAmpersand(project.client ?? project.title);
+    const key = name.toLowerCase();
+    const group = groups.get(key) ?? { name, items: [] };
+    group.items.push(project);
+    groups.set(key, group);
+  }
+  return [...groups.values()];
+};
 
 const getHashCategory = (): Category | null => {
   if (typeof window === "undefined") {
@@ -92,6 +134,8 @@ export default function IndexSection({
 
   const visibility = useProjectVisibility();
   const [hovered, setHovered] = useState<Project | null>(null);
+  // The client whose projects are dropped down, as `${category}:${name}`.
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   // Resolve URL/localStorage state on the client.
@@ -233,7 +277,7 @@ export default function IndexSection({
               className={`
                 ${
                   category === "commissioned"
-                    ? "columns-2 [column-fill:auto]"
+                    ? "lg:columns-2 [column-fill:auto]"
                     : ""
                 }
                 items-start justify-start
@@ -247,25 +291,70 @@ export default function IndexSection({
                 [&::-webkit-scrollbar]:hidden
               `}
             >
-              {entries.map((project, i) => (
-                <li
-                  key={projectKey(project, i)}
-                  className="break-inside-avoid"
-                  onMouseEnter={() => setHovered(project)}
-                  onMouseLeave={() => setHovered(null)}
-                >
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => select(project, category)}
-                    className={`truncate h-auto justify-start text-blue-700 dark:text-blue-700 text-left cursor-pointer hover:text-blue-700 dark:hover:text-blue-700 ${
-                      project.client ? "" : "capitalize"
-                    }`}
+              {groupByClient(entries).map(({ name, items }, i) => {
+                const [first] = items;
+                // More than one project: the name drops down their titles
+                // rather than going straight to the project.
+                const multiple = items.length > 1;
+                const groupKey = `${category}:${name}`;
+                const open = multiple && openGroup === groupKey;
+
+                return (
+                  <li
+                    key={multiple ? groupKey : projectKey(first, i)}
+                    className="break-inside-avoid"
+                    onMouseLeave={() => setHovered(null)}
                   >
-                    {project.client ?? project.title}
-                  </Button>
-                </li>
-              ))}
+                    <Button
+                      variant="link"
+                      size="sm"
+                      aria-expanded={multiple ? open : undefined}
+                      onMouseEnter={() => setHovered(first)}
+                      onClick={() =>
+                        multiple
+                          ? setOpenGroup(open ? null : groupKey)
+                          : select(first, category)
+                      }
+                      className={`truncate h-auto justify-start text-blue-700 dark:text-blue-700 text-left cursor-pointer hover:text-blue-700 dark:hover:text-blue-700 ${
+                        first.client ? "" : "capitalize"
+                      }`}
+                    >
+                      {name}
+                    </Button>
+
+                    <AnimatePresence initial={false}>
+                      {open && (
+                        <motion.ul
+                          key="submenu"
+                          variants={submenu}
+                          initial="hidden"
+                          animate="visible"
+                          exit="hidden"
+                          className="pl-[25vw] w-[75vw] lg:pl-5.5 lg:w-full overflow-hidden"
+                        >
+                          {items.map((project, j) => (
+                            <motion.li
+                              key={projectKey(project, j)}
+                              variants={fadeItem}
+                              className="first:pt-2.5 last:pb-2.5"
+                              onMouseEnter={() => setHovered(project)}
+                            >
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => select(project, category)}
+                                className="w-full truncate h-auto justify-start text-blue-700 dark:text-blue-700 text-left capitalize cursor-pointer hover:text-blue-700 dark:hover:text-blue-700"
+                              >
+                                {project.title}
+                              </Button>
+                            </motion.li>
+                          ))}
+                        </motion.ul>
+                      )}
+                    </AnimatePresence>
+                  </li>
+                );
+              })}
             </ul>
 
             <div className="hidden lg:flex absolute bottom-0 left-0 w-full h-32 items-end justify-start px-5.5 text-sm bg-linear-to-t from-background from-25% via-background/70 via-55% to-transparent pointer-events-none">

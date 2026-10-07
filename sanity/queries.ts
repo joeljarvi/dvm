@@ -1,5 +1,5 @@
 import { client } from "@/sanity/client";
-import type { About, Project } from "@/lib/types";
+import type { About, Connect, Project } from "@/lib/types";
 
 export type Category = "personal" | "commissioned";
 
@@ -40,27 +40,33 @@ export async function fetchAbout(): Promise<About | null> {
       about:
         | (Omit<About, "bioImageUrl"> & { bioImageUrl?: string | null })
         | null;
+      connect: Connect | null;
       latestCommissionedCoverUrl: string | null;
     }>(
       `{
         "about": *[_type == "about"][0]{
           shortBio,
-          longBio, 
-          phone,
-          email,
+          longBio,
           links[]{ title, url, description },
           "bioImageUrl": bioImage.asset->url
+        },
+        "connect": *[_type == "connect"][0]{
+          email,
+          phone,
+          instagram,
+          other[]{ label, url }
         },
         "latestCommissionedCoverUrl": *[_type == "project" && category == "commissioned" && defined(coverImage)] | order(dateAdded desc)[0].coverImage.asset->url
       }`,
       {},
-      { next: { tags: ["about", "project"] } },
+      { next: { tags: ["about", "connect", "project"] } },
     );
 
-    if (!result.about) return null;
+    if (!result.about) return result.connect ? { connect: result.connect } : null;
 
     return {
       ...result.about,
+      connect: result.connect ?? undefined,
       bioImageUrl:
         result.about.bioImageUrl ??
         result.latestCommissionedCoverUrl ??

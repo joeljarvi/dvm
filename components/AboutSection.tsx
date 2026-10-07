@@ -17,7 +17,7 @@ const FALLBACK_BIO = [
   "Alongside commissioned work, an ongoing personal practice focuses on nature, form, and belonging.",
 ];
 const FALLBACK_PHONE = "+46708247484";
-const FALLBACK_EMAIL = "daniel@vonmalmborg.com";
+const FALLBACK_EMAIL = "daniel@danielvonmalmborg.com";
 const INSTAGRAM_HANDLE = "https://www.instagram.com/daniel.external/";
 const FALLBACK_LINKS = [
   {
@@ -43,27 +43,18 @@ const bioComponents: PortableTextComponents = {
 };
 
 export default function AboutSection({ about }: { about?: About | null }) {
-  const phone = about?.phone ?? FALLBACK_PHONE;
-  const email = about?.email ?? FALLBACK_EMAIL;
+  const phone = about?.connect?.phone ?? FALLBACK_PHONE;
+  const email = about?.connect?.email ?? FALLBACK_EMAIL;
+  const instagram = about?.connect?.instagram ?? INSTAGRAM_HANDLE;
+  const otherConnect = about?.connect?.other ?? [];
   const links = about?.links?.length ? about.links : FALLBACK_LINKS;
   const bioImageUrl = about?.bioImageUrl;
   // Column 3 holds one of the two at a time; the switch sits at the bottom of
   // column 2, the way IndexSection's Selected / Show All does.
   const [view, setView] = useState<"bio" | "links">("bio");
   // The bio image sits behind everything, dimmed and blurred — the way
-  // IndexSection previews a hovered project. On desktop it comes up only while
-  // the name or the bio is hovered, never over Links; on mobile, with no
-  // hover, it's always there.
+  // IndexSection previews a hovered project — and is always there.
   const previewImage = bioImageUrl ?? null;
-  const [bioHovered, setBioHovered] = useState(false);
-  const hoverBio =
-    view === "bio"
-      ? {
-          onMouseEnter: () => setBioHovered(true),
-          onMouseLeave: () => setBioHovered(false),
-        }
-      : {};
-  const previewOnDesktop = view === "bio" && bioHovered;
 
   return (
     <div
@@ -72,11 +63,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
     >
       {previewImage && (
         // Fixed on mobile, so it stays put while the bio scrolls over it.
-        <div
-          className={`fixed lg:absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none ${
-            previewOnDesktop ? "" : "lg:hidden"
-          }`}
-        >
+        <div className="fixed lg:absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none">
           <BlurredPreview
             media={{ url: previewImage, type: "image" }}
             className="max-lg:py-28"
@@ -100,7 +87,6 @@ export default function AboutSection({ about }: { about?: About | null }) {
         animate="visible"
       >
         <motion.h3
-          {...hoverBio}
           variants={fadeItem}
           className="hidden lg:flex col-start-3 lg:row-start-1 h-14 items-center px-5.5 font-normal text-blue-700 whitespace-nowrap"
         >
@@ -108,7 +94,6 @@ export default function AboutSection({ about }: { about?: About | null }) {
         </motion.h3>
 
         <div
-          {...hoverBio}
           className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8rem] font-normal pl-5.5 pr-0 lg:px-5.5 leading-tight tracking-wide gap-y-4 max-w-3/4 lg:max-w-full text-blue-700  mb-0 lg:mb-12"
         >
           {view === "bio" ? (
@@ -178,7 +163,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
             asChild
           >
             <Link
-              href={`https://instagram.com/${INSTAGRAM_HANDLE}`}
+              href={instagram}
               target="_blank"
               rel="noopener noreferrer"
               className=""
@@ -186,6 +171,24 @@ export default function AboutSection({ about }: { about?: About | null }) {
               Instagram
             </Link>
           </Button>
+          {otherConnect.map((item) => (
+            <Button
+              key={item.url}
+              variant="link"
+              size="sm"
+              className="text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 h-auto   justify-start"
+              asChild
+            >
+              <Link
+                href={item.url}
+                {...(/^https?:/.test(item.url)
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+              >
+                {item.label}
+              </Link>
+            </Button>
+          ))}
         </span>
       </motion.div>
       {/* Mobile: on the heading's line (the content's first row, below the
@@ -199,10 +202,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
               size="sm"
               aria-pressed={view === v}
               className={` capitalize text-right lg:px-0 lg:text-center justify-end lg:justify-center hover:text-blue-700 dark:hover:text-blue-700 ${view === v ? "text-blue-700 dark:text-blue-700" : "text-neutral-400 dark:text-neutral-500"}`}
-              onClick={() => {
-                setView(v);
-                setBioHovered(false);
-              }}
+              onClick={() => setView(v)}
             >
               {v}
             </Button>

@@ -4,6 +4,10 @@ import { motion } from "motion/react";
 import { useRegisterModal } from "@/lib/modalStack";
 import { REVEAL_CLASS, slideReveal } from "@/lib/motion";
 
+// What a click inside the panel may land on without closing it: the
+// controls, and the lists' rows (a row's padding included).
+const KEEPS_OPEN = "a, button, input, textarea, select, label, li";
+
 export default function InfoOverlay({
   open,
   onDismiss,
@@ -20,6 +24,14 @@ export default function InfoOverlay({
   shadow?: boolean;
 }) {
   useRegisterModal(open, onDismiss);
+
+  // Anywhere else in the panel closes it, like the backdrop does — unless
+  // the click finished selecting some text.
+  const dismissOnEmptyClick = (e: React.MouseEvent) => {
+    if ((e.target as Element).closest(KEEPS_OPEN)) return;
+    if (window.getSelection()?.toString()) return;
+    onDismiss();
+  };
 
   return (
     <div
@@ -42,6 +54,7 @@ export default function InfoOverlay({
         }`}
       />
       <div
+        onClick={dismissOnEmptyClick}
         className={`absolute ${panelClassName} bg-background/60 dark:bg-background/70 backdrop-blur-xs ${shadow ? "shadow-2xl" : ""} transition-opacity ${REVEAL_CLASS} ${
           open ? "opacity-100" : "opacity-0"
         }`}
