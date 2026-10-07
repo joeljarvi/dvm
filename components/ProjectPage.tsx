@@ -7,7 +7,7 @@ import Link from "next/link";
 import type { Project } from "@/lib/types";
 import type { Category } from "@/sanity/queries";
 import { mediaAlt, sanityImage } from "@/lib/image";
-import { useSoundFadeIn } from "@/lib/soundFade";
+import { useSoundFade } from "@/lib/soundFade";
 import { coverImages, morphName } from "@/components/HomeClient";
 import {
   clearDetailFrame,
@@ -123,9 +123,9 @@ export default function ProjectPage({
 
   // `inFullScreen`: the copy in the full-screen layer. Only whichever is
   // showing gets the sound.
-  // The full-screen copy is the one heard; Play Sound fades it in.
+  // The full-screen copy is the one heard; its sound fades in and out.
   const fullScreenVideo = useRef<HTMLVideoElement>(null);
-  useSoundFadeIn(fullScreenVideo, !soundOn, current?.url);
+  useSoundFade(fullScreenVideo, !soundOn, current?.url);
 
   const mediaEl = (className: string, inFullScreen = false) =>
     current?.type === "file" ? (
@@ -136,7 +136,9 @@ export default function ProjectPage({
         src={current.url}
         className={className}
         autoPlay
-        muted={!soundOn || fullScreen !== inFullScreen}
+        // Starts muted, to autoplay. The full-screen copy is unmuted by
+        // useSoundFade; the one behind it stays silent.
+        muted
         loop
         playsInline
         // Described once, on the full-screen copy that's showing.

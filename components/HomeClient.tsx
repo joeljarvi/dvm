@@ -14,7 +14,7 @@ import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
 import type { ScrollCallback } from "lenis";
 import type { About, Project, ProjectMedia } from "@/lib/types";
 import { mediaAlt, sanityImage } from "@/lib/image";
-import { useSoundFadeIn } from "@/lib/soundFade";
+import { useSoundFade } from "@/lib/soundFade";
 import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/site";
 import {
   setHoveredSection,
@@ -217,8 +217,8 @@ function Cover({
     if (playing) el.play().catch(() => {});
     else el.pause();
   }, [playing, src]);
-  // Play Sound fades it in.
-  useSoundFadeIn(video, muted, src);
+  // Its sound fades in and out (and is muted by this, not the prop below).
+  useSoundFade(video, muted, src);
 
   const mediaNode =
     media.type === "file" ? (
@@ -230,7 +230,8 @@ function Cover({
         // a video's first frame otherwise.
         autoPlay={playing}
         preload={priority ? "auto" : "metadata"}
-        muted={muted}
+        // Starts muted, to autoplay; useSoundFade unmutes it.
+        muted
         loop
         playsInline
         aria-label={alt}
