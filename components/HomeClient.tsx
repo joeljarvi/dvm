@@ -67,34 +67,6 @@ export function coverImages(
   return media.length ? media : [{ url: fallbackSrc, type: "image" }];
 }
 
-// Always there, and shrunk to nothing out of landing mode rather than
-// removed — so the cover glides to its place instead of jumping there.
-// The gap on the side facing the other panel ("inner") takes a third of what
-// the outer one does, drawing the two covers together: above and below each
-// other on mobile, side by side on desktop (the frame runs as a row there).
-function landingGap(
-  section: Exclude<Section, null>,
-  side: "before" | "after",
-  landingMode: boolean,
-  layoutClass: string,
-) {
-  const inner =
-    (section === "personal" && side === "after") ||
-    (section === "commissioned" && side === "before");
-  // Out of landing mode: on mobile the gaps close (only once the panels have
-  // finished resizing). On desktop they even out instead of closing — the
-  // cover ends up centred either way, but this way only the outer gap
-  // changes, in step with the column widening, so the cover just glides
-  // across. Closing both at once let flexbox share out the shrinking space
-  // unevenly, and the cover lurched.
-  const grow = landingMode
-    ? inner
-      ? "grow"
-      : "grow-3"
-    : "grow-0 max-lg:delay-(--motion-select) lg:grow";
-  return `basis-0 shrink-0 ${grow} transition-[flex-grow] ${layoutClass}`;
-}
-
 /**
  * How the columns move when the open one changes: unhurried, like the
  * landing, when one is first picked (or landing mode comes back), and brief
@@ -114,6 +86,17 @@ function useColumnTempo(opened: Section) {
 // Halved on mobile only, where the landing panels split the height. On
 // desktop the cover is already the size it will be once its column opens.
 const LANDING_COVER_WIDTH = "max-w-1/2 lg:max-w-full";
+
+// Desktop, a section open: covers are capped by the screen (its width less
+// the column's gutters), not by their column. Swapping Personal and
+// Commissioned, one column narrows to nothing as the other widens, and a
+// cover capped by its column shrank and grew with it; capped by the screen,
+// it keeps its size and the column just slides across it, cropping — the
+// view moves, the picture doesn't scale. Held centred in its column (the
+// frame's justify-center, which lets it overflow both sides evenly).
+const OPEN_COVER_WIDTH =
+  "max-w-full lg:max-w-[calc(100vw-2.75rem)] lg:shrink-0";
+const OPEN_MEDIA_WIDTH = "max-w-[100cqw] lg:max-w-[calc(100vw-2.75rem)]";
 
 export const COVER_STAGE_CLASS = "flex flex-col p-0 lg:py-28";
 // The frame is a size container, and the media is capped in its units
@@ -168,7 +151,6 @@ function Cover({
   alt,
   landingMode,
   panelHovered,
-  section,
   morph = false,
   repeat = false,
   priority = false,
@@ -176,7 +158,6 @@ function Cover({
 }: {
   project: Project;
   media: ProjectMedia;
-  section: Exclude<Section, null>;
 
   columnOpen: boolean;
   landingMode: boolean;
@@ -212,7 +193,7 @@ function Cover({
   // Capped like the box around it (half the frame in landing mode on
   // mobile), and animated with it, so the box never has to crop it
   // mid-transition.
-  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw] lg:max-w-[100cqw]" : "max-w-[100cqw]"} transition-[max-width] ${layoutClass}`;
+  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw] lg:max-w-[100cqw]" : OPEN_MEDIA_WIDTH} transition-[max-width] ${layoutClass}`;
 
   // A video plays throughout once its column is open, but in landing mode
   // only while its panel is hovered — paused where it was when it isn't.
@@ -268,13 +249,10 @@ function Cover({
       data-slug={project.slug ?? project.title}
       className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height] ${layoutClass} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
     >
-      <div className={`${COVER_FRAME_CLASS} lg:flex-row`}>
+      {/* Centred in its column, landing mode or open. */}
+      <div className={COVER_FRAME_CLASS}>
         <div
-          aria-hidden
-          className={landingGap(section, "before", landingMode, layoutClass)}
-        />
-        <div
-          className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} transition-[max-width] ${layoutClass}`}
+          className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : OPEN_COVER_WIDTH} transition-[max-width] ${layoutClass}`}
         >
           {/* Landing veil, over the image only — what's between the covers
               stays clear, so the section label beneath them reads sharp.
@@ -313,10 +291,6 @@ function Cover({
             {mediaNode}
           </ViewTransition>
         </div>
-        <div
-          aria-hidden
-          className={landingGap(section, "after", landingMode, layoutClass)}
-        />
       </div>
     </div>
   );
@@ -634,7 +608,6 @@ function Strip({
                 columnOpen={opened === section}
                 landingMode={opened === null}
                 panelHovered={pointerOver === section}
-                section={section}
                 expanded={expanded[i] ?? false}
                 onExpand={() => expandCover(i)}
                 onStepImage={(delta) => stepImage(i, delta)}
