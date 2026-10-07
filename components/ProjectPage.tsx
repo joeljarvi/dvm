@@ -257,7 +257,7 @@ export default function ProjectPage({
                 onClick={() => setSoundOn((v) => !v)}
                 className={`hidden lg:inline-flex ${barButton} ${soundOn ? "text-blue-700" : "text-neutral-400"}`}
               >
-                {soundOn ? "Sound On" : "Sound Off"}
+                {soundOn ? "Sound Off" : "Sound On"}
               </Button>
             )}
           </div>

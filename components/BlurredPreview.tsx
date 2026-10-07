@@ -5,6 +5,7 @@ import {
   MEDIA_CLASS,
   mediaSrc,
 } from "@/components/HomeClient";
+import { ENTRANCE_CLASS } from "@/lib/motion";
 
 /**
  * Media laid out like a home cover, dimmed and blurred, for the background
@@ -27,15 +28,19 @@ export default function BlurredPreview({
   media,
   alt = "",
   className = "",
+  sharp = false,
 }: {
   media: ProjectMedia;
   alt?: string;
   /** Extra classes for the stage, e.g. padding. */
   className?: string;
+  /** Unblurred, slowly. The blur goes to 0px rather than none, so it
+   * animates both ways. */
+  sharp?: boolean;
 }) {
   return (
     <div
-      className={`w-full h-dvh bg-background blur-xs opacity-30 dark:opacity-10 ${COVER_STAGE_CLASS} ${className}`}
+      className={`w-full h-dvh bg-background ${sharp ? "blur-[0px]" : "blur-xs"} transition-[filter] ${ENTRANCE_CLASS} opacity-30 dark:opacity-10 ${COVER_STAGE_CLASS} ${className}`}
     >
       <div className={COVER_FRAME_CLASS}>
         <div className="relative inline-flex max-h-full max-w-full">

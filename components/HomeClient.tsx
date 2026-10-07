@@ -9,7 +9,6 @@ import {
   useState,
   ViewTransition,
 } from "react";
-import { motion } from "motion/react";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
 import type { ScrollCallback } from "lenis";
 import type { About, Project, ProjectMedia } from "@/lib/types";
@@ -29,7 +28,6 @@ import {
   REVEAL_CLASS,
   ENTRANCE_CLASS,
   HOVER_CLASS,
-  REVEAL_TRANSITION,
   SELECT_CLASS,
   SWITCH_CLASS,
 } from "@/lib/motion";
@@ -137,7 +135,6 @@ function Cover({
   onEnter,
   muted = true,
   landingMode,
-  lifted,
   section,
   morph = false,
   layoutClass,
@@ -148,8 +145,6 @@ function Cover({
 
   columnOpen: boolean;
   landingMode: boolean;
-  /** Landing mode, its panel hovered. */
-  lifted: boolean;
   expanded: boolean;
   onExpand: () => void;
   onStepImage: (delta: number) => void;
@@ -207,11 +202,7 @@ function Cover({
     >
       <div className={COVER_FRAME_CLASS}>
         <div aria-hidden className={landingGap(section, "before", landingMode, layoutClass)} />
-        <motion.div
-          // In landing mode, lifts slightly while its panel is hovered (the
-          // panel's click target sits over the image there).
-          animate={{ y: lifted ? -6 : 0 }}
-          transition={REVEAL_TRANSITION}
+        <div
           className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} transition-[max-width] ${layoutClass}`}
         >
           {/* Landing veil, over the image only — what's between the covers
@@ -245,7 +236,7 @@ function Cover({
           >
             {mediaNode}
           </ViewTransition>
-        </motion.div>
+        </div>
         <div aria-hidden className={landingGap(section, "after", landingMode, layoutClass)} />
       </div>
     </div>
@@ -494,7 +485,6 @@ function Strip({
                 media={media}
                 columnOpen={opened === section}
                 landingMode={opened === null}
-                lifted={opened === null && pointerOver === section}
                 section={section}
                 expanded={expanded[i] ?? false}
                 onExpand={() => expandCover(i)}
@@ -543,7 +533,7 @@ function Strip({
             }}
             className={`col-start-4 justify-self-start pointer-events-auto  text-[0.8rem] tracking-wide hover:text-blue-700 transition-colors ${HOVER_CLASS} cursor-pointer ${soundOn ? "text-blue-700" : "text-neutral-400 "}`}
           >
-            {soundOn ? "Sound On" : "Sound Off"}
+            {soundOn ? "Sound Off" : "Sound On"}
           </Button>
         </div>
       )}

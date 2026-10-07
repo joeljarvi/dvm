@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { fadeItem, staggerContainer } from "@/lib/motion";
@@ -55,18 +55,40 @@ export default function AboutSection({ about }: { about?: About | null }) {
   // The bio image sits behind everything, dimmed and blurred — the way
   // IndexSection previews a hovered project — and is always there.
   const previewImage = bioImageUrl ?? null;
+  // The image sits behind everything and takes no pointer events, so
+  // whether it's hovered is worked out from where the pointer is.
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [imageHovered, setImageHovered] = useState(false);
+  const trackImageHover = (e: React.MouseEvent) => {
+    const rect = previewRef.current
+      ?.querySelector("img")
+      ?.getBoundingClientRect();
+    setImageHovered(
+      !!rect &&
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom,
+    );
+  };
 
   return (
     <div
       data-lenis-prevent
+      onMouseMove={trackImageHover}
+      onMouseLeave={() => setImageHovered(false)}
       className="relative flex flex-col lg:grid pt-28 lg:pt-0 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden lg:overflow-hidden lg:grid-rows-[auto_auto_1fr_auto] lg:grid-cols-4 items-start justify-start w-full h-dvh   font-diatype font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 lg:gap-x-0 gap-y-16 lg:gap-y-0  lg:tracking-normal  text-blue-700 lg:text-neutral-300      "
     >
       {previewImage && (
         // Fixed on mobile, so it stays put while the bio scrolls over it.
-        <div className="fixed lg:absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none">
+        <div
+          ref={previewRef}
+          className="fixed lg:absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none"
+        >
           <BlurredPreview
             media={{ url: previewImage, type: "image" }}
             className="max-lg:py-28"
+            sharp={imageHovered}
           />
         </div>
       )}
