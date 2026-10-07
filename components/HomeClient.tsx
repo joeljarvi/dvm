@@ -135,6 +135,7 @@ function Cover({
   onEnter,
   muted = true,
   landingMode,
+  panelHovered,
   section,
   morph = false,
   layoutClass,
@@ -145,6 +146,8 @@ function Cover({
 
   columnOpen: boolean;
   landingMode: boolean;
+  /** Its panel is under the pointer. */
+  panelHovered: boolean;
   expanded: boolean;
   onExpand: () => void;
   onStepImage: (delta: number) => void;
@@ -169,12 +172,23 @@ function Cover({
   // mid-transition.
   const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw] lg:max-w-[100cqw]" : "max-w-[100cqw]"} transition-[max-width] ${layoutClass}`;
 
+  // A video plays throughout once its column is open, but in landing mode
+  // only while its panel is hovered — paused where it was when it isn't.
+  const video = useRef<HTMLVideoElement>(null);
+  const playing = !landingMode || panelHovered;
+  useEffect(() => {
+    const el = video.current;
+    if (!el) return;
+    if (playing) el.play().catch(() => {});
+    else el.pause();
+  }, [playing, src]);
+
   const mediaNode =
     media.type === "file" ? (
       <video
+        ref={video}
         src={src}
         className={mediaClass}
-        autoPlay
         muted={muted}
         loop
         playsInline
@@ -209,13 +223,15 @@ function Cover({
               stays clear, so the section label beneath them reads sharp.
               Hovering the panel fades the whole veil out; the blur itself is
               never animated, since a changing backdrop-filter smears at the
-              edges of the image. */}
+              edges of the image. The hover runs on the brisker reveal; going
+              out of landing mode keeps the column's own timing. On mobile,
+              with no hover, there's no veil at all. */}
           <div
             aria-hidden
-            className={`absolute inset-0 z-[5] pointer-events-none bg-background/60 backdrop-blur-xs transition-opacity ${layoutClass} ${
+            className={`absolute inset-0 z-[5] pointer-events-none bg-background/60 backdrop-blur-xs transition-opacity ${
               landingMode
-                ? "opacity-100 group-hover/strip:opacity-0"
-                : "opacity-0"
+                ? `${REVEAL_CLASS} opacity-100 group-hover/strip:opacity-0 max-lg:opacity-0`
+                : `${layoutClass} opacity-0`
             }`}
           />
           <button
@@ -485,6 +501,7 @@ function Strip({
                 media={media}
                 columnOpen={opened === section}
                 landingMode={opened === null}
+                panelHovered={pointerOver === section}
                 section={section}
                 expanded={expanded[i] ?? false}
                 onExpand={() => expandCover(i)}

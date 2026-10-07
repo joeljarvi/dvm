@@ -43,11 +43,12 @@ export function landingWords(text: string | null | undefined) {
   });
 }
 
-// Where each word sits in its column of three: left, centre, right.
+// Where each word sits: centred, stacked top to bottom on mobile; on
+// desktop, in its column of three — left, centre, right.
 const WORD_ALIGN = [
-  "justify-self-start text-left",
-  "justify-self-center text-center",
-  "justify-self-end text-right",
+  "self-center justify-self-center text-center lg:justify-self-start lg:text-left",
+  "self-center justify-self-center text-center",
+  "self-center justify-self-center text-center lg:justify-self-end lg:text-right",
 ];
 
 export function LandingPrompt({
@@ -65,7 +66,7 @@ export function LandingPrompt({
   return (
     <div
       aria-hidden
-      className={`pointer-events-none absolute inset-0 top-0 lg:top-[62.5%] z-20 grid grid-cols-3 h-dvh lg:h-min items-center py-5.5 lg:py-5.5 px-5.5 whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-neutral-400 dark:text-neutral-500 transition-opacity ${REVEAL_CLASS} ${
+      className={`pointer-events-none absolute inset-0 top-0 lg:top-[62.5%] z-20 flex flex-col justify-between lg:grid lg:grid-cols-3 h-dvh lg:h-min items-center py-5.5 lg:py-5.5 px-5.5 whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-neutral-400 dark:text-neutral-500 transition-opacity ${REVEAL_CLASS} ${
         dismissed ? "opacity-0" : "opacity-100"
       }`}
     >
