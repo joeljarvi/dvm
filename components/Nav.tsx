@@ -61,7 +61,9 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
   const commissionedActive =
     opened === "commissioned" || projectCategory === "commissioned";
 
-  const chosen = !onHome || opened !== null;
+  // Up once a section's chosen — or, over landing mode, while About or Index
+  // is open, so there's a way on from them.
+  const chosen = !onHome || opened !== null || aboutActive || indexActive;
 
   // Over About, Personal and Commissioned both read plain grey — neither is
   // the one showing, and there's no image underneath to blend against.
@@ -74,7 +76,7 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
     : "";
 
   // Home's landing mode — no section picked yet — keeps the nav hidden; it
-  // fades in once a section is chosen.
+  // fades in once a section is chosen, or About or Index opens (see chosen).
   const topChrome = !onHome
     ? chrome
     : chosen
@@ -86,7 +88,9 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
   const hidden = (arrival: string) => arrival !== "";
 
   const corner = (place: string, visible = true, arrival = chrome) =>
-    `fixed ${place} z-[80] flex flex-row items-center gap-0 transition-opacity ${REVEAL_CLASS} ${arrival} ${
+    // Above About and Index (InfoOverlay, z-80); below the full-screen
+    // layers — the 404, /connect (z-90) and a project's image (z-100).
+    `fixed ${place} z-[85] flex flex-row items-center gap-0 transition-opacity ${REVEAL_CLASS} ${arrival} ${
       visible ? "" : "opacity-0 pointer-events-none"
     }`;
 

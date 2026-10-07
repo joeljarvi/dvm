@@ -8,6 +8,7 @@ import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { Button } from "@/components/ui/button";
 import type { About } from "@/lib/types";
 import BlurredPreview from "@/components/BlurredPreview";
+import ConnectLinks from "@/components/ConnectLinks";
 
 // Shown when Sanity has no About document yet — same degradation pattern
 // as the rest of the site (see FALLBACK in IndexSection).
@@ -16,9 +17,6 @@ const FALLBACK_BIO = [
   "Driven by craftsmanship — both my own and that of others — my work focuses on portraying designed objects, spaces, and the people behind the craft.",
   "Alongside commissioned work, an ongoing personal practice focuses on nature, form, and belonging.",
 ];
-const FALLBACK_PHONE = "+46708247484";
-const FALLBACK_EMAIL = "daniel@danielvonmalmborg.com";
-const INSTAGRAM_HANDLE = "https://www.instagram.com/daniel.external/";
 const FALLBACK_LINKS = [
   {
     title: "multi2",
@@ -43,10 +41,6 @@ const bioComponents: PortableTextComponents = {
 };
 
 export default function AboutSection({ about }: { about?: About | null }) {
-  const phone = about?.connect?.phone ?? FALLBACK_PHONE;
-  const email = about?.connect?.email ?? FALLBACK_EMAIL;
-  const instagram = about?.connect?.instagram ?? INSTAGRAM_HANDLE;
-  const otherConnect = about?.connect?.other ?? [];
   const links = about?.links?.length ? about.links : FALLBACK_LINKS;
   const bioImageUrl = about?.bioImageUrl;
   // Column 3 holds one of the two at a time; the switch sits at the bottom of
@@ -160,57 +154,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
         </div>
 
         <span className="order-first lg:order-0 col-start-1 lg:col-start-2 lg:row-start-2 lg:flex lg:flex-col grid grid-cols-4 gap-x-0 lg:px-5.5 font-normal justify-start w-full lg:w-auto">
-          <Button
-            variant="link"
-            size="sm"
-            className="text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 h-auto  justify-start"
-            asChild
-          >
-            <Link href={`tel:${phone}`} className=" ">
-              Phone
-            </Link>
-          </Button>
-          <Button
-            variant="link"
-            size="sm"
-            className="text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min  text-left lg:px-0 h-auto  justify-start"
-            asChild
-          >
-            <Link href={`mailto:${email}`}>Email</Link>
-          </Button>
-          <Button
-            variant="link"
-            size="sm"
-            className="text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 h-auto   justify-start"
-            asChild
-          >
-            <Link
-              href={instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className=""
-            >
-              Instagram
-            </Link>
-          </Button>
-          {otherConnect.map((item) => (
-            <Button
-              key={item.url}
-              variant="link"
-              size="sm"
-              className="text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left lg:px-0 h-auto   justify-start"
-              asChild
-            >
-              <Link
-                href={item.url}
-                {...(/^https?:/.test(item.url)
-                  ? { target: "_blank", rel: "noopener noreferrer" }
-                  : {})}
-              >
-                {item.label}
-              </Link>
-            </Button>
-          ))}
+          <ConnectLinks connect={about?.connect} className="lg:px-0" />
         </span>
       </motion.div>
       {/* Mobile: on the heading's line (the content's first row, below the

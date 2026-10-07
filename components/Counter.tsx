@@ -28,7 +28,7 @@ export default function Counter({
       variant="link"
       size="sm"
       className={cn(
-        "font-normal font-diatype tracking-wide h-auto tabular-nums  px-0 text-blue-700 dark:text-blue-700",
+        "font-normal font-diatype tracking-wide h-auto tabular-nums  px-0 text-blue-700 dark:text-blue-700 lg:text-neutral-400 lg:dark:text-neutral-400",
         className,
       )}
     >

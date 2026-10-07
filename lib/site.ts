@@ -14,4 +14,8 @@ export const SITE_URL = (
     : "https://dvm-zeta.vercel.app")
 ).replace(/\/$/, "");
 
+// Contact details for when Sanity's Connect document has none (About page,
+// llms.txt).
+export const FALLBACK_PHONE = "+46708247484";
+export const FALLBACK_EMAIL = "daniel@danielvonmalmborg.com";
 export const INSTAGRAM_URL = "https://www.instagram.com/daniel.external/";

@@ -40,6 +40,7 @@ import InfoOverlay from "./InfoOverlay";
 import AboutSection from "./AboutSection";
 import IndexSection from "./IndexSection";
 import UnderConstruction from "./UnderConstruction";
+import ConnectPrompt from "./ConnectPrompt";
 
 export function coverImages(
   project: Project,
@@ -797,6 +798,7 @@ export default function HomeClient({
             hovered={hovered}
           />
         </section>
+        <ConnectPrompt active={opened !== null && !overlayUp} />
       </main>
 
       <InfoOverlay open={hash === "about"} onDismiss={() => setHash("")}>

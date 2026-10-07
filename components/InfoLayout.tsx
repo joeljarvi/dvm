@@ -68,21 +68,11 @@ export default function InfoLayout({
             transition={REVEAL_TRANSITION}
             className={`${titleClass} capitalize`}
           >
-            {titleHref ? <SwapLabel>{title}</SwapLabel> : title}
+            {title}
           </motion.h3>
         )}
       </AnimatePresence>
-      {/* With no title of its own showing (none, or the same as the
-            credit), the credit carries the swap instead. */}
-      {credited && (
-        <h3 className={titleClass}>
-          {titleHref && !showTitle ? (
-            <SwapLabel>{credited.text}</SwapLabel>
-          ) : (
-            credited.text
-          )}
-        </h3>
-      )}
+      {credited && <h3 className={titleClass}>{credited.text}</h3>}
       <AnimatePresence initial={false}>
         {revealed && agency && (
           <motion.h3
@@ -101,39 +91,33 @@ export default function InfoLayout({
   );
 
   return (
-    <div className="flex justify-between items-center gap-x-4 w-full font-diatype  font-normal px-0 tracking-wide text-[0.8rem] ">
+    <div className="flex justify-between items-baseline gap-x-4 w-full font-diatype  font-normal px-0 tracking-wide text-[0.8rem] ">
       {titleHref ? (
         <Link
           href={titleHref}
           onClick={onTitleClick}
-          className={`${blockClass} group/link pointer-events-auto cursor-zoom-in`}
+          className={`${blockClass} relative group/link pointer-events-auto cursor-zoom-in`}
         >
-          {block}
+          {/* Hovered anywhere, the whole block crossfades to "Show In
+              Fullscreen" — where the link goes. The lines stay in place,
+              only faded, so the link keeps its size under the pointer. */}
+          <div
+            className={`${blockClass} transition-opacity ${QUICK_CLASS} group-hover/link:opacity-0`}
+          >
+            {block}
+          </div>
+          <span
+            aria-hidden
+            // Its colour follows the lines' (titleClass), its own fade added.
+            className={`${titleClass.replace("transition-colors", "transition-[color,opacity]")} absolute top-0 left-0 whitespace-nowrap opacity-0 group-hover/link:opacity-100`}
+          >
+            Show In Fullscreen
+          </span>
         </Link>
       ) : (
         <div className={blockClass}>{block}</div>
       )}
       <Counter frame={frame} total={total} className={counterClassName} />
     </div>
-  );
-}
-
-// The leading line of the link to a project's page: while the link is
-// hovered, its text crossfades to "Show In Fullscreen" — where the link goes.
-// Both texts sit stacked in one grid cell, so it keeps the width of the
-// longer one either way and never shrinks out from under the pointer
-// mid-swap.
-function SwapLabel({ children }: { children: React.ReactNode }) {
-  const fade = `col-start-1 row-start-1 transition-opacity ${QUICK_CLASS}`;
-  return (
-    <span className="inline-grid">
-      <span className={`${fade} group-hover/link:opacity-0`}>{children}</span>
-      <span
-        aria-hidden
-        className={`${fade} opacity-0 group-hover/link:opacity-100`}
-      >
-        Show In Fullscreen
-      </span>
-    </span>
   );
 }
