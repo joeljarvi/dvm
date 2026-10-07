@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { Project } from "@/lib/types";
 import type { Category } from "@/sanity/queries";
 import { mediaAlt, sanityImage } from "@/lib/image";
+import { useSoundFadeIn } from "@/lib/soundFade";
 import { coverImages, morphName } from "@/components/HomeClient";
 import {
   clearDetailFrame,
@@ -122,9 +123,14 @@ export default function ProjectPage({
 
   // `inFullScreen`: the copy in the full-screen layer. Only whichever is
   // showing gets the sound.
+  // The full-screen copy is the one heard; Play Sound fades it in.
+  const fullScreenVideo = useRef<HTMLVideoElement>(null);
+  useSoundFadeIn(fullScreenVideo, !soundOn, current?.url);
+
   const mediaEl = (className: string, inFullScreen = false) =>
     current?.type === "file" ? (
       <video
+        ref={inFullScreen ? fullScreenVideo : undefined}
         // Lets the screenshot read the pixels of CDN-hosted media.
         crossOrigin={current.url.startsWith("/") ? undefined : "anonymous"}
         src={current.url}

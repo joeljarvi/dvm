@@ -14,6 +14,7 @@ import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
 import type { ScrollCallback } from "lenis";
 import type { About, Project, ProjectMedia } from "@/lib/types";
 import { mediaAlt, sanityImage } from "@/lib/image";
+import { useSoundFadeIn } from "@/lib/soundFade";
 import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/site";
 import {
   setHoveredSection,
@@ -216,6 +217,8 @@ function Cover({
     if (playing) el.play().catch(() => {});
     else el.pause();
   }, [playing, src]);
+  // Play Sound fades it in.
+  useSoundFadeIn(video, muted, src);
 
   const mediaNode =
     media.type === "file" ? (
