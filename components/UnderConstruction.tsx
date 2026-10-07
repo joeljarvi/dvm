@@ -41,6 +41,8 @@ export default function UnderConstruction({ active }: { active: boolean }) {
   return (
     <div
       aria-hidden={dismissed}
+      // Faded out, but still there — and out of reach, links and all.
+      inert={dismissed}
       className={`fixed z-920 h-screen inset-0 bg-background backdrop-blur-xs transition-opacity ${REVEAL_CLASS} flex flex-col gap-y-4 items-center justify-center ${
         dismissed ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}

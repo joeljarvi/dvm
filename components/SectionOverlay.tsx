@@ -4,33 +4,35 @@ export default function SectionOverlay({
   section,
   dismissed,
   onClick,
+  onFocusChange,
 }: {
   section: string;
 
   dismissed: boolean;
   onClick: () => void;
+  /** Focused by keyboard, it stands in for hovering the panel. */
+  onFocusChange?: (focused: boolean) => void;
 }) {
+  // Landing mode's tab stops: Personal, then Commissioned. Gone once a
+  // section is chosen.
   return (
-    // Just the click target now — the veil itself is drawn over each cover
-    // (see Cover in HomeClient), so the section label underneath the images
-    // stays sharp where they don't cover it.
     <button
       type="button"
       onClick={onClick}
-      aria-label={`Show ${section}`}
-      className={`absolute z-900 inset-0 cursor-pointer ${
+      onFocus={() => onFocusChange?.(true)}
+      onBlur={() => onFocusChange?.(false)}
+      tabIndex={dismissed ? -1 : 0}
+      data-section-trigger={section}
+      aria-hidden={dismissed}
+      aria-label={`Show ${section} work`}
+      className={`absolute z-900 inset-0 cursor-pointer outline-none ${
         dismissed ? "pointer-events-none" : ""
       }`}
     />
   );
 }
 
-// The landing prompt — Site Settings' Landing Text in Sanity — spread across
-// the screen above both panels' images: a row on desktop, a column on
-// mobile. Its words come in one at a time on the landing beats, in grey —
-// "Personal" and "Commissioned", wherever they fall in it, turning blue while
-// their panel's images are hovered.
-export const DEFAULT_LANDING_TEXT = "Please Select Personal Or Commissioned";
+export const DEFAULT_LANDING_TEXT = "Personal Or Commissioned";
 
 export function landingWords(text: string | null | undefined) {
   return (text?.trim() || DEFAULT_LANDING_TEXT).split(/\s+/).map((word) => {
@@ -60,12 +62,14 @@ export function LandingPrompt({
   prompt: ReturnType<typeof landingWords>;
   dismissed: boolean;
   hovered: "personal" | "commissioned" | null;
-  /** How many of the prompt's words are in. */
+
   words: number;
 }) {
   return (
     <div
-      aria-hidden
+      // Read out in landing mode; once a section is chosen, the h1 takes
+      // over (see HomeClient).
+      aria-hidden={dismissed}
       className={`pointer-events-none absolute inset-0 top-0 lg:top-[62.5%] z-20 flex flex-col justify-between lg:grid lg:grid-cols-3 h-dvh lg:h-min items-center py-5.5 lg:py-5.5 px-5.5 whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-neutral-400 dark:text-neutral-500 transition-opacity ${REVEAL_CLASS} ${
         dismissed ? "opacity-0" : "opacity-100"
       }`}

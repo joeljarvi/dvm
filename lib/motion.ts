@@ -32,8 +32,10 @@ export const DURATION = {
   entrance: ms(1000),
   /** Home: picking Personal or Commissioned out of landing mode. */
   select: ms(1000),
+  /** The same, a touch quicker on desktop, nearer the swap below. */
+  selectDesktop: ms(850),
   /** Home: swapping straight from one open column to the other. */
-  switch: ms(450),
+  switch: ms(550),
 } as const;
 
 // Curves.
@@ -41,6 +43,8 @@ export const REVEAL_EASE = [0.22, 1, 0.36, 1] as const;
 /** Eases in as well as out, so a column growing across the screen never
  * lurches off the mark — only a soft start, then the long settle. */
 export const SELECT_EASE = [0.45, 0, 0.15, 1] as const;
+/** Desktop's, halfway to the swap's curve, so the two read as one family. */
+export const SELECT_EASE_DESKTOP = [0.39, 0, 0.15, 1] as const;
 /** The same shape, tighter, for the brief column swap. */
 export const SWITCH_EASE = [0.33, 0, 0.15, 1] as const;
 const cubic = (c: readonly number[]) => `cubic-bezier(${c.join(",")})`;
@@ -56,9 +60,11 @@ export const motionCssVars = {
   "--motion-reveal": `${DURATION.reveal}ms`,
   "--motion-entrance": `${DURATION.entrance}ms`,
   "--motion-select": `${DURATION.select}ms`,
+  "--motion-select-desktop": `${DURATION.selectDesktop}ms`,
   "--motion-switch": `${DURATION.switch}ms`,
   "--motion-ease-reveal": cubic(REVEAL_EASE),
   "--motion-ease-select": cubic(SELECT_EASE),
+  "--motion-ease-select-desktop": cubic(SELECT_EASE_DESKTOP),
   "--motion-ease-switch": cubic(SWITCH_EASE),
 } as CSSProperties;
 
@@ -72,7 +78,7 @@ export const ENTRANCE_CLASS =
 /** Home's columns: choosing one out of landing mode, and swapping between
  * the two once one's open (see HomeClient). */
 export const SELECT_CLASS =
-  "duration-(--motion-select) ease-(--motion-ease-select)";
+  "duration-(--motion-select) ease-(--motion-ease-select) lg:duration-(--motion-select-desktop) lg:ease-(--motion-ease-select-desktop)";
 export const SWITCH_CLASS =
   "duration-(--motion-switch) ease-(--motion-ease-switch)";
 /** Hover colour changes and other quick feedback. */

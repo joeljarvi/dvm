@@ -92,8 +92,8 @@
 
 /* Dark palette — mirrors the light theme's contrast (near-white on
    near-black rather than a softened grey), and keeps blue-700 as the one
-   fixed accent color in both themes; nothing here overrides it. Driven
-   purely by the OS/browser preference below, no `.dark` class involved. */
+   fixed accent color in both themes; nothing here overrides it. Driven purely by the OS/browser preference, no `.dark`
+   class involved. */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: oklch(0.145 0 0);

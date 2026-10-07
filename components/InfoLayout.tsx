@@ -53,89 +53,87 @@ export default function InfoLayout({
         "mix-blend-difference text-neutral-400 dark:text-neutral-500 max-lg:mix-blend-normal max-lg:text-blue-700 max-lg:dark:text-blue-700"
   }`;
 
-  return (
-    <div className="flex  justify-between items-baseline gap-x-4 w-full font-diatype  font-normal px-0 tracking-wide text-[0.8rem] ">
-      <div className="justify-self-end flex flex-col items-start text-left">
-        <AnimatePresence initial={false}>
-          {revealed && showTitle && (
-            <motion.h3
-              key="title"
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={REVEAL_TRANSITION}
-              className={`${titleClass} capitalize`}
-            >
-              {titleHref ? (
-                <ProjectLink href={titleHref} onClick={onTitleClick}>
-                  {title}
-                </ProjectLink>
-              ) : (
-                title
-              )}
-            </motion.h3>
-          )}
-        </AnimatePresence>
-        {/* With no title of its own showing (none, or the same as the
-            credit), the credit is the link to the project's page instead. */}
-        {credited && (
-          <h3 className={titleClass}>
-            {titleHref && !showTitle ? (
-              <ProjectLink href={titleHref} onClick={onTitleClick}>
-                {credited.text}
-              </ProjectLink>
-            ) : (
-              credited.text
-            )}
-          </h3>
+  // The whole left block — title, credit and agency — is the link to the
+  // project's page, when there is one.
+  const blockClass = "justify-self-end flex flex-col items-start text-left";
+  const block = (
+    <>
+      <AnimatePresence initial={false}>
+        {revealed && showTitle && (
+          <motion.h3
+            key="title"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={REVEAL_TRANSITION}
+            className={`${titleClass} capitalize`}
+          >
+            {titleHref ? <SwapLabel>{title}</SwapLabel> : title}
+          </motion.h3>
         )}
-        <AnimatePresence initial={false}>
-          {revealed && agency && (
-            <motion.h3
-              key="agency"
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ ...REVEAL_TRANSITION, delay: FOLLOW_DELAY }}
-              className={titleClass}
-            >
-              {agency}
-            </motion.h3>
+      </AnimatePresence>
+      {/* With no title of its own showing (none, or the same as the
+            credit), the credit carries the swap instead. */}
+      {credited && (
+        <h3 className={titleClass}>
+          {titleHref && !showTitle ? (
+            <SwapLabel>{credited.text}</SwapLabel>
+          ) : (
+            credited.text
           )}
-        </AnimatePresence>
-      </div>
+        </h3>
+      )}
+      <AnimatePresence initial={false}>
+        {revealed && agency && (
+          <motion.h3
+            key="agency"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ ...REVEAL_TRANSITION, delay: FOLLOW_DELAY }}
+            className={titleClass}
+          >
+            {agency}
+          </motion.h3>
+        )}
+      </AnimatePresence>
+    </>
+  );
+
+  return (
+    <div className="flex justify-between items-center gap-x-4 w-full font-diatype  font-normal px-0 tracking-wide text-[0.8rem] ">
+      {titleHref ? (
+        <Link
+          href={titleHref}
+          onClick={onTitleClick}
+          className={`${blockClass} group/link pointer-events-auto cursor-zoom-in`}
+        >
+          {block}
+        </Link>
+      ) : (
+        <div className={blockClass}>{block}</div>
+      )}
       <Counter frame={frame} total={total} className={counterClassName} />
     </div>
   );
 }
 
-// The link to a project's page: while hovered, its text crossfades to
-// "Show Fullscreen" — where the link goes. Both texts sit stacked in one
-// grid cell, so the link keeps the width of the longer one either way and
-// never shrinks out from under the pointer mid-swap.
-function ProjectLink({
-  href,
-  onClick,
-  children,
-}: {
-  href: string;
-  onClick?: () => void;
-  children: React.ReactNode;
-}) {
+// The leading line of the link to a project's page: while the link is
+// hovered, its text crossfades to "Show In Fullscreen" — where the link goes.
+// Both texts sit stacked in one grid cell, so it keeps the width of the
+// longer one either way and never shrinks out from under the pointer
+// mid-swap.
+function SwapLabel({ children }: { children: React.ReactNode }) {
   const fade = `col-start-1 row-start-1 transition-opacity ${QUICK_CLASS}`;
   return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className="group/link pointer-events-auto inline-grid cursor-zoom-in"
-    >
+    <span className="inline-grid">
       <span className={`${fade} group-hover/link:opacity-0`}>{children}</span>
       <span
         aria-hidden
         className={`${fade} opacity-0 group-hover/link:opacity-100`}
       >
-        Show Fullscreen
+        Show In Fullscreen
       </span>
-    </Link>
+    </span>
   );
 }

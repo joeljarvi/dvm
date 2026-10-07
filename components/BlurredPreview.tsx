@@ -39,7 +39,10 @@ export default function BlurredPreview({
   sharp?: boolean;
 }) {
   return (
+    // A dimmed copy of media shown elsewhere — decorative, so hidden from
+    // screen readers.
     <div
+      aria-hidden
       className={`w-full h-dvh bg-background ${sharp ? "blur-[0px]" : "blur-xs"} transition-[filter] ${ENTRANCE_CLASS} opacity-30 dark:opacity-10 ${COVER_STAGE_CLASS} ${className}`}
     >
       <div className={COVER_FRAME_CLASS}>

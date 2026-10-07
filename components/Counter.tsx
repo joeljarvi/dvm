@@ -21,15 +21,20 @@ export default function Counter({
 
   return (
     // tabular-nums so the row doesn't shift as the count ticks over.
+    // A span, not a button: it reads the same but isn't a tab stop, since
+    // there's nothing to press.
     <Button
+      asChild
       variant="link"
       size="sm"
       className={cn(
-        "font-normal font-diatype tracking-wide h-auto tabular-nums  px-0 text-neutral-400 dark:text-neutral-600",
+        "font-normal font-diatype tracking-wide h-auto tabular-nums  px-0 text-blue-700 dark:text-blue-700",
         className,
       )}
     >
-      {frame} <span className="">({total})</span>
+      <span>
+        {frame} <span className="">({total})</span>
+      </span>
     </Button>
   );
 }

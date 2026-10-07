@@ -114,10 +114,14 @@ export default function IndexSection({
   projects,
   onSelect,
   initialCategory = "personal",
+  open = true,
 }: {
   projects: Record<Category, Project[]>;
   onSelect?: (project: Project, category: Category) => void;
   initialCategory?: Category;
+  /** Whether its overlay is up. It stays mounted when closed, so closing
+   * it is what clears the search. */
+  open?: boolean;
 }) {
   const router = useRouter();
 
@@ -137,6 +141,11 @@ export default function IndexSection({
   // The client whose projects are dropped down, as `${category}:${name}`.
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (!open) setQuery("");
+  }
 
   // Resolve URL/localStorage state on the client.
   useEffect(() => {
@@ -167,6 +176,9 @@ export default function IndexSection({
     };
   }, []);
 
+  const q = query.trim().toLowerCase();
+  const matches = (text?: string) => !!q && !!text?.toLowerCase().includes(q);
+
   const entriesFor = (category: Category) => {
     const list = projects[category];
     const all = list.length ? list : FALLBACK[category];
@@ -176,13 +188,8 @@ export default function IndexSection({
       : FALLBACK[category];
 
     // A search looks through everything, not just the selection.
-    const q = query.trim().toLowerCase();
     if (q)
-      return all.filter((p) =>
-        [p.title, p.client, p.agency].some((field) =>
-          field?.toLowerCase().includes(q),
-        ),
-      );
+      return all.filter((p) => [p.title, p.client, p.agency].some(matches));
 
     return visibility === "all" ? all : selected;
   };
@@ -214,19 +221,6 @@ export default function IndexSection({
           <BlurredPreview media={preview} alt={hovered?.title} />
         </div>
       )}
-
-      {/* Desktop: along the bottom of column 4, level with the nav's
-          bottom links. */}
-      <div className="hidden lg:flex absolute bottom-0 left-3/4 w-1/4 h-14 z-20 items-center px-5.5">
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search"
-          aria-label="Search projects"
-          className="w-full bg-transparent border-0 p-0 outline-none font-diatype text-[0.8rem] tracking-wide text-blue-700 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:placeholder:text-blue-700 dark:focus:placeholder:text-blue-700 [&::-webkit-search-cancel-button]:hidden"
-        />
-      </div>
 
       <div className="fixed top-[62.5%] right-0 z-40 flex flex-col items-end lg:hidden">
         <Button
@@ -297,7 +291,12 @@ export default function IndexSection({
                 // rather than going straight to the project.
                 const multiple = items.length > 1;
                 const groupKey = `${category}:${name}`;
-                const open = multiple && openGroup === groupKey;
+                // Found by a title rather than the name: dropped down while
+                // searching, so the titles found show.
+                const foundByTitle =
+                  !matches(name) && items.some((p) => matches(p.title));
+                const open =
+                  foundByTitle || (multiple && openGroup === groupKey);
 
                 return (
                   <li
@@ -385,6 +384,20 @@ export default function IndexSection({
           </div>
         );
       })}
+
+      {/* Desktop: along the bottom of column 4, level with the nav's
+          bottom links. After the lists, so it's tabbed to last, as it
+          reads. */}
+      <div className="hidden lg:flex absolute bottom-0 left-3/4 w-1/4 h-14 z-20 items-center px-5.5">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search"
+          aria-label="Search projects"
+          className="w-full bg-transparent border-0 p-0 outline-none font-diatype text-[0.8rem] tracking-wide text-blue-700 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:placeholder:text-blue-700 dark:focus:placeholder:text-blue-700 [&::-webkit-search-cancel-button]:hidden"
+        />
+      </div>
     </div>
   );
 }

@@ -7,15 +7,18 @@ export const PROJECT_FIELDS = `
   title,
   "slug": slug.current,
   "coverImageUrl": coverImage.asset->url,
+  "coverAlt": coverImage.alt,
   "coverVideoUrl": coverVideo.asset->url,
   client,
   agency,
+  description,
   year,
   featured,
   "images": images[defined(asset)]{
     "url": asset->url,
     "type": _type,
-    caption
+    caption,
+    alt
   },
   "credits": credits[]{ role, name }
 `;

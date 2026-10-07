@@ -49,8 +49,13 @@ export const project = defineType({
     }),
     defineField({
       name: 'description',
-      title: 'Description',
+      title: 'Short Description',
+      description:
+        'Optional. One or two sentences about the project, shown in search results and link previews. Around 150 characters reads best.',
       type: 'text',
+      rows: 3,
+      validation: (Rule) =>
+        Rule.max(300).warning('Search results cut off around 150–160 characters.'),
     }),
     defineField({
       name: 'coverImage',
@@ -59,6 +64,15 @@ export const project = defineType({
         'Ignored when a Cover Video is set below — one or the other should be filled in.',
       type: 'image',
       options: { hotspot: true },
+      fields: [
+        defineField({
+          name: 'alt',
+          title: 'Alt Text',
+          description:
+            'Optional. What the image shows, for screen readers and image search.',
+          type: 'string',
+        }),
+      ],
     }),
     defineField({
       name: 'coverVideo',
@@ -77,6 +91,13 @@ export const project = defineType({
           options: { hotspot: true },
           fields: [
             defineField({ name: 'caption', title: 'Caption', type: 'string' }),
+            defineField({
+              name: 'alt',
+              title: 'Alt Text',
+              description:
+                'Optional. What the image shows, for screen readers and image search. Left empty, it reads "Title – image 2 of 5".',
+              type: 'string',
+            }),
           ],
         },
         {
@@ -84,6 +105,13 @@ export const project = defineType({
           options: { accept: 'video/*' },
           fields: [
             defineField({ name: 'caption', title: 'Caption', type: 'string' }),
+            defineField({
+              name: 'alt',
+              title: 'Alt Text',
+              description:
+                'Optional. What the video shows, for screen readers and image search. Left empty, it reads "Title – video 2 of 5".',
+              type: 'string',
+            }),
           ],
         },
       ],

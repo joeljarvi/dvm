@@ -13,7 +13,8 @@ import {
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
 import type { ScrollCallback } from "lenis";
 import type { About, Project, ProjectMedia } from "@/lib/types";
-import { sanityImage } from "@/lib/image";
+import { mediaAlt, sanityImage } from "@/lib/image";
+import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/site";
 import {
   setHoveredSection,
   useHoveredSection,
@@ -55,9 +56,12 @@ export function coverImages(
     ];
   }
   if (project.coverImageUrl) {
-    const cover =
-      media.find((m) => m.url === project.coverImageUrl) ??
-      ({ url: project.coverImageUrl, type: "image" } as ProjectMedia);
+    // The cover's alt text, set on the cover field, applies wherever the
+    // same image also sits in the gallery without one of its own.
+    const inGallery = media.find((m) => m.url === project.coverImageUrl);
+    const cover: ProjectMedia = inGallery
+      ? { ...inGallery, alt: inGallery.alt ?? project.coverAlt }
+      : { url: project.coverImageUrl, type: "image", alt: project.coverAlt };
     return [cover, ...media.filter((m) => m.url !== project.coverImageUrl)];
   }
   return media.length ? media : [{ url: fallbackSrc, type: "image" }];
@@ -74,9 +78,11 @@ function landingGap(
   const inner =
     (section === "personal" && side === "after") ||
     (section === "commissioned" && side === "before");
+  // On mobile, leaving landing mode, the gaps close only once the panels
+  // have finished resizing.
   const grow = landingMode
     ? `${inner ? "grow" : "grow-3"} lg:grow`
-    : "grow-0";
+    : "grow-0 max-lg:delay-(--motion-select)";
   return `basis-0 shrink-0 ${grow} transition-[flex-grow] ${layoutClass}`;
 }
 
@@ -150,10 +156,13 @@ function Cover({
   onStepImage,
   onEnter,
   muted = true,
+  alt,
   landingMode,
   panelHovered,
   section,
   morph = false,
+  repeat = false,
+  priority = false,
   layoutClass,
 }: {
   project: Project;
@@ -169,9 +178,17 @@ function Cover({
   onStepImage: (delta: number) => void;
   onEnter: () => void;
   muted?: boolean;
+  /** The media's alt text (see mediaAlt). */
+  alt: string;
   /** Takes the project's morph name (see morphName) — every cover but the
    * repeat of the first at the end of the loop, which would duplicate it. */
   morph?: boolean;
+  /** The repeat of the first cover that closes the loop — a copy, so hidden
+   * from screen readers and the tab order. */
+  repeat?: boolean;
+  /** The column's first cover — on screen from the start, so loaded first
+   * and in full; the rest wait until they're scrolled near. */
+  priority?: boolean;
   /** Timing for the column's layout change (see useColumnTempo). */
   layoutClass: string;
 }) {
@@ -210,16 +227,18 @@ function Cover({
         // Set from the start where it plays from the start — iOS won't load
         // a video's first frame otherwise.
         autoPlay={playing}
-        preload="auto"
+        preload={priority ? "auto" : "metadata"}
         muted={muted}
         loop
         playsInline
-        aria-label={media.caption}
+        aria-label={alt}
       />
     ) : (
       <img
         src={mediaSrc(src)}
-        alt={media.caption ?? ""}
+        alt={alt}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
         className={mediaClass}
       />
     );
@@ -233,11 +252,15 @@ function Cover({
   return (
     <div
       ref={box}
+      aria-hidden={repeat || undefined}
       data-slug={project.slug ?? project.title}
       className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height] ${layoutClass} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
     >
       <div className={COVER_FRAME_CLASS}>
-        <div aria-hidden className={landingGap(section, "before", landingMode, layoutClass)} />
+        <div
+          aria-hidden
+          className={landingGap(section, "before", landingMode, layoutClass)}
+        />
         <div
           className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : "max-w-full"} transition-[max-width] ${layoutClass}`}
         >
@@ -252,12 +275,15 @@ function Cover({
             aria-hidden
             className={`absolute inset-0 z-[5] pointer-events-none bg-background/60 backdrop-blur-xs transition-opacity ${
               landingMode
-                ? `${REVEAL_CLASS} opacity-100 group-hover/strip:opacity-0 max-lg:opacity-0`
+                ? `${REVEAL_CLASS} opacity-100 group-hover/strip:opacity-0 group-focus-within/strip:opacity-0 max-lg:opacity-0`
                 : `${layoutClass} opacity-0`
             }`}
           />
           <button
             type="button"
+            // Out of the tab order in landing mode, where each panel is one
+            // stop (see SectionOverlay).
+            tabIndex={landingMode || repeat ? -1 : 0}
             aria-label={`Cycle images of ${project.title}`}
             className="absolute inset-0 z-10 cursor-pointer"
             onClick={handleClick}
@@ -275,7 +301,10 @@ function Cover({
             {mediaNode}
           </ViewTransition>
         </div>
-        <div aria-hidden className={landingGap(section, "after", landingMode, layoutClass)} />
+        <div
+          aria-hidden
+          className={landingGap(section, "after", landingMode, layoutClass)}
+        />
       </div>
     </div>
   );
@@ -429,6 +458,12 @@ function Strip({
     });
   }, []);
 
+  // A scroll container is a tab stop of its own in some browsers; this one
+  // is scrolled by the keys below instead, so it's kept out of the order.
+  useEffect(() => {
+    lenisRef.current?.wrapper?.setAttribute("tabindex", "-1");
+  }, []);
+
   useEffect(() => {
     if (!scrollToSlug) return;
     const lenis = lenisRef.current?.lenis;
@@ -439,21 +474,81 @@ function Strip({
     onScrolled?.();
   }, [scrollToSlug, onScrolled]);
 
+  // Open column: ← and → step through the shown project's images, the way
+  // clicking its cover does; Enter follows its title to the project page.
+  // Not under About or Index (when the sound is muted for them too), nor
+  // when a control has focus and Enter is its own.
+  const columnOpen = opened === section;
+  const overlayUp = muteSound;
   useEffect(() => {
-    if (!listens) return;
+    if (!columnOpen || overlayUp) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target?.closest("a, button, input, textarea, select, [contenteditable]")
+      )
+        return;
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+        expandCover(active);
+        stepImage(active, e.key === "ArrowRight" ? 1 : -1);
+      } else if (e.key === "Enter") {
+        const slug = projects[active]?.slug;
+        if (!slug) return;
+        e.preventDefault();
+        // The title's own link, so the page opens just as it does on a click.
+        containerRef.current
+          ?.querySelector<HTMLAnchorElement>(`a[href="/${section}/${slug}"]`)
+          ?.click();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [
+    columnOpen,
+    overlayUp,
+    active,
+    projects,
+    section,
+    expandCover,
+    stepImage,
+  ]);
+
+  useEffect(() => {
+    if (!listens || overlayUp) return;
     const onKey = (e: KeyboardEvent) => {
       const lenis = lenisRef.current?.lenis;
-      if (!lenis) return;
-      const page = window.innerHeight * 0.9;
+      const wrapper = lenisRef.current?.wrapper;
+      if (!lenis || !wrapper) return;
       const back = e.key === "ArrowUp" || (e.key === " " && e.shiftKey);
       const on = e.key === "ArrowDown" || (e.key === " " && !e.shiftKey);
       if (!back && !on) return;
       e.preventDefault();
-      lenis.scrollTo(lenis.scroll + (back ? -page : page));
+      // One cover on, snapped to the middle of the column: from the cover
+      // nearest the middle now, its own height up or down (they're all the
+      // same height), less however far off-centre it sits.
+      const view = wrapper.getBoundingClientRect();
+      const middle = view.top + view.height / 2;
+      let nearest: DOMRect | null = null;
+      for (const el of wrapper.querySelectorAll("[data-slug]")) {
+        const r = el.getBoundingClientRect();
+        if (
+          !nearest ||
+          Math.abs(r.top + r.height / 2 - middle) <
+            Math.abs(nearest.top + nearest.height / 2 - middle)
+        )
+          nearest = r;
+      }
+      if (!nearest) return;
+      const offCentre = nearest.top + nearest.height / 2 - middle;
+      lenis.scrollTo(
+        lenis.scroll + offCentre + (back ? -nearest.height : nearest.height),
+      );
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [listens]);
+  }, [listens, overlayUp]);
 
   // Side by side on desktop; stacked on mobile, where the panels split the
   // height instead — so the chosen one grows by height, not width.
@@ -475,6 +570,8 @@ function Strip({
     <div
       ref={containerRef}
       data-panel={section}
+      // The other column, closed down to nothing: nothing in it to reach.
+      inert={opened !== null && opened !== section}
       onClick={onOpen}
       className={`group group/strip relative ${size} overflow-hidden pb-0 transition-[width,height] ${layoutClass} hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
@@ -484,6 +581,7 @@ function Strip({
         section={section}
         dismissed={opened !== null}
         onClick={onOpen}
+        onFocusChange={(focused) => setHoveredSection(focused ? section : null)}
       />
 
       <ReactLenis
@@ -530,7 +628,10 @@ function Strip({
                 onStepImage={(delta) => stepImage(i, delta)}
                 onEnter={() => enterCover(i)}
                 muted={!(i === active && soundOn)}
+                alt={mediaAlt(p.title, media, frame, images.length)}
                 morph={n === i}
+                repeat={n !== i}
+                priority={n === 0}
                 layoutClass={layoutClass}
               />
             ) : null;
@@ -541,6 +642,8 @@ function Strip({
       {shown && (
         <div
           // Held back through landing mode; fades in once a section is chosen.
+          // Out of reach until then too — no tab stops in it.
+          inert={opened === null}
           className={`pointer-events-none absolute inset-x-0 top-[62.5%] z-10 flex flex-col gap-y-2 px-5.5 transition-opacity ${REVEAL_CLASS} ${
             opened !== null ? "" : "opacity-0"
           }`}
@@ -572,7 +675,7 @@ function Strip({
             }}
             className={`col-start-4 justify-self-start pointer-events-auto  text-[0.8rem] tracking-wide hover:text-blue-700 transition-colors ${HOVER_CLASS} cursor-pointer ${soundOn ? "text-blue-700" : "text-neutral-400 "}`}
           >
-            {soundOn ? "Sound Off" : "Sound On"}
+            {soundOn ? "Sound Off" : "Play Sound"}
           </Button>
         </div>
       )}
@@ -617,41 +720,84 @@ export default function HomeClient({
 
   useEffect(() => () => setHoveredSection(null), []);
 
+  // Landing mode: ← and → move between the two panels (focusing one stands
+  // in for hovering it — see SectionOverlay); Enter then opens it.
+  const overlayUp = hash === "about" || hash === "index";
+  useEffect(() => {
+    if (opened !== null || overlayUp) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+      const section =
+        e.key === "ArrowLeft"
+          ? "personal"
+          : e.key === "ArrowRight"
+            ? "commissioned"
+            : null;
+      if (!section) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable]")) return;
+      e.preventDefault();
+      document
+        .querySelector<HTMLElement>(`[data-section-trigger="${section}"]`)
+        ?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [opened, overlayUp]);
+
+  // The page's heading, for screen readers, comes in once a section is
+  // chosen — landing mode reads its prompt instead — and takes focus, so
+  // it's announced, and tabbing carries on from the top of the section.
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (opened !== null) heading.current?.focus({ preventScroll: true });
+  }, [opened]);
+
   return (
     <>
-      <section className="font-selecta relative flex flex-col lg:flex-row w-screen h-dvh overflow-hidden bg-background">
-        <Strip
-          section="personal"
-          projects={personal}
-          fallbackSrc="/personal_placeholder.png"
-          opened={opened}
-          onOpen={() => setHash("personal")}
-          scrollToSlug={jumpSlug}
-          onScrolled={() => setJumpSlug(null)}
-          muteSound={hash === "about" || hash === "index"}
-          imagesShown={landing.images}
-          layoutClass={layoutClass}
-        />
-        <Strip
-          section="commissioned"
-          projects={commissioned}
-          fallbackSrc="/personal_placeholder.png"
-          opened={opened}
-          onOpen={() => setHash("commissioned")}
-          scrollToSlug={jumpSlug}
-          onScrolled={() => setJumpSlug(null)}
-          muteSound={hash === "about" || hash === "index"}
-          imagesShown={landing.images}
-          layoutClass={layoutClass}
-        />
+      {/* Under About or Index, out of reach: tabbing stays in the overlay
+          (and the nav). */}
+      <main inert={overlayUp}>
+        {/* The same as the page's metadata. */}
+        {opened !== null && (
+          <h1 ref={heading} tabIndex={-1} className="sr-only">
+            {SITE_TITLE}, {SITE_DESCRIPTION}
+          </h1>
+        )}
+        <section className="font-selecta relative flex flex-col lg:flex-row w-screen h-dvh overflow-hidden bg-background">
+          <Strip
+            section="personal"
+            projects={personal}
+            fallbackSrc="/personal_placeholder.png"
+            opened={opened}
+            onOpen={() => setHash("personal")}
+            scrollToSlug={jumpSlug}
+            onScrolled={() => setJumpSlug(null)}
+            muteSound={hash === "about" || hash === "index"}
+            imagesShown={landing.images}
+            layoutClass={layoutClass}
+          />
+          <Strip
+            section="commissioned"
+            projects={commissioned}
+            fallbackSrc="/personal_placeholder.png"
+            opened={opened}
+            onOpen={() => setHash("commissioned")}
+            scrollToSlug={jumpSlug}
+            onScrolled={() => setJumpSlug(null)}
+            muteSound={hash === "about" || hash === "index"}
+            imagesShown={landing.images}
+            layoutClass={layoutClass}
+          />
 
-        <LandingPrompt
-          prompt={prompt}
-          dismissed={opened !== null}
-          words={landing.words}
-          hovered={hovered}
-        />
-      </section>
+          <LandingPrompt
+            prompt={prompt}
+            dismissed={opened !== null}
+            words={landing.words}
+            hovered={hovered}
+          />
+        </section>
+      </main>
 
       <InfoOverlay open={hash === "about"} onDismiss={() => setHash("")}>
         <AboutSection about={about} />
@@ -670,6 +816,7 @@ export default function HomeClient({
             setHash("");
           }}
           initialCategory={opened ?? "personal"}
+          open={hash === "index"}
         />
       </InfoOverlay>
 

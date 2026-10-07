@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Project } from "@/lib/types";
 import type { Category } from "@/sanity/queries";
-import { sanityImage } from "@/lib/image";
+import { mediaAlt, sanityImage } from "@/lib/image";
 import { coverImages, morphName } from "@/components/HomeClient";
 import {
   clearDetailFrame,
@@ -37,6 +37,9 @@ export default function ProjectPage({
 
   const current = media[frame] ?? media[0];
   const showSoundToggle = current?.type === "file";
+  const alt = current
+    ? mediaAlt(project.title, current, frame, media.length)
+    : "";
 
   const step = () => setFrame((f) => (f + 1) % media.length);
 
@@ -116,8 +119,8 @@ export default function ProjectPage({
       else return;
       e.preventDefault();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   });
 
   // `inFullScreen`: the copy in the full-screen layer. Only whichever is
@@ -133,7 +136,9 @@ export default function ProjectPage({
         muted={!soundOn || fullScreen !== inFullScreen}
         loop
         playsInline
-        aria-label={current.caption}
+        // Described once, on the full-screen copy that's showing.
+        aria-label={inFullScreen ? alt : undefined}
+        aria-hidden={!inFullScreen}
       />
     ) : (
       current && (
@@ -143,7 +148,7 @@ export default function ProjectPage({
               ? current.url
               : sanityImage(current.url, { w: 2400 })
           }
-          alt={current.caption ?? ""}
+          alt={inFullScreen ? alt : ""}
           crossOrigin={current.url.startsWith("/") ? undefined : "anonymous"}
           className={className}
         />
@@ -200,7 +205,11 @@ export default function ProjectPage({
                 className="absolute inset-0 z-10 cursor-pointer"
                 onClick={step}
               />
-              <ViewTransition name={morphName(project)} share="morph" default="none">
+              <ViewTransition
+                name={morphName(project)}
+                share="morph"
+                default="none"
+              >
                 {mediaEl(
                   aspect
                     ? "block w-full h-full object-cover object-center pointer-events-none"
@@ -257,7 +266,7 @@ export default function ProjectPage({
                 onClick={() => setSoundOn((v) => !v)}
                 className={`hidden lg:inline-flex ${barButton} ${soundOn ? "text-blue-700" : "text-neutral-400"}`}
               >
-                {soundOn ? "Sound Off" : "Sound On"}
+                {soundOn ? "Sound Off" : "Play Sound"}
               </Button>
             )}
           </div>

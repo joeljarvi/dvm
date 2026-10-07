@@ -11,7 +11,12 @@ import { switchSection } from "@/lib/navigation";
 import { REVEAL_CLASS } from "@/lib/motion";
 import Link from "next/link";
 
-export default function Nav() {
+/**
+ * The corner links. Rendered twice by app/layout.tsx — the top pair before
+ * the page, the bottom pair after it — so tabbing runs as the screen reads:
+ * top left, top right, the page, bottom left, bottom right.
+ */
+export default function Nav({ part }: { part: "top" | "bottom" }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -24,6 +29,8 @@ export default function Nav() {
   const chrome = arrived ? "" : "opacity-0 pointer-events-none";
 
   useEffect(() => {
+    // Once, not once per part.
+    if (part !== "top") return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (menuOpen) setMenuOpen(false);
@@ -31,7 +38,7 @@ export default function Nav() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [menuOpen]);
+  }, [menuOpen, part]);
 
   if (pathname.startsWith("/studio")) return null;
 
@@ -74,6 +81,10 @@ export default function Nav() {
       ? ""
       : "opacity-0 pointer-events-none";
 
+  // Hidden (landing mode, or before the intro's in), out of the tab order
+  // too.
+  const hidden = (arrival: string) => arrival !== "";
+
   const corner = (place: string, visible = true, arrival = chrome) =>
     `fixed ${place} z-[80] flex flex-row items-center gap-0 transition-opacity ${REVEAL_CLASS} ${arrival} ${
       visible ? "" : "opacity-0 pointer-events-none"
@@ -92,16 +103,18 @@ export default function Nav() {
     active === null
       ? "text-neutral-400 dark:text-neutral-500 mix-blend-normal hover:text-blue-700 dark:hover:text-blue-700"
       : active
-      ? "text-blue-700 dark:text-blue-700 mix-blend-normal dark:hover:text-blue-700"
-      : "mix-blend-difference hover:mix-blend-normal dark:text-neutral-500 hover:text-blue-700 dark:hover:text-blue-700";
+        ? "text-blue-700 dark:text-blue-700 mix-blend-normal dark:hover:text-blue-700"
+        : "mix-blend-difference hover:mix-blend-normal dark:text-neutral-500 hover:text-blue-700 dark:hover:text-blue-700";
 
   return (
     <>
-      {showPersonal && (
-        <span className={corner("top-0 left-0 justify-start", true, topChrome)}>
+      {part === "top" && showPersonal && (
+        <span
+          inert={hidden(topChrome)}
+          className={corner("top-0 left-0 justify-start", true, topChrome)}
+        >
           {onHome ? (
             <Button
-              tabIndex={0}
               data-nav="personal"
               variant="link"
               size="sm"
@@ -112,7 +125,6 @@ export default function Nav() {
             </Button>
           ) : (
             <Button
-              tabIndex={0}
               data-nav="personal"
               variant="link"
               size="sm"
@@ -125,8 +137,11 @@ export default function Nav() {
         </span>
       )}
 
-      {showCommissioned && (
-        <span className={corner("top-0 right-0 justify-end", true, topChrome)}>
+      {part === "top" && showCommissioned && (
+        <span
+          inert={hidden(topChrome)}
+          className={corner("top-0 right-0 justify-end", true, topChrome)}
+        >
           {onHome ? (
             <Button
               data-nav="commissioned"
@@ -151,8 +166,9 @@ export default function Nav() {
         </span>
       )}
 
-      {showAboutIndex && (
+      {part === "bottom" && showAboutIndex && (
         <span
+          inert={hidden(topChrome)}
           className={corner(
             "bottom-0 lg:bottom-0 left-0 justify-start",
             true,
@@ -181,8 +197,9 @@ export default function Nav() {
         </span>
       )}
 
-      {showAboutIndex && (
+      {part === "bottom" && showAboutIndex && (
         <span
+          inert={hidden(topChrome)}
           className={corner(
             "bottom-0 lg:bottom-0 right-0 justify-end",
             true,

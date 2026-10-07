@@ -4,13 +4,41 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import { ReactLenis } from "lenis/react";
 import { motionCssVars } from "@/lib/motion";
-import { fetchSiteSettings } from "@/sanity/queries";
+import { fetchAbout, fetchSiteSettings } from "@/sanity/queries";
+import { sanityImage } from "@/lib/image";
 import WatermarkCursor from "@/components/WatermarkCursor";
+import SiteAnalytics from "@/components/SiteAnalytics";
+import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "Daniel von Malmborg",
-  description: "Photographer & Producer",
-};
+// Defaults for every page; a page's own metadata (e.g. a project's) layers
+// over them. The share image falls back to the About page's bio image.
+export async function generateMetadata(): Promise<Metadata> {
+  const about = await fetchAbout();
+  const image = sanityImage(about?.bioImageUrl, { w: 1200 });
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: `${SITE_TITLE} — ${SITE_DESCRIPTION}`,
+      template: `%s — ${SITE_TITLE}`,
+    },
+    description: SITE_DESCRIPTION,
+    openGraph: {
+      type: "website",
+      siteName: SITE_TITLE,
+      title: SITE_TITLE,
+      description: SITE_DESCRIPTION,
+      locale: "en_US",
+      ...(image && { images: [{ url: image, alt: SITE_TITLE }] }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_TITLE,
+      description: SITE_DESCRIPTION,
+      ...(image && { images: [image] }),
+    },
+  };
+}
 
 const diatype = localFont({
   src: [
@@ -38,9 +66,11 @@ export default async function RootLayout({
     >
       <body className="">
         <ReactLenis root />
+        <Nav part="top" />
         {children}
-        <Nav />
+        <Nav part="bottom" />
         <WatermarkCursor on={watermarkCursor} />
+        <SiteAnalytics />
       </body>
     </html>
   );

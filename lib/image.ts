@@ -14,3 +14,18 @@ export function sanityImage(
   if (h) params.set("h", String(h));
   return `${url}?${params.toString()}`;
 }
+
+// Alt text for a project's image or video: its own alt text from Sanity, or
+// its caption, or failing those where it sits in the project — "Title –
+// image 2 of 5".
+export function mediaAlt(
+  title: string,
+  media: { type: "image" | "file"; caption?: string; alt?: string },
+  index: number,
+  total: number,
+): string {
+  if (media.alt?.trim()) return media.alt.trim();
+  if (media.caption) return media.caption;
+  const kind = media.type === "file" ? "video" : "image";
+  return `${title} – ${kind} ${index + 1} of ${total}`;
+}
