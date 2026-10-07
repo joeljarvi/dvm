@@ -81,13 +81,17 @@ function landingGap(
   const inner =
     (section === "personal" && side === "after") ||
     (section === "commissioned" && side === "before");
-  // On mobile, leaving landing mode, the gaps close only once the panels
-  // have finished resizing.
+  // Out of landing mode: on mobile the gaps close (only once the panels have
+  // finished resizing). On desktop they even out instead of closing — the
+  // cover ends up centred either way, but this way only the outer gap
+  // changes, in step with the column widening, so the cover just glides
+  // across. Closing both at once let flexbox share out the shrinking space
+  // unevenly, and the cover lurched.
   const grow = landingMode
     ? inner
       ? "grow"
       : "grow-3"
-    : "grow-0 max-lg:delay-(--motion-select)";
+    : "grow-0 max-lg:delay-(--motion-select) lg:grow";
   return `basis-0 shrink-0 ${grow} transition-[flex-grow] ${layoutClass}`;
 }
 

@@ -68,9 +68,12 @@ export function LandingPrompt({
   return (
     <div
       // Read out in landing mode; once a section is chosen, the h1 takes
-      // over (see HomeClient).
+      // over (see HomeClient). Pinned by its top only, its height its
+      // content's (on mobile, the screen's): pinned top and bottom with
+      // h-min, Safari ignored the h-min, stretched it to the bottom edge
+      // and centred the words in that — down over the covers.
       aria-hidden={dismissed}
-      className={`pointer-events-none absolute inset-0 top-0 lg:top-[62.5%] z-20 flex flex-col justify-between lg:grid lg:grid-cols-3 h-dvh lg:h-min items-center py-5.5 lg:py-5.5 px-5.5 whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-neutral-400 dark:text-neutral-500 transition-opacity ${REVEAL_CLASS} ${
+      className={`pointer-events-none absolute inset-x-0 top-0 lg:top-[62.5%] z-20 flex flex-col justify-between lg:grid lg:grid-cols-3 h-dvh lg:h-auto items-center py-5.5 lg:py-5.5 px-5.5 whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-neutral-400 dark:text-neutral-500 transition-opacity ${REVEAL_CLASS} ${
         dismissed ? "opacity-0" : "opacity-100"
       }`}
     >
