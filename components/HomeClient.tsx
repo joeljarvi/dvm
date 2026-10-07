@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   ViewTransition,
 } from "react";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
@@ -125,6 +126,21 @@ export const morphName = (project: Project) =>
 export const mediaSrc = (src: string) =>
   src.startsWith("/") ? src : sanityImage(src, { w: 1400 });
 
+// Whether the pointer can hover — not on touch screens, where landing mode's
+// hover-to-play would leave a video never playing.
+const HOVER_QUERY = "(hover: hover)";
+function useCanHover() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia(HOVER_QUERY);
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(HOVER_QUERY).matches,
+    () => true,
+  );
+}
+
 function Cover({
   project,
   media,
@@ -174,8 +190,10 @@ function Cover({
 
   // A video plays throughout once its column is open, but in landing mode
   // only while its panel is hovered — paused where it was when it isn't.
+  // Without hover (touch screens) it just plays.
   const video = useRef<HTMLVideoElement>(null);
-  const playing = !landingMode || panelHovered;
+  const canHover = useCanHover();
+  const playing = !landingMode || panelHovered || !canHover;
   useEffect(() => {
     const el = video.current;
     if (!el) return;
@@ -189,6 +207,10 @@ function Cover({
         ref={video}
         src={src}
         className={mediaClass}
+        // Set from the start where it plays from the start — iOS won't load
+        // a video's first frame otherwise.
+        autoPlay={playing}
+        preload="auto"
         muted={muted}
         loop
         playsInline
