@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import type { Connect } from "@/lib/types";
 import { FALLBACK_EMAIL, FALLBACK_PHONE, INSTAGRAM_URL } from "@/lib/site";
 
+// leading-normal: spaced like Index's lists (the page's default line
+// height), not the tighter leading of About's text around them.
 const LINK_CLASS =
-  "text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left h-auto justify-start";
+  "leading-normal text-blue-700 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 cursor-pointer w-min text-left h-auto justify-start";
 
 const external = (url: string) =>
   /^https?:/.test(url) ? { target: "_blank", rel: "noopener noreferrer" } : {};

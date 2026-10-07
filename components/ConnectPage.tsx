@@ -31,7 +31,7 @@ export default function ConnectPage({ connect }: { connect?: Connect | null }) {
         </h1>
         <nav
           aria-label="Contact"
-          className="flex flex-col items-start px-5.5 text-[0.8rem] tracking-wide leading-[1.2]"
+          className="flex flex-col items-start px-5.5 text-[0.8rem] tracking-wide"
         >
           <ConnectLinks connect={connect} className="px-0" />
         </nav>
