@@ -69,6 +69,9 @@ export function coverImages(
 
 // Always there, and shrunk to nothing out of landing mode rather than
 // removed — so the cover glides to its place instead of jumping there.
+// The gap on the side facing the other panel ("inner") takes a third of what
+// the outer one does, drawing the two covers together: above and below each
+// other on mobile, side by side on desktop (the frame runs as a row there).
 function landingGap(
   section: Exclude<Section, null>,
   side: "before" | "after",
@@ -81,7 +84,9 @@ function landingGap(
   // On mobile, leaving landing mode, the gaps close only once the panels
   // have finished resizing.
   const grow = landingMode
-    ? `${inner ? "grow" : "grow-3"} lg:grow`
+    ? inner
+      ? "grow"
+      : "grow-3"
     : "grow-0 max-lg:delay-(--motion-select)";
   return `basis-0 shrink-0 ${grow} transition-[flex-grow] ${layoutClass}`;
 }
@@ -259,7 +264,7 @@ function Cover({
       data-slug={project.slug ?? project.title}
       className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height] ${layoutClass} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
     >
-      <div className={COVER_FRAME_CLASS}>
+      <div className={`${COVER_FRAME_CLASS} lg:flex-row`}>
         <div
           aria-hidden
           className={landingGap(section, "before", landingMode, layoutClass)}
