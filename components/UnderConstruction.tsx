@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { REVEAL_CLASS } from "@/lib/motion";
 import { useSanityLoggedIn } from "@/lib/sanityUser";
-import { useSuppressWatermarkCursor } from "@/lib/watermarkCursor";
 import NameMark, { NAME_REVEAL_MS } from "@/components/NameMark";
 
 // The maintenance gate — driven by the "Under Construction" toggle in
@@ -35,8 +34,6 @@ export default function UnderConstruction({ active }: { active: boolean }) {
   // Only editors logged in to the Studio get to see past the gate.
   const loggedIn = useSanityLoggedIn();
 
-  // The gate shows the name itself.
-  useSuppressWatermarkCursor(!dismissed);
 
   return (
     <div

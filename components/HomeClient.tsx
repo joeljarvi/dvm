@@ -22,7 +22,6 @@ import {
 } from "@/lib/hover";
 import { setOpenedSection, useOpenedSection } from "@/lib/section";
 import { useLandingReveal } from "@/lib/landing";
-import { useSuppressWatermarkCursor } from "@/lib/watermarkCursor";
 import { clearReturn, peekReturn, setDetailFrame } from "@/lib/detailFrame";
 import { setHash, useHash } from "@/lib/hash";
 import { useInView } from "@/lib/inView";
@@ -713,10 +712,6 @@ export default function HomeClient({
   const prompt = useMemo(() => landingWords(landingText), [landingText]);
   const landing = useLandingReveal(prompt.length);
 
-  // The watermark cursor (if it's on) holds back in landing mode until the
-  // prompt and the covers are in — the covers' entrance done.
-  const holding = opened === null && !landing.done;
-  useSuppressWatermarkCursor(holding);
   const hovered = useHoveredSection();
 
   useEffect(() => () => setHoveredSection(null), []);

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import NameMark from "@/components/NameMark";
-import { SuppressWatermarkCursor } from "@/components/WatermarkCursor";
 
 export default function Error404() {
   return (
@@ -9,7 +8,6 @@ export default function Error404() {
     // stays up on every route.
     <div className="fixed inset-0 z-90 bg-background flex flex-col gap-4 items-center justify-center h-screen font-diatype">
       <NameMark instant />
-      <SuppressWatermarkCursor />
       <p className="absolute top-[62.5%] font-diatype text-[0.8rem] tracking-wide text-blue-700 px-5.5 text-center max-w-md">
         {" "}
         404. <br /> Page not found.

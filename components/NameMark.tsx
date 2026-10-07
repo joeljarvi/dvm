@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue } from "motion/react";
 import { DURATION, REVEAL_CLASS, ms } from "@/lib/motion";
-import { lastPointer } from "@/lib/watermarkCursor";
+import { lastPointer } from "@/lib/pointer";
 
 // "Daniel von Malmborg" spread around the screen: across it at the landing
 // prompt's height (see LandingPrompt), and turned on its side down its full

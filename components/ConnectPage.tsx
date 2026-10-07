@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import NameMark from "@/components/NameMark";
 import ConnectLinks from "@/components/ConnectLinks";
-import { SuppressWatermarkCursor } from "@/components/WatermarkCursor";
 import type { Connect } from "@/lib/types";
 
 // /connect: About's Connect column on its own, over the name — a
@@ -23,7 +22,6 @@ export default function ConnectPage({ connect }: { connect?: Connect | null }) {
   return (
     <main className="fixed inset-0 z-90 bg-background flex flex-col items-center justify-center h-screen font-diatype">
       <NameMark instant />
-      <SuppressWatermarkCursor />
 
       {/* As About's Connect column: top of column 2, the heading on the
           nav's line and the links stacked under it. */}

@@ -102,9 +102,6 @@ export const STAGGER = s(ms(60));
 /** Offset of a secondary line behind the first (InfoLayout's agency). */
 export const FOLLOW_DELAY = s(ms(80));
 
-/** How long the pointer rests before the watermark cursor fades out, in ms. */
-export const CURSOR_IDLE = ms(3000);
-
 // A drawer's content staggering in: each item STAGGER behind the last, all
 // using the shared reveal transition. Apply `staggerContainer` to the
 // animating ancestor (`initial="hidden"`, `animate={open ? "visible" :

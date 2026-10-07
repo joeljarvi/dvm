@@ -16,14 +16,6 @@ export const settings = defineType({
       initialValue: false,
     }),
     defineField({
-      name: 'watermarkCursor',
-      title: 'Watermark cursor on',
-      description:
-        'Makes the full-screen watermark — "Daniel von Malmborg" across and down, crossing at the pointer with "von" as its tip — the cursor across the site, on desktop. Off: the blue circle.',
-      type: 'boolean',
-      initialValue: false,
-    }),
-    defineField({
       name: 'landingText',
       title: 'Landing Text',
       description:

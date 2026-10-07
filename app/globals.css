@@ -206,13 +206,6 @@ body::-webkit-scrollbar {
   display: none;
 }
 
-@media (min-width: 64rem) {
-  .watermark-cursor,
-  .watermark-cursor * {
-    cursor: none !important;
-  }
-}
-
 /* Home → project page (see morphName in components/HomeClient): the cover's
    media grows into the full-screen one while the rest of the page — nav,
    info, the other column — crossfades away underneath, all on the site's

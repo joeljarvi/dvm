@@ -15,7 +15,6 @@ import {
 } from "@/lib/detailFrame";
 import { captureLayer } from "@/lib/screenshot";
 import { useRegisterModal } from "@/lib/modalStack";
-import { useSuppressWatermarkCursor } from "@/lib/watermarkCursor";
 import NameMark from "@/components/NameMark";
 import { Button } from "@/components/ui/button";
 
@@ -70,8 +69,6 @@ export default function ProjectPage({
     leave();
     router.push(home);
   });
-  // Full screen has its own watermark — the site-wide cursor one steps aside.
-  useSuppressWatermarkCursor(fullScreen);
 
   // Press Enter (or click the hint) in full screen to save the view as shown —
   // image and watermark, no buttons — as a PNG. See lib/screenshot.

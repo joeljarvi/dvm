@@ -7,9 +7,9 @@ import { DURATION, ms } from "./motion";
 //
 // Beats are ms from the home page's first mount, each advancing the step by
 // one — one per word of the landing prompt (see LandingPrompt), then the
-// covers, then `done` once the covers' entrance has finished (what the nav
-// and the watermark cursor wait for). Like the intro, it plays once per page load — coming back home
-// finds it already spent.
+// covers, then `done` once the covers' entrance has finished. Like the
+// intro, it plays once per page load — coming back home finds it already
+// spent.
 const FIRST_WORD = 600;
 const PER_WORD = 800;
 const COVERS_AFTER = 1400;

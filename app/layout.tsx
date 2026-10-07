@@ -4,9 +4,8 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import { ReactLenis } from "lenis/react";
 import { motionCssVars } from "@/lib/motion";
-import { fetchAbout, fetchSiteSettings } from "@/sanity/queries";
+import { fetchAbout } from "@/sanity/queries";
 import { sanityImage } from "@/lib/image";
-import WatermarkCursor from "@/components/WatermarkCursor";
 import SiteAnalytics from "@/components/SiteAnalytics";
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/site";
 
@@ -51,13 +50,11 @@ const diatype = localFont({
   variable: "--font-diatype",
 });
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { watermarkCursor } = await fetchSiteSettings();
-
   return (
     <html
       lang="en"
@@ -69,7 +66,6 @@ export default async function RootLayout({
         <Nav part="top" />
         {children}
         <Nav part="bottom" />
-        <WatermarkCursor on={watermarkCursor} />
         <SiteAnalytics />
       </body>
     </html>
