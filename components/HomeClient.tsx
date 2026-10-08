@@ -32,7 +32,6 @@ import {
   HOVER_CLASS,
   SELECT_CLASS,
   SWITCH_CLASS,
-  COVER_STEP_CLASS,
   AFTER_SELECT,
   AFTER_SWITCH,
 } from "@/lib/motion";
@@ -70,19 +69,27 @@ export function coverImages(
   return media.length ? media : [{ url: fallbackSrc, type: "image" }];
 }
 
-// Leaving landing mode, the cover settles first — its gaps even out, its
-// width eases to its open size, inside the column as it is — quickly, on the
-// swap's curve (COVER_STEP_CLASS). Only then do the columns resize, carrying
-// it into place (and, on mobile, the cover's height grows with its panel):
-// AFTER_COVER holds them back for that first step. Coming back into landing
-// mode, and swapping columns, it all moves at once.
-const AFTER_COVER = "delay-(--motion-cover-step)";
+// Leaving landing mode, the covers' gaps settle first — quickly, on the
+// swap's curve (GAP_STEP) — and only then do the columns resize,
+// carrying the cover into place: AFTER_COVER holds them back for that first
+// step, and the cover's growth to its open size (its padding) with them.
+// Desktop only: on a phone the cover fills its column, there's no gap to
+// settle, and the columns move at once. Coming back into landing mode, and
+// swapping columns, it all moves at once.
+const AFTER_COVER = "lg:delay-(--motion-cover-step)";
+// The gap step's tempo, on desktop (see AFTER_COVER); on mobile the gaps
+// keep the panels' own.
+const GAP_STEP =
+  "lg:duration-(--motion-cover-step) lg:ease-(--motion-ease-switch)";
 
-// Always there, and shrunk to nothing out of landing mode rather than
-// removed — so the cover glides to its place instead of jumping there.
-// The gap on the side facing the other panel ("inner") takes a third of what
-// the outer one does, drawing the two covers together: above and below each
-// other on mobile, side by side on desktop (the frame runs as a row there).
+// Either side of a cover, across its column: in landing mode the gap facing
+// the other panel ("inner") takes a third of what the outer one does,
+// drawing the two covers together. Open, the two even out — the cover
+// centred. Evening out rather than closing means only the outer gap
+// changes, so the cover glides across; closing both at once let flexbox
+// share out the shrinking space unevenly, and the cover lurched. (Where the
+// cover fills its column — a phone — there's no space to share, and no
+// gap.)
 function landingGap(
   section: Exclude<Section, null>,
   side: "before" | "after",
@@ -92,12 +99,7 @@ function landingGap(
   const inner =
     (section === "personal" && side === "after") ||
     (section === "commissioned" && side === "before");
-  // Out of landing mode: on mobile the gaps close. On desktop they even out
-  // instead of closing — the cover ends up centred either way, but this way
-  // only the outer gap changes, so the cover just glides across. Closing
-  // both at once let flexbox share out the shrinking space unevenly, and
-  // the cover lurched.
-  const grow = landingMode ? (inner ? "grow" : "grow-3") : "grow-0 lg:grow";
+  const grow = landingMode && !inner ? "grow-3" : "grow";
   return `basis-0 shrink-0 ${grow} transition-[flex-grow] ${tempo}`;
 }
 
@@ -117,22 +119,24 @@ function useColumnTempo(opened: Section) {
   return tempo;
 }
 
-// Halved on mobile only, where the landing panels split the height. On
-// desktop the cover is already the size it will be once its column opens.
-const LANDING_COVER_WIDTH = "max-w-1/2 lg:max-w-full";
-
-// Desktop, a section open: covers are capped by the screen (its width less
-// the column's gutters), not by their column. Swapping Personal and
+// A section open: covers are capped by the screen (its width less the
+// column's gutters), not by their column. Swapping Personal and
 // Commissioned, one column narrows to nothing as the other widens, and a
 // cover capped by its column shrank and grew with it; capped by the screen,
 // it keeps its size and the column just slides across it, cropping — the
 // view moves, the picture doesn't scale. Held centred in its column (the
 // frame's justify-center, which lets it overflow both sides evenly).
-const OPEN_COVER_WIDTH =
-  "max-w-full lg:max-w-[calc(100vw-2.75rem)] lg:shrink-0";
-const OPEN_MEDIA_WIDTH = "max-w-[100cqw] lg:max-w-[calc(100vw-2.75rem)]";
+const OPEN_COVER_WIDTH = "max-w-[calc(100vw-2.75rem)] shrink-0";
+const OPEN_MEDIA_WIDTH = "max-w-[calc(100vw-2.75rem)]";
 
 export const COVER_STAGE_CLASS = "flex flex-col p-0 lg:py-28";
+
+// Desktop, a cover's three sizes step down by the same amount of padding
+// each time — full screen on the project page (p-5.5, 22px), the open
+// column's scroll (py-28, 112px), and landing mode (py-50.5, 202px): +90px
+// a step, so each step reads as the same distance. Landing's stage,
+// otherwise COVER_STAGE_CLASS.
+const LANDING_STAGE_CLASS = "flex flex-col p-0 lg:py-50.5";
 // The frame is a size container, and the media is capped in its units
 // (cqw/cqh) rather than as a percentage of the box around it. That box
 // shrink-wraps the media, so a percentage there is circular — Safari
@@ -196,7 +200,7 @@ function Cover({
 
   columnOpen: boolean;
   landingMode: boolean;
-  /** Which column it's in — sets which of its landing gaps faces the other. */
+  /** Which column it's in — which of its landing gaps faces the other. */
   section: Exclude<Section, null>;
   /** Its panel is under the pointer. */
   panelHovered: boolean;
@@ -227,16 +231,25 @@ function Cover({
     if (inView) onEnter();
   }, [inView, onEnter]);
 
-  // Capped like the box around it (half the frame in landing mode on
-  // mobile), and animated with it, so the box never has to crop it
-  // mid-transition.
-  // Just out of landing mode (the select tempo): the cover's own step —
-  // gaps, width — comes first and quick, and its height waits with the
-  // columns (see AFTER_COVER). Otherwise all in step with the columns.
-  const leavingLanding = !landingMode && layoutClass === SELECT_CLASS;
-  const coverTempo = leavingLanding ? COVER_STEP_CLASS : layoutClass;
-
-  const mediaClass = `${MEDIA_FIT} ${landingMode ? "max-w-[50cqw] lg:max-w-[100cqw]" : OPEN_MEDIA_WIDTH} transition-[max-width] ${coverTempo}`;
+  // Capped like the box around it. By its column into and out of landing
+  // mode (the select tempo), so it grows and shrinks with the column; by the
+  // screen when swapping columns (see OPEN_COVER_WIDTH), so it doesn't. The
+  // two agree whenever the tempo changes over — the column is full width or
+  // closed — so the cap swaps without a jump, and needs no transition.
+  const capByColumn = landingMode || layoutClass === SELECT_CLASS;
+  // Just out of landing mode: its gaps settle first, quickly, and it grows
+  // after (see AFTER_COVER); otherwise all in step with the columns.
+  const justOpened = !landingMode && layoutClass === SELECT_CLASS;
+  const gapTempo = justOpened ? `${layoutClass} ${GAP_STEP}` : layoutClass;
+  // Mobile landing: the panels stacked, the cover held to half its column's
+  // width, easing out to full as its panel opens.
+  const mediaClass = `${MEDIA_FIT} ${
+    landingMode
+      ? "max-w-[50cqw] lg:max-w-[100cqw]"
+      : capByColumn
+        ? "max-w-[100cqw]"
+        : OPEN_MEDIA_WIDTH
+  } transition-[max-width] ${layoutClass}`;
 
   // A video plays throughout once its column is open, but in landing mode
   // only while its panel is hovered — paused where it was when it isn't.
@@ -290,15 +303,23 @@ function Cover({
       ref={box}
       aria-hidden={repeat || undefined}
       data-slug={project.slug ?? project.title}
-      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : `h-screen ${leavingLanding ? AFTER_COVER : ""}`} transition-[height] ${layoutClass} ${COVER_STAGE_CLASS} max-w-full mx-auto`}
+      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height,padding] ${layoutClass} ${landingMode ? LANDING_STAGE_CLASS : `${COVER_STAGE_CLASS} ${justOpened ? AFTER_COVER : ""}`} max-w-full mx-auto`}
     >
+      {/* Its gaps run across its column on desktop (panels side by side),
+          down it on mobile (panels stacked in landing mode). */}
       <div className={`${COVER_FRAME_CLASS} lg:flex-row`}>
         <div
           aria-hidden
-          className={landingGap(section, "before", landingMode, coverTempo)}
+          className={landingGap(section, "before", landingMode, gapTempo)}
         />
         <div
-          className={`${COVER_BOX_CLASS} ${landingMode ? LANDING_COVER_WIDTH : OPEN_COVER_WIDTH} transition-[max-width] ${coverTempo}`}
+          className={`${COVER_BOX_CLASS} ${
+            landingMode
+              ? "max-w-1/2 lg:max-w-full"
+              : capByColumn
+                ? "max-w-full"
+                : OPEN_COVER_WIDTH
+          } transition-[max-width] ${layoutClass}`}
         >
           {/* Landing veil, over the image only — what's between the covers
               stays clear, so the section label beneath them reads sharp.
@@ -339,7 +360,7 @@ function Cover({
         </div>
         <div
           aria-hidden
-          className={landingGap(section, "after", landingMode, coverTempo)}
+          className={landingGap(section, "after", landingMode, gapTempo)}
         />
       </div>
     </div>
@@ -586,14 +607,17 @@ function Strip({
     return () => window.removeEventListener("keydown", onKey);
   }, [listens, overlayUp]);
 
-  // Side by side on desktop; stacked on mobile, where the panels split the
-  // height instead — so the chosen one grows by height, not width.
+  // Desktop: side by side — half the screen each in landing mode; the chosen
+  // one grows across it, the other closes to nothing, and swapping slides
+  // side to side. Mobile: stacked — the same, down the screen, swapping up
+  // and down.
+  const open = opened === section;
   const size =
     opened === null
-      ? "w-full h-1/2 lg:w-[50vw] lg:h-auto"
-      : opened === section
-        ? "w-full h-full lg:w-screen lg:h-auto"
-        : "w-full h-0 lg:w-0 lg:h-auto";
+      ? "w-full h-1/2 lg:w-1/2 lg:h-full"
+      : open
+        ? "w-full h-full"
+        : "w-full h-0 lg:w-0 lg:h-full";
 
   const shown = projects[active] ?? projects[0];
   const shownImages = columnImages[active] ?? [];
@@ -612,7 +636,7 @@ function Strip({
       // The other column, closed down to nothing: nothing in it to reach.
       inert={opened !== null && opened !== section}
       onClick={onOpen}
-      className={`group group/strip relative ${size} overflow-hidden pb-0 transition-[width,height] ${layoutClass} ${opened !== null && layoutClass === SELECT_CLASS ? AFTER_COVER : ""} hover:text-blue-700 ${background}`}
+      className={`group group/strip relative ${size} overflow-hidden pb-0 shrink-0 transition-[width,height] ${layoutClass} ${opened !== null && layoutClass === SELECT_CLASS ? AFTER_COVER : ""} hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
       onMouseLeave={() => setHoveredSection(null)}
     >

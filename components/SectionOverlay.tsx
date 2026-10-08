@@ -45,12 +45,13 @@ export function landingWords(text: string | null | undefined) {
   });
 }
 
-// Where each word sits: centred, stacked top to bottom on mobile; on
-// desktop, in its column of three — left, centre, right.
+// Where each word sits: on mobile, centred, top to bottom down the screen,
+// as the panels stack there; on desktop, in its column of three — left,
+// centre, right.
 const WORD_ALIGN = [
-  "self-center justify-self-center text-center lg:justify-self-start lg:text-left",
-  "self-center justify-self-center text-center",
-  "self-center justify-self-center text-center lg:justify-self-end lg:text-right",
+  "text-center lg:justify-self-start lg:text-left",
+  "text-center lg:justify-self-center",
+  "text-center lg:justify-self-end lg:text-right",
 ];
 
 export function LandingPrompt({
@@ -68,12 +69,13 @@ export function LandingPrompt({
   return (
     <div
       // Read out in landing mode; once a section is chosen, the h1 takes
-      // over (see HomeClient). Pinned by its top only, its height its
-      // content's (on mobile, the screen's): pinned top and bottom with
-      // h-min, Safari ignored the h-min, stretched it to the bottom edge
-      // and centred the words in that — down over the covers.
+      // over (see HomeClient). Mobile: the screen's height, the words spread
+      // top, middle and bottom. Desktop: pinned by its top only, its height
+      // its content's — pinned top and bottom with h-min, Safari ignored the
+      // h-min, stretched it to the bottom edge and centred the words in that,
+      // down over the covers.
       aria-hidden={dismissed}
-      className={`pointer-events-none absolute inset-x-0 top-0 lg:top-[62.5%] z-20 flex flex-col justify-between lg:grid lg:grid-cols-3 h-dvh lg:h-auto items-center py-5.5 lg:py-5.5 px-5.5 whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-neutral-400 dark:text-neutral-500 transition-opacity ${REVEAL_CLASS} ${
+      className={`pointer-events-none absolute inset-x-0 top-0 lg:top-[62.5%] z-20 flex flex-col justify-between lg:grid lg:grid-cols-3 h-dvh lg:h-auto items-center py-5.5 px-5.5 whitespace-nowrap font-diatype text-[0.8rem] tracking-wide font-normal text-neutral-400 dark:text-neutral-500 transition-opacity ${REVEAL_CLASS} ${
         dismissed ? "opacity-0" : "opacity-100"
       }`}
     >
