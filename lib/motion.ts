@@ -42,7 +42,7 @@ export const DURATION = {
   /** Home, mobile: picking a section out of landing mode — the landing view
    * sliding away, the chosen cover gliding into place (see slideIntoSection
    * in HomeClient). Unhurried. */
-  homeSlide: ms(1300),
+  homeSlide: ms(1100),
 } as const;
 
 // Curves.
