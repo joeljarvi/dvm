@@ -40,6 +40,10 @@ const bioComponents: PortableTextComponents = {
   },
 };
 
+// The bio image (shown behind the bio while it's hovered, on desktop) — off
+// for now. Back on: true.
+const SHOW_BIO_IMAGE = false;
+
 // Opening, the text comes in piece by piece; switching Bio / Links, column 3
 // comes in again.
 const textIn = (delay: number): Variants => ({
@@ -107,7 +111,7 @@ export default function AboutSection({
       // in front of this background rather than behind it.
       className="relative isolate bg-background flex flex-col lg:grid pt-28 lg:pt-0 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden lg:overflow-hidden lg:grid-rows-[auto_auto_1fr_auto] lg:grid-cols-4 items-start justify-start w-full h-dvh   font-diatype font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 lg:gap-x-0 gap-y-16 lg:gap-y-0  lg:tracking-normal  text-blue-700 lg:text-neutral-300      "
     >
-      {previewImage && (
+      {SHOW_BIO_IMAGE && previewImage && (
         <div
           ref={previewRef}
           // Fades in slowly and evenly while the bio is hovered (the reveal's
