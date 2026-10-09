@@ -33,12 +33,16 @@ export const DURATION = {
   /** Home: picking Personal or Commissioned out of landing mode. */
   select: ms(1000),
   /** The same, a touch quicker on desktop, nearer the swap below. */
-  selectDesktop: ms(850),
+  selectDesktop: ms(720),
   /** Home: swapping straight from one open column to the other. */
   switch: ms(550),
   /** Home: leaving landing mode, the covers' gaps settling before the
    * columns move (see AFTER_COVER in HomeClient). */
-  coverStep: ms(400),
+  coverStep: ms(340),
+  /** Home, mobile: picking a section out of landing mode — the landing view
+   * sliding away, the chosen cover gliding into place (see slideIntoSection
+   * in HomeClient). Unhurried. */
+  homeSlide: ms(1300),
 } as const;
 
 // Curves.
@@ -66,6 +70,7 @@ export const motionCssVars = {
   "--motion-select-desktop": `${DURATION.selectDesktop}ms`,
   "--motion-switch": `${DURATION.switch}ms`,
   "--motion-cover-step": `${DURATION.coverStep}ms`,
+  "--motion-home-slide": `${DURATION.homeSlide}ms`,
   "--motion-ease-reveal": cubic(REVEAL_EASE),
   "--motion-ease-select": cubic(SELECT_EASE),
   "--motion-ease-select-desktop": cubic(SELECT_EASE_DESKTOP),
@@ -85,12 +90,12 @@ export const SELECT_CLASS =
   "duration-(--motion-select) ease-(--motion-ease-select) lg:duration-(--motion-select-desktop) lg:ease-(--motion-ease-select-desktop)";
 export const SWITCH_CLASS =
   "duration-(--motion-switch) ease-(--motion-ease-switch)";
-// Leaving landing mode, in order: the covers' gaps settle (cover step —
-// desktop only; a phone has no gap), the columns resize (select, desktop's
-// or mobile's), then InfoLayout, the nav and the buttons fade in.
+// Leaving landing mode, in order — desktop: the covers' gaps settle (cover
+// step), then the columns resize (select); mobile: the landing view slides
+// away (home slide). Then InfoLayout, the nav and the buttons fade in.
 // AFTER_SELECT holds that last step back until the others are done.
 export const AFTER_SELECT =
-  "delay-(--motion-select) lg:delay-[calc(var(--motion-cover-step)_+_var(--motion-select-desktop))]";
+  "delay-(--motion-home-slide) lg:delay-[calc(var(--motion-cover-step)_+_var(--motion-select-desktop))]";
 // Swapping columns: the incoming column's InfoLayout fades in once the swap
 // is done.
 export const AFTER_SWITCH = "delay-(--motion-switch)";

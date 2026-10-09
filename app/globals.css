@@ -221,6 +221,62 @@ body::-webkit-scrollbar {
   animation-timing-function: var(--motion-ease-reveal);
 }
 
+/* Mobile, a section picked out of landing mode (slideIntoSection in
+   components/HomeClient): the landing view slides out one way as the opened
+   section slides in from the other — Personal from the left, Commissioned
+   from the right — unhurried (--motion-home-slide). While it runs, the panels' and
+   covers' own transitions are held off, so the incoming view is already in
+   its final layout; InfoLayout and the nav keep theirs, and fade in after. */
+html[data-home-slide] [data-panel],
+html[data-home-slide] [data-slug],
+html[data-home-slide] [data-slug] * {
+  transition: none !important;
+}
+/* The covers' own morph names (see morphName) lift them out of the page to
+   animate on their own. Only the chosen column's showing cover keeps its:
+   it glides from its landing place and size into its open ones, over the
+   page sliding beneath. Every other one slides with the page. */
+html[data-home-slide="from-left"] [data-panel="commissioned"] *,
+html[data-home-slide="from-right"] [data-panel="personal"] *,
+html[data-home-slide] [data-slug]:not([data-current]) * {
+  view-transition-name: none !important;
+}
+html[data-home-slide]::view-transition-group(*) {
+  animation-duration: var(--motion-home-slide);
+  animation-timing-function: var(--motion-ease-select);
+}
+html[data-home-slide]::view-transition-old(root),
+html[data-home-slide]::view-transition-new(root) {
+  animation-duration: var(--motion-home-slide);
+  animation-timing-function: var(--motion-ease-select);
+  animation-fill-mode: both;
+  mix-blend-mode: normal;
+}
+html[data-home-slide="from-left"]::view-transition-old(root) {
+  animation-name: home-slide-out-right;
+}
+html[data-home-slide="from-left"]::view-transition-new(root) {
+  animation-name: home-slide-in-left;
+}
+html[data-home-slide="from-right"]::view-transition-old(root) {
+  animation-name: home-slide-out-left;
+}
+html[data-home-slide="from-right"]::view-transition-new(root) {
+  animation-name: home-slide-in-right;
+}
+@keyframes home-slide-out-right {
+  to { transform: translateX(100%); }
+}
+@keyframes home-slide-in-left {
+  from { transform: translateX(-100%); }
+}
+@keyframes home-slide-out-left {
+  to { transform: translateX(-100%); }
+}
+@keyframes home-slide-in-right {
+  from { transform: translateX(100%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*),
   ::view-transition-new(*),

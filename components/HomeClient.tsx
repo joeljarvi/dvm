@@ -10,6 +10,7 @@ import {
   useSyncExternalStore,
   ViewTransition,
 } from "react";
+import { flushSync } from "react-dom";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
 import type { ScrollCallback } from "lenis";
 import type { About, Project, ProjectMedia } from "@/lib/types";
@@ -34,6 +35,7 @@ import {
   SWITCH_CLASS,
   AFTER_SELECT,
   AFTER_SWITCH,
+  DURATION,
 } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import InfoLayout from "@/components/InfoLayout";
@@ -103,6 +105,91 @@ function landingGap(
   // (see LANDING_STAGE_CLASS).
   const grow = landingMode && !inner ? "grow lg:grow-3" : "grow";
   return `basis-0 shrink-0 ${grow} transition-[flex-grow] ${tempo}`;
+}
+
+/**
+ * Mobile's panels: stacked in landing mode, so picking one grows it down (or
+ * up) the screen; once it has filled it, they turn to a row — Personal left,
+ * Commissioned right — with no transition for that one frame, the closed
+ * panel being nothing either way. From then on, swapping slides Personal in
+ * from the left and Commissioned from the right, like desktop's. (Desktop is
+ * always a row: its classes override these.)
+ */
+function useMobileStack(opened: Section) {
+  const [stacked, setStacked] = useState(true);
+  const [turning, setTurning] = useState(false);
+  useEffect(() => {
+    if (opened === null || !stacked) return;
+    const turn = setTimeout(() => {
+      setTurning(true);
+      setStacked(false);
+    }, DURATION.select);
+    return () => clearTimeout(turn);
+  }, [opened, stacked]);
+  // Back in landing mode (a reload aside, nothing leads there now), stacked
+  // again.
+  const [prevOpened, setPrevOpened] = useState(opened);
+  if (opened !== prevOpened) {
+    setPrevOpened(opened);
+    if (opened === null) setStacked(true);
+  }
+  // Transitions back on once the turned layout has painted.
+  useEffect(() => {
+    if (!turning) return;
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => setTurning(false));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [turning]);
+  return { stacked, turning, setStacked };
+}
+
+const DESKTOP_QUERY = "(min-width: 64rem)";
+
+/**
+ * Mobile, a section picked out of landing mode: rather than growing down the
+ * screen, the landing view slides away sideways as the chosen section slides
+ * in — Personal from the left, Commissioned from the right, the way they
+ * swap from then on — and the chosen cover itself glides across and grows
+ * into its place there: its media named for the transition, so it's lifted
+ * out of the page and morphed from its landing place and size to its open
+ * ones (every other name held off — see html[data-home-slide] in
+ * globals.css). A view transition: the landing view is snapshotted, the
+ * page switches straight to the opened row (its own transitions held off —
+ * see html[data-home-slide] in globals.css), and the two snapshots slide.
+ * `after` runs once it's done — the hash write, which Next's router hears
+ * and would answer with a view transition of its own, cutting this one
+ * short. Where view transitions aren't supported (and on desktop), false,
+ * and nothing done: the caller opens it the usual way.
+ */
+function slideIntoSection(
+  section: Exclude<Section, null>,
+  open: () => void,
+  after: () => void,
+): boolean {
+  if (
+    window.matchMedia(DESKTOP_QUERY).matches ||
+    typeof document.startViewTransition !== "function"
+  )
+    return false;
+  const root = document.documentElement;
+  // Already on its way: a tap reaches the panel twice (its button, then the
+  // panel it bubbles to), and a second transition would cut the first short.
+  if (root.dataset.homeSlide) return true;
+  root.dataset.homeSlide = section === "personal" ? "from-left" : "from-right";
+  // Its box, the same element before and after, so it's one morph (the
+  // media itself snapshots blank in WebKit).
+  const media = document.querySelector<HTMLElement>(
+    `[data-panel="${section}"] [data-slug][data-current] [data-cover-box]`,
+  );
+  media?.style.setProperty("view-transition-name", "home-cover");
+  const transition = document.startViewTransition(() => flushSync(open));
+  transition.finished.finally(() => {
+    delete root.dataset.homeSlide;
+    media?.style.removeProperty("view-transition-name");
+    after();
+  });
+  return true;
 }
 
 /**
@@ -201,6 +288,7 @@ function Cover({
   section,
   morph = false,
   repeat = false,
+  current = false,
   priority = false,
   layoutClass,
 }: {
@@ -226,6 +314,9 @@ function Cover({
   /** The repeat of the first cover that closes the loop — a copy, so hidden
    * from screen readers and the tab order. */
   repeat?: boolean;
+  /** The cover its column is showing — the one that glides into place when
+   * the column is picked on mobile (see slideIntoSection). */
+  current?: boolean;
   /** The column's first cover — on screen from the start, so loaded first
    * and in full; the rest wait until they're scrolled near. */
   priority?: boolean;
@@ -246,6 +337,12 @@ function Cover({
   // two agree whenever the tempo changes over — the column is full width or
   // closed — so the cap swaps without a jump, and needs no transition.
   const capByColumn = landingMode || layoutClass === SELECT_CLASS;
+  // The cap eases only into and out of landing mode (mobile's half-width
+  // landing cover growing to full). Swapping columns it snaps: both covers
+  // at full size from the start, sliding in alike — eased, the incoming one
+  // grew from nothing on one side and not the other (WebKit snaps between
+  // column and screen units anyway).
+  const capEase = capByColumn ? `transition-[max-width] ${layoutClass}` : "";
   // Just out of landing mode: its gaps settle first, quickly, and it grows
   // after (see AFTER_COVER); otherwise all in step with the columns.
   const justOpened = !landingMode && layoutClass === SELECT_CLASS;
@@ -258,7 +355,7 @@ function Cover({
       : capByColumn
         ? "max-w-[100cqw]"
         : OPEN_MEDIA_WIDTH
-  } transition-[max-width] ${layoutClass}`;
+  } ${capEase}`;
 
   // A video plays throughout once its column is open, but in landing mode
   // only while its panel is hovered — paused where it was when it isn't.
@@ -310,9 +407,24 @@ function Cover({
   return (
     <div
       ref={box}
+      data-current={current || undefined}
       aria-hidden={repeat || undefined}
       data-slug={project.slug ?? project.title}
-      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height,padding] ${layoutClass} ${landingMode ? LANDING_STAGE_CLASS[section] : `${COVER_STAGE_CLASS} ${justOpened ? AFTER_COVER : ""}`} max-w-full mx-auto`}
+      // Desktop landing mode: blurred and dimmed, until its panel is hovered
+      // (or focused). The blur sits on this, the full-height stage, filled
+      // with the page's background — not on the image, whose box crops — so
+      // the image's edges soften into the page, as the About bio image does
+      // (see BlurredPreview). The hover runs on the brisker reveal; leaving
+      // landing mode, the column's own timing. Mobile, with no hover, stays
+      // sharp.
+      className={`relative shrink-0 w-full group bg-background ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height,padding,filter,opacity] ${landingMode ? REVEAL_CLASS : layoutClass} ${
+        // Open: no filter at all, not even blur(0) — WebKit won't snapshot
+        // a view-transition-named element under a filtered one (the slide
+        // in, the morph to a project page).
+        landingMode
+          ? "lg:blur-xs lg:opacity-40 lg:group-hover/strip:blur-[0px] lg:group-hover/strip:opacity-100 lg:group-focus-within/strip:blur-[0px] lg:group-focus-within/strip:opacity-100"
+          : ""
+      } ${landingMode ? LANDING_STAGE_CLASS[section] : `${COVER_STAGE_CLASS} ${justOpened ? AFTER_COVER : ""}`} max-w-full mx-auto`}
     >
       {/* Its gaps run across its column on desktop (panels side by side),
           down it on mobile (panels stacked in landing mode). */}
@@ -322,29 +434,15 @@ function Cover({
           className={landingGap(section, "before", landingMode, gapTempo)}
         />
         <div
+          data-cover-box
           className={`${COVER_BOX_CLASS} ${
             landingMode
               ? "max-w-1/2 lg:max-w-full"
               : capByColumn
                 ? "max-w-full"
                 : OPEN_COVER_WIDTH
-          } transition-[max-width] ${layoutClass}`}
+          } ${capEase}`}
         >
-          {/* Landing veil, over the image only — what's between the covers
-              stays clear, so the section label beneath them reads sharp.
-              Hovering the panel fades the whole veil out; the blur itself is
-              never animated, since a changing backdrop-filter smears at the
-              edges of the image. The hover runs on the brisker reveal; going
-              out of landing mode keeps the column's own timing. On mobile,
-              with no hover, there's no veil at all. */}
-          <div
-            aria-hidden
-            className={`absolute inset-0 z-[5] pointer-events-none bg-background/60 backdrop-blur-xs transition-opacity ${
-              landingMode
-                ? `${REVEAL_CLASS} opacity-100 group-hover/strip:opacity-0 group-focus-within/strip:opacity-0 max-lg:opacity-0`
-                : `${layoutClass} opacity-0`
-            }`}
-          />
           <button
             type="button"
             // Out of the tab order in landing mode, where each panel is one
@@ -405,6 +503,8 @@ function Strip({
   muteSound = false,
   imagesShown = true,
   layoutClass,
+  stacked,
+  turning,
 }: {
   section: Exclude<Section, null>;
   projects: Project[];
@@ -425,6 +525,12 @@ function Strip({
   imagesShown?: boolean;
 
   layoutClass: string;
+  /** Mobile: the panels stacked (landing mode, and until the chosen one has
+   * opened) rather than in a row. */
+  stacked: boolean;
+  /** The moment they turn from one to the other: no transition, so the
+   * closed panel — nothing either way — doesn't animate across. */
+  turning: boolean;
 }) {
   const lenisRef = useRef<LenisRef>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -618,15 +724,33 @@ function Strip({
 
   // Desktop: side by side — half the screen each in landing mode; the chosen
   // one grows across it, the other closes to nothing, and swapping slides
-  // side to side. Mobile: stacked — the same, down the screen, swapping up
-  // and down.
+  // side to side. Mobile: stacked in landing mode, the chosen one growing
+  // down (or up) to fill the screen; once it has, the panels turn to a row
+  // (see useMobileStack) — Personal left, Commissioned right — and swap side
+  // to side from then on, as on desktop.
   const open = opened === section;
-  const size =
-    opened === null
-      ? "w-full h-1/2 lg:w-1/2 lg:h-full"
+  const desktopSize =
+    opened === null ? "lg:w-1/2" : open ? "lg:w-full" : "lg:w-0";
+  const mobileSize = stacked
+    ? opened === null
+      ? "w-full h-1/2"
       : open
         ? "w-full h-full"
-        : "w-full h-0 lg:w-0 lg:h-full";
+        : "w-full h-0"
+    : open
+      ? "w-full h-full"
+      : "w-0 h-full";
+  const size = `${mobileSize} ${desktopSize} lg:h-full`;
+
+  // A gutter on the edge facing the other panel — Personal's right,
+  // Commissioned's left — so swapping, the two covers slide past each other
+  // with a gap between them rather than butting up at the seam. The width of
+  // the covers' own margin, so at rest it's never seen. Page-coloured rather
+  // than a clip: WebKit won't snapshot a view-transition-named cover under a
+  // clipped parent.
+  const seam = `after:content-[''] after:absolute after:inset-y-0 after:w-5.5 after:z-[15] after:bg-background after:pointer-events-none ${
+    section === "personal" ? "after:right-0" : "after:left-0"
+  }`;
 
   const shown = projects[active] ?? projects[0];
   const shownImages = columnImages[active] ?? [];
@@ -645,7 +769,7 @@ function Strip({
       // The other column, closed down to nothing: nothing in it to reach.
       inert={opened !== null && opened !== section}
       onClick={onOpen}
-      className={`group group/strip relative ${size} overflow-hidden pb-0 shrink-0 transition-[width,height] ${layoutClass} ${opened !== null && layoutClass === SELECT_CLASS ? AFTER_COVER : ""} hover:text-blue-700 ${background}`}
+      className={`group group/strip relative ${size} ${seam} overflow-hidden pb-0 shrink-0 ${turning ? "transition-none" : `transition-[width,height] ${layoutClass}`} ${opened !== null && layoutClass === SELECT_CLASS ? AFTER_COVER : ""} hover:text-blue-700 ${background}`}
       onMouseEnter={() => setHoveredSection(section)}
       onMouseLeave={() => setHoveredSection(null)}
     >
@@ -703,6 +827,7 @@ function Strip({
                 alt={mediaAlt(p.title, media, frame, images.length)}
                 morph={n === i}
                 repeat={n !== i}
+                current={n === i && i === active}
                 priority={n === 0}
                 layoutClass={layoutClass}
               />
@@ -784,6 +909,22 @@ export default function HomeClient({
 }) {
   const opened = useOpenedSection();
   const layoutClass = useColumnTempo(opened);
+  const { stacked, turning, setStacked } = useMobileStack(opened);
+  // Picking a section: on mobile, out of landing mode, it slides in (see
+  // slideIntoSection); otherwise just through the hash.
+  const pick = (section: Exclude<Section, null>) => {
+    const slid =
+      opened === null &&
+      slideIntoSection(
+        section,
+        () => {
+          setOpenedSection(section);
+          setStacked(false);
+        },
+        () => setHash(section),
+      );
+    if (!slid) setHash(section);
+  };
   // Both columns have read where to come back to (see Strip); spent now.
   useEffect(() => clearReturn(), []);
 
@@ -846,30 +987,36 @@ export default function HomeClient({
             {SITE_TITLE}, {SITE_DESCRIPTION}
           </h1>
         )}
-        <section className="font-selecta relative flex flex-col lg:flex-row w-screen h-dvh overflow-hidden bg-background">
+        <section
+          className={`font-selecta relative flex ${stacked ? "flex-col" : "flex-row"} lg:flex-row w-screen h-dvh overflow-hidden bg-background`}
+        >
           <Strip
             section="personal"
             projects={personal}
             fallbackSrc="/personal_placeholder.png"
             opened={opened}
-            onOpen={() => setHash("personal")}
+            onOpen={() => pick("personal")}
             scrollToSlug={jumpSlug}
             onScrolled={() => setJumpSlug(null)}
             muteSound={hash === "about" || hash === "index"}
             imagesShown={landing.images}
             layoutClass={layoutClass}
+            stacked={stacked}
+            turning={turning}
           />
           <Strip
             section="commissioned"
             projects={commissioned}
             fallbackSrc="/personal_placeholder.png"
             opened={opened}
-            onOpen={() => setHash("commissioned")}
+            onOpen={() => pick("commissioned")}
             scrollToSlug={jumpSlug}
             onScrolled={() => setJumpSlug(null)}
             muteSound={hash === "about" || hash === "index"}
             imagesShown={landing.images}
             layoutClass={layoutClass}
+            stacked={stacked}
+            turning={turning}
           />
 
           <LandingPrompt
@@ -882,7 +1029,7 @@ export default function HomeClient({
       </main>
 
       <InfoOverlay open={hash === "about"} onDismiss={() => setHash("")}>
-        <AboutSection about={about} />
+        <AboutSection about={about} open={hash === "about"} />
       </InfoOverlay>
       <InfoOverlay
         open={hash === "index"}

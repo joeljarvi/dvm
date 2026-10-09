@@ -2,8 +2,8 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
-import { fadeItem, staggerContainer } from "@/lib/motion";
+import { motion, type Variants } from "motion/react";
+import { fadeItem, REVEAL_CLASS, STAGGER } from "@/lib/motion";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { Button } from "@/components/ui/button";
 import type { About } from "@/lib/types";
@@ -40,15 +40,44 @@ const bioComponents: PortableTextComponents = {
   },
 };
 
-export default function AboutSection({ about }: { about?: About | null }) {
+// Opening, the text comes in piece by piece; switching Bio / Links, column 3
+// comes in again.
+const textIn = (delay: number): Variants => ({
+  hidden: {},
+  visible: { transition: { delayChildren: delay, staggerChildren: STAGGER } },
+});
+
+export default function AboutSection({
+  about,
+  open = true,
+}: {
+  about?: About | null;
+  /** Whether its overlay is up — it stays mounted closed, so this is what
+   * plays its opening. */
+  open?: boolean;
+}) {
   const links = about?.links?.length ? about.links : FALLBACK_LINKS;
   const bioImageUrl = about?.bioImageUrl;
   // Column 3 holds one of the two at a time; the switch sits at the bottom of
   // column 2, the way IndexSection's Selected / Show All does.
   const [view, setView] = useState<"bio" | "links">("bio");
+  const showView = (v: "bio" | "links") => {
+    setView(v);
+    setBioHovered(false);
+  };
   // The bio image sits behind everything, dimmed and blurred — the way
-  // IndexSection previews a hovered project — and is always there.
+  // IndexSection previews a hovered project. Desktop only, and only while
+  // the bio or its heading is hovered; on mobile, never.
   const previewImage = bioImageUrl ?? null;
+  const [bioHovered, setBioHovered] = useState(false);
+  const hoverBio =
+    view === "bio"
+      ? {
+          onMouseEnter: () => setBioHovered(true),
+          onMouseLeave: () => setBioHovered(false),
+        }
+      : {};
+  const imageShown = open && view === "bio" && bioHovered;
   // The image sits behind everything and takes no pointer events, so
   // whether it's hovered is worked out from where the pointer is.
   const previewRef = useRef<HTMLDivElement>(null);
@@ -67,17 +96,26 @@ export default function AboutSection({ about }: { about?: About | null }) {
   };
 
   return (
-    <div
+    <motion.div
+      variants={textIn(0)}
+      initial="hidden"
+      animate={open ? "visible" : "hidden"}
       data-lenis-prevent
       onMouseMove={trackImageHover}
       onMouseLeave={() => setImageHovered(false)}
       className="relative flex flex-col lg:grid pt-28 lg:pt-0 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden lg:overflow-hidden lg:grid-rows-[auto_auto_1fr_auto] lg:grid-cols-4 items-start justify-start w-full h-dvh   font-diatype font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 lg:gap-x-0 gap-y-16 lg:gap-y-0  lg:tracking-normal  text-blue-700 lg:text-neutral-300      "
     >
       {previewImage && (
-        // Fixed on mobile, so it stays put while the bio scrolls over it.
         <div
           ref={previewRef}
-          className="fixed lg:absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none"
+          // Fades in slowly and evenly while the bio is hovered (the reveal's
+          // curve does most of its change at once, and reads as no fade at
+          // all); out at the quicker reveal.
+          className={`hidden lg:block absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none transition-opacity ${
+            imageShown
+              ? "duration-(--motion-entrance) ease-in-out opacity-100"
+              : `${REVEAL_CLASS} opacity-0`
+          }`}
         >
           <BlurredPreview
             media={{ url: previewImage, type: "image" }}
@@ -87,22 +125,29 @@ export default function AboutSection({ about }: { about?: About | null }) {
         </div>
       )}
 
-      <h3 className="hidden lg:flex col-start-2 lg:row-start-1 w-min h-14 items-center px-5.5 font-normal text-blue-700 whitespace-nowrap">
+      <motion.h3
+        variants={fadeItem}
+        className="hidden lg:flex col-start-2 lg:row-start-1 w-min h-14 items-center px-5.5 font-normal text-blue-700 whitespace-nowrap"
+      >
         Connect
-      </h3>
+      </motion.h3>
 
-      <h3 className="lg:hidden order-first flex h-14 items-center px-5.5 font-normal text-[0.8rem] text-blue-700 whitespace-nowrap">
+      <motion.h3
+        variants={fadeItem}
+        className="lg:hidden order-first flex h-14 items-center px-5.5 font-normal text-[0.8rem] text-blue-700 whitespace-nowrap"
+      >
         Daniel von Malmborg
-      </h3>
+      </motion.h3>
 
       <motion.div
         key={view}
         className="contents"
-        variants={staggerContainer}
+        variants={textIn(0)}
         initial="hidden"
-        animate="visible"
+        animate={open ? "visible" : "hidden"}
       >
         <motion.h3
+          {...hoverBio}
           variants={fadeItem}
           className="hidden lg:flex col-start-3 lg:row-start-1 h-14 items-center px-5.5 font-normal text-blue-700 whitespace-nowrap"
         >
@@ -110,6 +155,7 @@ export default function AboutSection({ about }: { about?: About | null }) {
         </motion.h3>
 
         <div
+          {...hoverBio}
           className="row-start-3 flex flex-col col-span-1 lg:col-span-1 lg:col-start-3 lg:row-start-2 w-full h-full  lg:text-[0.8rem] font-normal pl-5.5 pr-0 lg:px-5.5 leading-tight tracking-wide gap-y-4 max-w-3/4 lg:max-w-full text-blue-700  mb-0 lg:mb-12"
         >
           {view === "bio" ? (
@@ -153,13 +199,19 @@ export default function AboutSection({ about }: { about?: About | null }) {
           )}
         </div>
 
-        <span className="order-first lg:order-0 col-start-1 lg:col-start-2 lg:row-start-2 lg:flex lg:flex-col grid grid-cols-4 gap-x-0 lg:px-5.5 font-normal justify-start w-full lg:w-auto">
+        <motion.span
+          variants={fadeItem}
+          className="order-first lg:order-0 col-start-1 lg:col-start-2 lg:row-start-2 lg:flex lg:flex-col grid grid-cols-4 gap-x-0 lg:px-5.5 font-normal justify-start w-full lg:w-auto"
+        >
           <ConnectLinks connect={about?.connect} className="lg:px-0" />
-        </span>
+        </motion.span>
       </motion.div>
       {/* Mobile: on the heading's line (the content's first row, below the
           pt-30), right-aligned. Desktop: pinned to the bottom of column 2. */}
-      <div className="fixed top-[62.5%] right-0 h-14  flex   items-center justify-between px-0 pointer-events-none lg:sticky lg:top-auto lg:right-auto lg:bottom-0 lg:col-start-2 lg:row-start-4 lg:w-full lg:h-32 lg:items-end lg:justify-start lg:px-5.5">
+      <motion.div
+        variants={fadeItem}
+        className="fixed top-[62.5%] right-0 h-14  flex   items-center justify-between px-0 pointer-events-none lg:sticky lg:top-auto lg:right-auto lg:bottom-0 lg:col-start-2 lg:row-start-4 lg:w-full lg:h-32 lg:items-end lg:justify-start lg:px-5.5"
+      >
         <div className="flex flex-col  items-end lg:flex-row lg:items-center  w-full lg:justify-start gap-x-4 text-right lg:text-left pointer-events-auto">
           {(["bio", "links"] as const).map((v) => (
             <Button
@@ -168,13 +220,13 @@ export default function AboutSection({ about }: { about?: About | null }) {
               size="sm"
               aria-pressed={view === v}
               className={` capitalize text-right lg:px-0 lg:text-center justify-end lg:justify-center hover:text-blue-700 dark:hover:text-blue-700 ${view === v ? "text-blue-700 dark:text-blue-700" : "text-neutral-400 dark:text-neutral-500"}`}
-              onClick={() => setView(v)}
+              onClick={() => showView(v)}
             >
               {v}
             </Button>
           ))}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
