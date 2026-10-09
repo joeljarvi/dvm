@@ -154,19 +154,14 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
       {part === "top" && showCommissioned && (
         <span
           inert={hidden(topChrome)}
-          // Mobile: bottom left (About takes the top right there).
-          className={corner(
-            "bottom-0 left-0 justify-start lg:top-0 lg:bottom-auto lg:left-auto lg:right-0 lg:justify-end",
-            true,
-            topChrome,
-          )}
+          className={corner("top-0 right-0 justify-end", true, topChrome)}
         >
           {onHome ? (
             <Button
               data-nav="commissioned"
               variant="link"
               size="sm"
-              className={`justify-start lg:justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(sectionLink(commissionedActive))} ${overIndex}`}
+              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(sectionLink(commissionedActive))} ${overIndex}`}
               onClick={() => switchSection("commissioned", onHome)}
             >
               Commissioned
@@ -176,7 +171,7 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
               data-nav="commissioned"
               variant="link"
               size="sm"
-              className={`justify-start lg:justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(sectionLink(commissionedActive))} ${overIndex}`}
+              className={`justify-end hover:text-blue-700 transition-all ${cornerLink} ${linkBlend(sectionLink(commissionedActive))} ${overIndex}`}
               asChild
             >
               <Link href="/#commissioned">Commissioned</Link>
@@ -189,8 +184,7 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
         <span
           inert={hidden(topChrome)}
           className={corner(
-            // Mobile: top right (Commissioned takes the bottom left there).
-            "top-0 right-0 justify-end lg:top-auto lg:bottom-0 lg:right-auto lg:left-0 lg:justify-start",
+            "bottom-0 lg:bottom-0 left-0 justify-start",
             true,
             topChrome,
           )}
@@ -199,7 +193,7 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
             <Button
               variant="link"
               size="sm"
-              className={`justify-end lg:justify-start hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
+              className={`justify-start hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
               onClick={() => setHash(hash === "about" ? "" : "about")}
             >
               About
@@ -208,7 +202,7 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
             <Button
               variant="link"
               size="sm"
-              className={`justify-end lg:justify-start hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
+              className={`justify-start hover:text-blue-700 ${cornerLink} ${linkBlend(aboutActive)}`}
               asChild
             >
               <Link href="/about">About</Link>

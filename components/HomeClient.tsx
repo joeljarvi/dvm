@@ -99,7 +99,9 @@ function landingGap(
   const inner =
     (section === "personal" && side === "after") ||
     (section === "commissioned" && side === "before");
-  const grow = landingMode && !inner ? "grow-3" : "grow";
+  // Desktop only: on mobile the landing stage's padding sets the spacing
+  // (see LANDING_STAGE_CLASS).
+  const grow = landingMode && !inner ? "grow lg:grow-3" : "grow";
   return `basis-0 shrink-0 ${grow} transition-[flex-grow] ${tempo}`;
 }
 
@@ -136,7 +138,14 @@ export const COVER_STAGE_CLASS = "flex flex-col p-0 lg:py-28";
 // column's scroll (py-28, 112px), and landing mode (py-50.5, 202px): +90px
 // a step, so each step reads as the same distance. Landing's stage,
 // otherwise COVER_STAGE_CLASS.
-const LANDING_STAGE_CLASS = "flex flex-col p-0 lg:py-50.5";
+// Mobile, the panels stacked: each cover held off its outer edge — the
+// screen's top for Personal, its bottom for Commissioned — by twice what
+// it's held off the other (pt-24/pb-12, 96px/48px), leaving a 96px gap
+// between the two, where "Or" sits.
+const LANDING_STAGE_CLASS: Record<Exclude<Section, null>, string> = {
+  personal: "flex flex-col pt-24 pb-12 lg:pt-50.5 lg:pb-50.5",
+  commissioned: "flex flex-col pt-12 pb-24 lg:pt-50.5 lg:pb-50.5",
+};
 // The frame is a size container, and the media is capped in its units
 // (cqw/cqh) rather than as a percentage of the box around it. That box
 // shrink-wraps the media, so a percentage there is circular — Safari
@@ -303,7 +312,7 @@ function Cover({
       ref={box}
       aria-hidden={repeat || undefined}
       data-slug={project.slug ?? project.title}
-      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height,padding] ${layoutClass} ${landingMode ? LANDING_STAGE_CLASS : `${COVER_STAGE_CLASS} ${justOpened ? AFTER_COVER : ""}`} max-w-full mx-auto`}
+      className={`relative shrink-0 w-full group ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height,padding] ${layoutClass} ${landingMode ? LANDING_STAGE_CLASS[section] : `${COVER_STAGE_CLASS} ${justOpened ? AFTER_COVER : ""}`} max-w-full mx-auto`}
     >
       {/* Its gaps run across its column on desktop (panels side by side),
           down it on mobile (panels stacked in landing mode). */}
