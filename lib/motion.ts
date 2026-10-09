@@ -33,12 +33,12 @@ export const DURATION = {
   /** Home: picking Personal or Commissioned out of landing mode. */
   select: ms(1000),
   /** The same, a touch quicker on desktop, nearer the swap below. */
-  selectDesktop: ms(720),
+  selectDesktop: ms(620),
   /** Home: swapping straight from one open column to the other. */
   switch: ms(550),
   /** Home: leaving landing mode, the covers' gaps settling before the
    * columns move (see AFTER_COVER in HomeClient). */
-  coverStep: ms(340),
+  coverStep: ms(290),
   /** Home, mobile: picking a section out of landing mode — the landing view
    * sliding away, the chosen cover gliding into place (see slideIntoSection
    * in HomeClient). Unhurried. */

@@ -417,7 +417,16 @@ function Cover({
       // (see BlurredPreview). The hover runs on the brisker reveal; leaving
       // landing mode, the column's own timing. Mobile, with no hover, stays
       // sharp.
-      className={`relative shrink-0 w-full group bg-background ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} transition-[height,padding,filter,opacity] ${landingMode ? REVEAL_CLASS : layoutClass} ${
+      className={`relative shrink-0 w-full group bg-background ${landingMode ? "h-[50dvh] lg:h-screen" : "h-screen"} ${
+        // The blur and dimming ease only in landing mode, on hover. Leaving
+        // it they drop at once: an animating filter has Safari draw the
+        // cover on a layer of its own, clipped at its edge — a hard line
+        // round it as the columns move. (The chosen one is sharp already,
+        // from the hover.)
+        landingMode
+          ? `transition-[height,padding,filter,opacity] ${REVEAL_CLASS}`
+          : `transition-[height,padding] ${layoutClass}`
+      } ${
         // Open: no filter at all, not even blur(0) — WebKit won't snapshot
         // a view-transition-named element under a filtered one (the slide
         // in, the morph to a project page).
@@ -742,14 +751,14 @@ function Strip({
       : "w-0 h-full";
   const size = `${mobileSize} ${desktopSize} lg:h-full`;
 
-  // A gutter on the edge facing the other panel — Personal's right,
+  // Mobile: a gutter on the edge facing the other panel — Personal's right,
   // Commissioned's left — so swapping, the two covers slide past each other
   // with a gap between them rather than butting up at the seam. The width of
   // the covers' own margin, so at rest it's never seen. Page-coloured rather
   // than a clip: WebKit won't snapshot a view-transition-named cover under a
   // clipped parent.
-  const seam = `after:content-[''] after:absolute after:inset-y-0 after:w-5.5 after:z-[15] after:bg-background after:pointer-events-none ${
-    section === "personal" ? "after:right-0" : "after:left-0"
+  const seam = `max-lg:after:content-[''] max-lg:after:absolute max-lg:after:inset-y-0 max-lg:after:w-5.5 max-lg:after:z-[15] max-lg:after:bg-background max-lg:after:pointer-events-none ${
+    section === "personal" ? "max-lg:after:right-0" : "max-lg:after:left-0"
   }`;
 
   const shown = projects[active] ?? projects[0];

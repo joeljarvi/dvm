@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, type Variants } from "motion/react";
-import { fadeItem, REVEAL_CLASS, STAGGER } from "@/lib/motion";
+import { REVEAL_CLASS, REVEAL_DURATION, REVEAL_TRANSITION } from "@/lib/motion";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { Button } from "@/components/ui/button";
 import type { About } from "@/lib/types";
@@ -30,26 +30,27 @@ const FALLBACK_LINKS = [
   },
 ];
 
-const bioComponents: PortableTextComponents = {
-  block: {
-    normal: ({ children }) => (
-      <motion.p variants={fadeItem} className="indent-0 mb-0">
-        {children}
-      </motion.p>
-    ),
-  },
-};
-
 // The bio image (shown behind the bio while it's hovered, on desktop) — off
 // for now. Back on: true.
 const SHOW_BIO_IMAGE = false;
 
-// Opening, the text comes in piece by piece; switching Bio / Links, column 3
-// comes in again.
-const textIn = (delay: number): Variants => ({
-  hidden: {},
-  visible: { transition: { delayChildren: delay, staggerChildren: STAGGER } },
-});
+// Opening: the background fades in first (the overlay's own reveal), then
+// the text, top to bottom — row by row down the page, not in source order:
+// the headings; the Connect links beside the bio's first paragraph; each
+// paragraph after; the Bio / Links switch last. `after` is when the rows
+// start: once the background is in, as About opens; at once, when Bio /
+// Links swaps column 3.
+const ROW_STEP = 0.1;
+type Row = { row: number; after: number };
+const textRow: Variants = {
+  hidden: { opacity: 0, transition: REVEAL_TRANSITION },
+  visible: ({ row, after }: Row) => ({
+    opacity: 1,
+    transition: { ...REVEAL_TRANSITION, delay: after + row * ROW_STEP },
+  }),
+};
+// The switch comes in after the bio, however many paragraphs it has.
+const LAST_ROW = 6;
 
 export default function AboutSection({
   about,
@@ -65,9 +66,33 @@ export default function AboutSection({
   // Column 3 holds one of the two at a time; the switch sits at the bottom of
   // column 2, the way IndexSection's Selected / Show All does.
   const [view, setView] = useState<"bio" | "links">("bio");
+  // When column 3's rows start (see textRow): after the background as About
+  // opens, at once on a Bio / Links switch.
+  const [columnAfter, setColumnAfter] = useState(REVEAL_DURATION);
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setColumnAfter(REVEAL_DURATION);
+  }
   const showView = (v: "bio" | "links") => {
+    setColumnAfter(0);
     setView(v);
     setBioHovered(false);
+  };
+  const opening = (row: number): Row => ({ row, after: REVEAL_DURATION });
+  const inColumn = (row: number): Row => ({ row, after: columnAfter });
+  const bioComponents: PortableTextComponents = {
+    block: {
+      normal: ({ children, index }) => (
+        <motion.p
+          variants={textRow}
+          custom={inColumn(1 + index)}
+          className="indent-0 mb-0"
+        >
+          {children}
+        </motion.p>
+      ),
+    },
   };
   // The bio image sits behind everything, dimmed and blurred — the way
   // IndexSection previews a hovered project. Desktop only, and only while
@@ -101,7 +126,6 @@ export default function AboutSection({
 
   return (
     <motion.div
-      variants={textIn(0)}
       initial="hidden"
       animate={open ? "visible" : "hidden"}
       data-lenis-prevent
@@ -132,14 +156,16 @@ export default function AboutSection({
       )}
 
       <motion.h3
-        variants={fadeItem}
+        variants={textRow}
+        custom={opening(0)}
         className="hidden lg:flex col-start-2 lg:row-start-1 w-min h-14 items-center px-5.5 font-normal text-blue-700 whitespace-nowrap"
       >
         Connect
       </motion.h3>
 
       <motion.h3
-        variants={fadeItem}
+        variants={textRow}
+        custom={opening(0)}
         className="lg:hidden order-first flex h-14 items-center px-5.5 font-normal text-[0.8rem] text-blue-700 whitespace-nowrap"
       >
         Daniel von Malmborg
@@ -148,13 +174,13 @@ export default function AboutSection({
       <motion.div
         key={view}
         className="contents"
-        variants={textIn(0)}
         initial="hidden"
         animate={open ? "visible" : "hidden"}
       >
         <motion.h3
           {...hoverBio}
-          variants={fadeItem}
+          variants={textRow}
+          custom={inColumn(0)}
           className="hidden lg:flex col-start-3 lg:row-start-1 h-14 items-center px-5.5 font-normal text-blue-700 whitespace-nowrap"
         >
           {view === "bio" ? "Daniel von Malmborg" : "Links"}
@@ -169,16 +195,22 @@ export default function AboutSection({
               <PortableText value={about.shortBio} components={bioComponents} />
             ) : (
               FALLBACK_BIO.map((paragraph, i) => (
-                <motion.p key={i} variants={fadeItem} className="indent-0 mb-0">
+                <motion.p
+                  key={i}
+                  variants={textRow}
+                  custom={inColumn(1 + i)}
+                  className="indent-0 mb-0"
+                >
                   {paragraph}
                 </motion.p>
               ))
             )
           ) : (
-            links.map((link) => (
+            links.map((link, i) => (
               <motion.span
                 key={link.url}
-                variants={fadeItem}
+                variants={textRow}
+                custom={inColumn(1 + i)}
                 className="flex flex-col items-start "
               >
                 <Button
@@ -206,7 +238,8 @@ export default function AboutSection({
         </div>
 
         <motion.span
-          variants={fadeItem}
+          variants={textRow}
+          custom={inColumn(1)}
           className="order-first lg:order-0 col-start-1 lg:col-start-2 lg:row-start-2 lg:flex lg:flex-col grid grid-cols-4 gap-x-0 lg:px-5.5 font-normal justify-start w-full lg:w-auto"
         >
           <ConnectLinks connect={about?.connect} className="lg:px-0" />
@@ -215,7 +248,8 @@ export default function AboutSection({
       {/* Mobile: on the heading's line (the content's first row, below the
           pt-30), right-aligned. Desktop: pinned to the bottom of column 2. */}
       <motion.div
-        variants={fadeItem}
+        variants={textRow}
+        custom={opening(LAST_ROW)}
         className="fixed top-[62.5%] right-0 h-14  flex   items-center justify-between px-0 pointer-events-none lg:sticky lg:top-auto lg:right-auto lg:bottom-0 lg:col-start-2 lg:row-start-4 lg:w-full lg:h-32 lg:items-end lg:justify-start lg:px-5.5"
       >
         <div className="flex flex-col  items-end lg:flex-row lg:items-center  w-full lg:justify-start gap-x-4 text-right lg:text-left pointer-events-auto">
