@@ -4,16 +4,17 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import { ReactLenis } from "lenis/react";
 import { motionCssVars } from "@/lib/motion";
-import { fetchAbout } from "@/sanity/queries";
+import { fetchSiteSettings } from "@/sanity/queries";
 import { sanityImage } from "@/lib/image";
 import SiteAnalytics from "@/components/SiteAnalytics";
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/site";
 
 // Defaults for every page; a page's own metadata (e.g. a project's) layers
-// over them. The share image falls back to the About page's bio image.
+// over them. The share image is Site Settings' Share Image, if one's set —
+// none otherwise.
 export async function generateMetadata(): Promise<Metadata> {
-  const about = await fetchAbout();
-  const image = sanityImage(about?.bioImageUrl, { w: 1200 });
+  const { shareImageUrl } = await fetchSiteSettings();
+  const image = sanityImage(shareImageUrl, { w: 1200 });
 
   return {
     metadataBase: new URL(SITE_URL),

@@ -1,13 +1,14 @@
 import AboutSection from "@/components/AboutSection";
 import type { Metadata } from "next";
 import { toPlainText } from "@portabletext/react";
-import { fetchAbout } from "@/sanity/queries";
+import { fetchAbout, fetchSiteSettings } from "@/sanity/queries";
 import { pageMetadata } from "@/lib/metadata";
 import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/site";
 
 // The short bio as the description, cut to what a search result shows; the
 // bio image to share.
 export async function generateMetadata(): Promise<Metadata> {
+  const { shareImageUrl } = await fetchSiteSettings();
   const about = await fetchAbout();
   const bio = about?.shortBio?.length
     ? toPlainText(about.shortBio).replace(/\s+/g, " ").trim()
@@ -21,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "About",
     description,
     path: "/about",
-    image: about?.bioImageUrl,
+    image: shareImageUrl ?? undefined,
     imageAlt: SITE_TITLE,
   });
 }

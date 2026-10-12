@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import ConnectPage from "@/components/ConnectPage";
-import { fetchAbout } from "@/sanity/queries";
+import { fetchAbout, fetchSiteSettings } from "@/sanity/queries";
 import { pageMetadata } from "@/lib/metadata";
 import { SITE_TITLE } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const about = await fetchAbout();
+  const { shareImageUrl } = await fetchSiteSettings();
   return pageMetadata({
     title: "Connect",
     description: `Get in touch with ${SITE_TITLE} — phone, email and Instagram.`,
     path: "/connect",
-    image: about?.bioImageUrl,
+    image: shareImageUrl ?? undefined,
     imageAlt: SITE_TITLE,
   });
 }

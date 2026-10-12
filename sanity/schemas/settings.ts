@@ -22,6 +22,13 @@ export const settings = defineType({
         'The sentence shown across the home page before a section is picked, one word at a time. The words "Personal" and "Commissioned" turn blue when their side is hovered. Leave empty for "Please Select Personal Or Commissioned".',
       type: 'string',
     }),
+    defineField({
+      name: 'shareImage',
+      title: 'Share Image',
+      description:
+        'Optional. The picture shown when the site is shared (link previews in Messages, Slack, LinkedIn…) and as its thumbnail in browsers like Safari — for the home page, About, Connect and Index. Project pages use their own cover. Around 1200 × 630 works best. Leave empty for none.',
+      type: 'image',
+    }),
   ],
   preview: {
     prepare: () => ({ title: 'Site Settings' }),

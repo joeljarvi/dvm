@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { closeTop } from "@/lib/modalStack";
-import { useIntro } from "@/lib/intro";
 import { useOpenedSection } from "@/lib/section";
 import { setHash, useHash } from "@/lib/hash";
 import { switchSection } from "@/lib/navigation";
@@ -20,7 +19,6 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const { arrived } = useIntro();
 
   const hash = useHash();
 
@@ -36,7 +34,9 @@ export default function Nav({ part }: { part: "top" | "bottom" }) {
     setArrivalDelay(prevOpened === null && opened !== null ? AFTER_SELECT : "");
   }
 
-  const chrome = arrived ? "" : "opacity-0 pointer-events-none";
+  // Shown at once off the home page (the opening intro it used to wait for
+  // is gone).
+  const chrome = "";
 
   useEffect(() => {
     // Once, not once per part.
