@@ -1,17 +1,28 @@
 // Build an optimized Sanity CDN image URL from a resolved asset URL.
-// Sanity's CDN honors query params (w/h/q/auto/fit), turning multi-MB
-// originals into right-sized, auto-formatted (webp/avif) images.
+// Sanity's CDN honors query params (w/h/q/auto/fit/blur), turning multi-MB
+// originals into right-sized, auto-formatted (webp/avif) images — or blurred
+// ones, done on the CDN rather than with a CSS filter.
 // Non-Sanity URLs (e.g. fallback data) are returned untouched.
 export function sanityImage(
   url: string | undefined | null,
-  { w, h, q = 75 }: { w?: number; h?: number; q?: number } = {},
+  {
+    w,
+    h,
+    q = 75,
+    blur,
+  }: { w?: number; h?: number; q?: number; blur?: number } = {},
 ): string | undefined {
   if (!url) return url ?? undefined;
   if (!url.includes("cdn.sanity.io")) return url;
 
-  const params = new URLSearchParams({ auto: "format", fit: "max", q: String(q) });
+  const params = new URLSearchParams({
+    auto: "format",
+    fit: "max",
+    q: String(q),
+  });
   if (w) params.set("w", String(w));
   if (h) params.set("h", String(h));
+  if (blur) params.set("blur", String(blur));
   return `${url}?${params.toString()}`;
 }
 
