@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Nav from "@/components/Nav";
-import { ReactLenis } from "lenis/react";
+import SmoothScroll from "@/components/SmoothScroll";
 import { motionCssVars } from "@/lib/motion";
 import { fetchSiteSettings } from "@/sanity/queries";
 import { sanityImage } from "@/lib/image";
@@ -63,7 +63,7 @@ export default function RootLayout({
       className={`  ${diatype.variable} antialiased`}
     >
       <body className="">
-        <ReactLenis root />
+        <SmoothScroll />
         <Nav part="top" />
         {children}
         <Nav part="bottom" />
