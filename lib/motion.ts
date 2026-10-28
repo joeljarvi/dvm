@@ -31,7 +31,7 @@ export const DURATION = {
   /** Larger entrances, e.g. the home covers landing. */
   entrance: ms(1000),
   /** Home: picking Personal or Commissioned out of landing mode. */
-  select: ms(1000),
+  select: ms(850),
   /** The same, a touch quicker on desktop, nearer the swap below. */
   selectDesktop: ms(620),
   /** Home: swapping straight from one open column to the other. */
@@ -42,7 +42,7 @@ export const DURATION = {
   /** Home, mobile: picking a section out of landing mode — the landing view
    * sliding away, the chosen cover gliding into place (see slideIntoSection
    * in HomeClient). Unhurried. */
-  homeSlide: ms(1100),
+  homeSlide: ms(950),
 } as const;
 
 // Curves.

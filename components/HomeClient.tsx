@@ -12,6 +12,7 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
+import { SCROLL_OPTIONS } from "@/lib/scroll";
 import type { ScrollCallback } from "lenis";
 import type { About, Project, ProjectMedia } from "@/lib/types";
 import { mediaAlt, sanityImage } from "@/lib/image";
@@ -794,14 +795,14 @@ function Strip({
         className={`relative z-10 transition-[opacity,translate] ${ENTRANCE_CLASS} ${
           imagesShown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         } w-full h-full overflow-y-auto overflow-x-hidden scrollbar-none [&::-webkit-scrollbar]:hidden`}
+        // How it feels is shared with the page's own scroll (lib/scroll);
+        // the rest is the column's — looping, and taking over touch so the
+        // loop works there too.
         options={{
+          ...SCROLL_OPTIONS,
           orientation: "vertical",
           gestureOrientation: "both",
-          lerp: 0.1,
-          duration: 1.2,
           smoothWheel: true,
-          wheelMultiplier: 1,
-          touchMultiplier: 1,
           infinite: true,
           syncTouch: true,
           autoResize: true,
