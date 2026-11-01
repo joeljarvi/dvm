@@ -7,12 +7,12 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
   ViewTransition,
 } from "react";
 import { flushSync } from "react-dom";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
 import { SCROLL_OPTIONS } from "@/lib/scroll";
+import { useCanHover } from "@/lib/canHover";
 import type { ScrollCallback } from "lenis";
 import type { About, Project, ProjectMedia } from "@/lib/types";
 import { mediaAlt, sanityImage } from "@/lib/image";
@@ -259,21 +259,6 @@ export const morphName = (project: Project) =>
 export const mediaSrc = (src: string) =>
   src.startsWith("/") ? src : sanityImage(src, { w: 1400 });
 
-// Whether the pointer can hover — not on touch screens, where landing mode's
-// hover-to-play would leave a video never playing.
-const HOVER_QUERY = "(hover: hover)";
-function useCanHover() {
-  return useSyncExternalStore(
-    (onChange) => {
-      const mq = window.matchMedia(HOVER_QUERY);
-      mq.addEventListener("change", onChange);
-      return () => mq.removeEventListener("change", onChange);
-    },
-    () => window.matchMedia(HOVER_QUERY).matches,
-    () => true,
-  );
-}
-
 function Cover({
   project,
   media,
@@ -350,12 +335,16 @@ function Cover({
   const gapTempo = justOpened ? `${layoutClass} ${GAP_STEP}` : layoutClass;
   // Mobile landing: the panels stacked, the cover held to half its column's
   // width, easing out to full as its panel opens.
+  // Open: on a GPU layer of its own (will-change), so as smooth scrolling
+  // slows to fractions of a pixel a frame, the image is moved as it's drawn
+  // rather than redrawn at each in-between position — which shimmered, and
+  // read as vibrating. Not in landing mode: there the desktop cover is
+  // blurred, and Safari blurs a layered image only inside its own bounds,
+  // with a hard edge.
   const mediaClass = `${MEDIA_FIT} ${
     landingMode
       ? "max-w-[50cqw] lg:max-w-[100cqw]"
-      : capByColumn
-        ? "max-w-[100cqw]"
-        : OPEN_MEDIA_WIDTH
+      : `${capByColumn ? "max-w-[100cqw]" : OPEN_MEDIA_WIDTH} will-change-transform`
   } ${capEase}`;
 
   // A video plays throughout once its column is open, but in landing mode
@@ -543,6 +532,9 @@ function Strip({
   turning: boolean;
 }) {
   const lenisRef = useRef<LenisRef>(null);
+  // Touch screens scroll natively: Lenis leaves touch alone there (no
+  // syncTouch), so no loop either — native scrolling can't wrap round.
+  const smoothTouch = useCanHover();
   const containerRef = useRef<HTMLDivElement>(null);
   const pointerOver = useHoveredSection();
   const listens =
@@ -803,8 +795,8 @@ function Strip({
           orientation: "vertical",
           gestureOrientation: "both",
           smoothWheel: true,
-          infinite: true,
-          syncTouch: true,
+          infinite: smoothTouch,
+          syncTouch: smoothTouch,
           autoResize: true,
         }}
       >
@@ -815,34 +807,37 @@ function Strip({
               repeated once at the bottom: the last screen then matches the
               first, and the wrap is invisible. The copy is the first cover in
               every respect (same index, frame and handlers). */}
-          {[...projects, ...projects.slice(0, 1)].map((p, n) => {
-            const i = n % projects.length;
-            const images = columnImages[i];
-            const frame = frames[i] ?? 0;
-            const media = images[frame] ?? images[0];
-            return media ? (
-              <Cover
-                key={n === i ? (p.slug ?? `${p.title}-${i}`) : "loop"}
-                project={p}
-                media={media}
-                columnOpen={opened === section}
-                landingMode={opened === null}
-                section={section}
-                panelHovered={pointerOver === section}
-                expanded={expanded[i] ?? false}
-                onExpand={() => expandCover(i)}
-                onStepImage={(delta) => stepImage(i, delta)}
-                onEnter={() => enterCover(i)}
-                muted={!(i === active && soundOn)}
-                alt={mediaAlt(p.title, media, frame, images.length)}
-                morph={n === i}
-                repeat={n !== i}
-                current={n === i && i === active}
-                priority={n === 0}
-                layoutClass={layoutClass}
-              />
-            ) : null;
-          })}
+          {/* (The repeat only where the column loops — not on touch.) */}
+          {[...projects, ...(smoothTouch ? projects.slice(0, 1) : [])].map(
+            (p, n) => {
+              const i = n % projects.length;
+              const images = columnImages[i];
+              const frame = frames[i] ?? 0;
+              const media = images[frame] ?? images[0];
+              return media ? (
+                <Cover
+                  key={n === i ? (p.slug ?? `${p.title}-${i}`) : "loop"}
+                  project={p}
+                  media={media}
+                  columnOpen={opened === section}
+                  landingMode={opened === null}
+                  section={section}
+                  panelHovered={pointerOver === section}
+                  expanded={expanded[i] ?? false}
+                  onExpand={() => expandCover(i)}
+                  onStepImage={(delta) => stepImage(i, delta)}
+                  onEnter={() => enterCover(i)}
+                  muted={!(i === active && soundOn)}
+                  alt={mediaAlt(p.title, media, frame, images.length)}
+                  morph={n === i}
+                  repeat={n !== i}
+                  current={n === i && i === active}
+                  priority={n === 0}
+                  layoutClass={layoutClass}
+                />
+              ) : null;
+            },
+          )}
         </div>
       </ReactLenis>
 

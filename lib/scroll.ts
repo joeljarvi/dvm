@@ -7,11 +7,9 @@ import type { LenisOptions } from "lenis";
 // to respond, soft to land, without a long tail to drag through on each
 // tick — carrying a little further per tick.
 //
-// Touch is left at Lenis' own defaults, deliberately. The page's scroll hands
-// touch to the browser anyway; the columns take it over (for their loop) and
-// there it must stay 1:1 with the finger — a touchMultiplier above 1 had the
-// page run ahead of it — and coast to a stop naturally (a higher
-// syncTouchLerp braked flicks short).
+// No touch settings: on touch screens Lenis is off altogether — the page's
+// scroll isn't mounted, and the columns leave touch to the device (see
+// lib/canHover) — so they scroll the way the phone itself does.
 export const SCROLL_OPTIONS = {
   duration: 0.8,
   easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
