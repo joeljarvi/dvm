@@ -1,15 +1,3 @@
-// Redraws a full-screen layer onto a canvas, as it currently looks on screen:
-// its background, its image or video where it sits, and the NameMark words
-// (`[data-name-word]`) at their own positions, fonts, colours and fades —
-// turned a quarter for the ones inside `[data-turned]`. Nothing else in the
-// layer is drawn. The media has to be readable cross-origin (`crossOrigin`
-// set, CDN sending CORS) or the canvas can't be exported.
-//
-// `cropToMedia` trims it to the image itself — its own aspect ratio, none of
-// the viewport around it — keeping whatever of the watermark falls on it.
-// The across name's ends (`[data-across]`) are moved in to the image's own
-// edges then, the same gutter in from them as from the screen's, so the
-// line spans the image rather than running off it.
 export async function captureLayer(
   layer: HTMLElement,
   { cropToMedia = false }: { cropToMedia?: boolean } = {},
@@ -38,8 +26,6 @@ export async function captureLayer(
   ctx.fillRect(area.left, area.top, area.width, area.height);
 
   if (media && mediaRect) {
-    // With object-fit: cover (a fixed-ratio frame), only the centre of the
-    // source shows — take just that part.
     const sw =
       media instanceof HTMLVideoElement ? media.videoWidth : media.naturalWidth;
     const sh =
@@ -81,8 +67,6 @@ export async function captureLayer(
     )
       return;
 
-    // The text's own box, not the element's — a grid cell stretches that
-    // to the whole column.
     const range = document.createRange();
     range.selectNodeContents(word);
     const r = range.getBoundingClientRect();
@@ -93,8 +77,7 @@ export async function captureLayer(
     if ("letterSpacing" in ctx) ctx.letterSpacing = style.letterSpacing;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    // From the text's centre — for a turned word, its box on screen is
-    // already the rotated one.
+
     let cx = r.left + r.width / 2;
     const end = word.dataset.across;
     if (cropToMedia && mediaRect && end) {

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { pageMetadata } from "@/lib/metadata";
 import { SITE_TITLE } from "@/lib/site";
 import ProjectPage from "@/components/ProjectPage";
+import JsonLd from "@/components/JsonLd";
+import { projectSchema } from "@/lib/structuredData";
 import {
   fetchProjectBySlug,
   fetchProjectSlugs,
@@ -24,9 +26,6 @@ export async function generateStaticParams() {
   );
 }
 
-// Its title (with the client, when that says something the title doesn't),
-// its short description — or, without one, a line built from its credits —
-// and its cover (or first image) as the share image.
 export async function generateMetadata({
   params,
 }: {
@@ -63,8 +62,6 @@ export async function generateMetadata({
   });
 }
 
-// A single project, linked from its title in InfoLayout — one Cover's
-// worth of gallery, on its own page.
 export default async function ProjectDetailPage({
   params,
 }: {
@@ -76,5 +73,39 @@ export default async function ProjectDetailPage({
   const project = await fetchProjectBySlug(category, slug);
   if (!project) notFound();
 
-  return <ProjectPage project={project} category={category} />;
+  const credit = category === "personal" ? "Model" : "Client";
+  return (
+    <>
+      <JsonLd data={projectSchema(project, category)} />
+
+      <section className="sr-only">
+        <h1>{project.title}</h1>
+        <p>
+          {category === "personal" ? "Personal work" : "Commissioned work"} by{" "}
+          {SITE_TITLE}
+          {project.year ? `, ${project.year}` : ""}.
+        </p>
+        {project.client && (
+          <p>
+            {credit}: {project.client}
+          </p>
+        )}
+        {project.agency && <p>Agency: {project.agency}</p>}
+        {project.description && <p>{project.description}</p>}
+        {!!project.credits?.length && (
+          <ul>
+            {project.credits
+              .filter((c) => c.name)
+              .map((c, i) => (
+                <li key={i}>
+                  {c.role ? `${c.role}: ` : ""}
+                  {c.name}
+                </li>
+              ))}
+          </ul>
+        )}
+      </section>
+      <ProjectPage project={project} category={category} />
+    </>
+  );
 }

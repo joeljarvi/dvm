@@ -1,36 +1,34 @@
-import { defineField, defineType } from 'sanity'
+import { defineField, defineType } from "sanity";
 
-// A singleton — see sanity/structure.ts, which pins this to one fixed
-// document (_id "siteSettings") instead of a normal creatable list.
 export const settings = defineType({
-  name: 'settings',
-  title: 'Site Settings',
-  type: 'document',
+  name: "settings",
+  title: "Site Settings",
+  type: "document",
   fields: [
     defineField({
-      name: 'underConstruction',
-      title: 'Under Construction',
+      name: "underConstruction",
+      title: "Under Construction",
       description:
-        'Shows a maintenance overlay on top of the home page, above the Personal/Commissioned overlays, until this is turned off again.',
-      type: 'boolean',
+        "Shows a maintenance overlay on top of the home page, above the Personal/Commissioned overlays, until this is turned off again.",
+      type: "boolean",
       initialValue: false,
     }),
     defineField({
-      name: 'landingText',
-      title: 'Landing Text',
+      name: "landingText",
+      title: "Landing Text",
       description:
         'The sentence shown across the home page before a section is picked, one word at a time. The words "Personal" and "Commissioned" turn blue when their side is hovered. Leave empty for "Please Select Personal Or Commissioned".',
-      type: 'string',
+      type: "string",
     }),
     defineField({
-      name: 'shareImage',
-      title: 'Share Image',
+      name: "shareImage",
+      title: "Share Image",
       description:
-        'Optional. The picture shown when the site is shared (link previews in Messages, Slack, LinkedIn…) and as its thumbnail in browsers like Safari — for the home page, About, Connect and Index. Project pages use their own cover. Around 1200 × 630 works best. Leave empty for none.',
-      type: 'image',
+        "Optional. The picture shown when the site is shared (link previews in Messages, Slack, LinkedIn…) and as its thumbnail in browsers like Safari — for the home page, About, Connect and Index. Project pages use their own cover. Around 1200 × 630 works best. Leave empty for none.",
+      type: "image",
     }),
   ],
   preview: {
-    prepare: () => ({ title: 'Site Settings' }),
+    prepare: () => ({ title: "Site Settings" }),
   },
-})
+});

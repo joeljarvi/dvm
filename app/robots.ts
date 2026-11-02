@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // The Sanity Studio and the revalidation webhook aren't pages.
+
       disallow: ["/studio", "/api/"],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,

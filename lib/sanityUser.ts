@@ -4,10 +4,6 @@ import { useEffect, useState } from "react";
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!;
 
-// Whether this browser is logged in to the Studio (mounted at /studio, so it
-// shares this site's origin). The Studio keeps its session either as a token
-// in localStorage or as a cookie on the Sanity API — the latter only shows
-// up by asking the API who we are. False until known, and on any failure.
 export function useSanityLoggedIn() {
   const [loggedIn, setLoggedIn] = useState(false);
 

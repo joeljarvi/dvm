@@ -10,10 +10,6 @@ import {
   SITE_URL,
 } from "@/lib/site";
 
-// /llms.txt (see llmstxt.org): the site in plain Markdown for AI assistants
-// — who Daniel is, how to reach him, and every project with its client,
-// agency, year and description. Built from Sanity, so it follows the
-// content; regenerated at most hourly.
 export const revalidate = 3600;
 
 const CATEGORIES: { key: Category; heading: string }[] = [
@@ -29,8 +25,7 @@ function projectLine(project: Project, category: Category) {
     : SITE_URL;
   const facts = [
     project.client && project.client !== project.title
-      ? // The personal work's "client" is its model, as the site calls it.
-        `${category === "personal" ? "model" : "client"}: ${project.client}`
+      ? `${category === "personal" ? "model" : "client"}: ${project.client}`
       : null,
     project.agency ? `agency: ${project.agency}` : null,
     project.year ? String(project.year) : null,

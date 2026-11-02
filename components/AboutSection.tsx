@@ -9,8 +9,6 @@ import type { About } from "@/lib/types";
 import BlurredPreview from "@/components/BlurredPreview";
 import ConnectLinks from "@/components/ConnectLinks";
 
-// Shown when Sanity has no About document yet — same degradation pattern
-// as the rest of the site (see FALLBACK in IndexSection).
 const FALLBACK_BIO = [
   "I’m a photographer and creative producer working in advertising for brands and agencies that value quality over quantity.",
   "Driven by craftsmanship — both my own and that of others — my work focuses on portraying designed objects, spaces, and the people behind the craft.",
@@ -29,12 +27,7 @@ const FALLBACK_LINKS = [
   },
 ];
 
-// The bio image (shown behind the bio while it's hovered, on desktop) — off
-// for now. Back on: true.
 const SHOW_BIO_IMAGE = false;
-
-// No reveal of its own: the text comes in with the overlay, sliding up and
-// fading in as one block (InfoOverlay's slideReveal), the way Index does.
 
 const bioComponents: PortableTextComponents = {
   block: {
@@ -47,21 +40,18 @@ export default function AboutSection({
   open = true,
 }: {
   about?: About | null;
-  /** Whether its overlay is up (it stays mounted when closed). */
+
   open?: boolean;
 }) {
   const links = about?.links?.length ? about.links : FALLBACK_LINKS;
   const bioImageUrl = about?.bioImageUrl;
-  // Column 3 holds one of the two at a time; the switch sits at the bottom of
-  // column 2, the way IndexSection's Selected / Show All does.
+
   const [view, setView] = useState<"bio" | "links">("bio");
   const showView = (v: "bio" | "links") => {
     setView(v);
     setBioHovered(false);
   };
-  // The bio image sits behind everything, dimmed and blurred — the way
-  // IndexSection previews a hovered project. Desktop only, and only while
-  // the bio or its heading is hovered; on mobile, never.
+
   const previewImage = bioImageUrl ?? null;
   const [bioHovered, setBioHovered] = useState(false);
   const hoverBio =
@@ -72,8 +62,7 @@ export default function AboutSection({
         }
       : {};
   const imageShown = open && view === "bio" && bioHovered;
-  // The image sits behind everything and takes no pointer events, so
-  // whether it's hovered is worked out from where the pointer is.
+
   const previewRef = useRef<HTMLDivElement>(null);
   const [imageHovered, setImageHovered] = useState(false);
   const trackImageHover = (e: React.MouseEvent) => {
@@ -94,16 +83,11 @@ export default function AboutSection({
       data-lenis-prevent
       onMouseMove={trackImageHover}
       onMouseLeave={() => setImageHovered(false)}
-      // Opaque, over the home page; isolate keeps the bio image (-z-10)
-      // in front of this background rather than behind it.
       className="relative isolate bg-background flex flex-col lg:grid pt-28 lg:pt-0 overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden lg:overflow-hidden lg:grid-rows-[auto_auto_1fr_auto] lg:grid-cols-4 items-start justify-start w-full h-dvh   font-diatype font-normal  text-[0.8rem]  tracking-wide leading-[1.2]   gap-x-5.5 lg:gap-x-0 gap-y-16 lg:gap-y-0  lg:tracking-normal  text-blue-700 lg:text-neutral-300      "
     >
       {SHOW_BIO_IMAGE && previewImage && (
         <div
           ref={previewRef}
-          // Fades in slowly and evenly while the bio is hovered (the reveal's
-          // curve does most of its change at once, and reads as no fade at
-          // all); out at the quicker reveal.
           className={`hidden lg:block absolute inset-x-0 top-0 -z-10 h-dvh px-5.5 bg-background pointer-events-none transition-opacity ${
             imageShown
               ? "duration-(--motion-entrance) ease-in-out opacity-100"
@@ -179,8 +163,7 @@ export default function AboutSection({
           <ConnectLinks connect={about?.connect} className="lg:px-0" />
         </span>
       </div>
-      {/* Mobile: on the heading's line (the content's first row, below the
-          pt-30), right-aligned. Desktop: pinned to the bottom of column 2. */}
+
       <div className="fixed top-[62.5%] right-0 h-14  flex   items-center justify-between px-0 pointer-events-none lg:sticky lg:top-auto lg:right-auto lg:bottom-0 lg:col-start-2 lg:row-start-4 lg:w-full lg:h-32 lg:items-end lg:justify-start lg:px-5.5">
         <div className="flex flex-col  items-end lg:flex-row lg:items-center  w-full lg:justify-start gap-x-4 text-right lg:text-left pointer-events-auto">
           {(["bio", "links"] as const).map((v) => (

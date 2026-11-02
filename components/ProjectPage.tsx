@@ -19,9 +19,6 @@ import { useRegisterModal } from "@/lib/modalStack";
 import NameMark from "@/components/NameMark";
 import { Button } from "@/components/ui/button";
 
-// The single-project counterpart to a home Strip's Cover — clicking its
-// title on home lands here, with just the one project shown, same
-// click-to-cycle gallery and cursor treatment as the home page.
 export default function ProjectPage({
   project,
   category,
@@ -30,7 +27,7 @@ export default function ProjectPage({
   category: Category;
 }) {
   const media = coverImages(project, "/personal_placeholder.png");
-  // Opens on the image its home cover was showing, if that's how we came.
+
   const [frame, setFrame] = useState(() => peekDetailFrame(project.slug));
   useEffect(() => clearDetailFrame(), []);
   const [soundOn, setSoundOn] = useState(false);
@@ -43,8 +40,6 @@ export default function ProjectPage({
 
   const step = () => setFrame((f) => (f + 1) % media.length);
 
-  // Back to wherever we came from on this site; landing here directly, to
-  // the project's own section on home.
   const router = useRouter();
   const back = () => {
     const fromHere =
@@ -54,14 +49,8 @@ export default function ProjectPage({
     else router.push(`/#${category}`);
   };
 
-  // Full screen: just the current image, edge to edge but for the gutter,
-  // over everything including the nav — the name on top as a watermark.
-  // The page opens in it (the home titles link straight here), so closing
-  // it leaves the page.
   const fullScreen = true;
-  // Back (bottom right) is a plain link home, to the project's own section; Escape goes
-  // the same way. Home then opens on this image, so it shrinks back into its
-  // own cover.
+
   const home = `/#${category}`;
   const leave = () => {
     if (project.slug) setReturnFrame(project.slug, frame);
@@ -71,9 +60,6 @@ export default function ProjectPage({
     router.push(home);
   });
 
-  // Press Enter (or click the hint) in full screen to save the view as shown —
-  // image and watermark, no buttons — as a PNG. See lib/screenshot.
-  // "No Frame" saves just the image, cropped to it.
   const layer = useRef<HTMLDivElement>(null);
   const screenshot = async (cropToMedia = false) => {
     if (!layer.current) return;
@@ -84,26 +70,20 @@ export default function ProjectPage({
       a.download = `${project.slug ?? project.title}-${frame + 1}${cropToMedia ? "-no-frame" : ""}.png`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 0);
-    } catch {
-      // The media couldn't be read back (e.g. the CDN refused CORS).
-    }
+    } catch {}
   };
-  // Static: the watermark held at its starting position.
+
   const [still, setStill] = useState(false);
 
-  // B: the watermark in blue.
   const [blue, setBlue] = useState(false);
 
-  // P / Q / L: the image in a 3:4, 1:1 or 16:9 frame, filling it; the same
-  // key again goes back to its own shape.
   const [aspect, setAspect] = useState<"3/4" | "1/1" | "16/9" | null>(null);
   const toggleAspect = (next: "3/4" | "1/1" | "16/9") =>
     setAspect((a) => (a === next ? null : next));
 
   useEffect(() => {
     if (!fullScreen) return;
-    // Enter: screenshot. S: Static. N: screenshot, No Frame. (Enter's
-    // default — clicking a focused button — is held back.)
+
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const key = e.key.toLowerCase();
@@ -121,9 +101,6 @@ export default function ProjectPage({
     return () => document.removeEventListener("keydown", onKey);
   });
 
-  // `inFullScreen`: the copy in the full-screen layer. Only whichever is
-  // showing gets the sound.
-  // The full-screen copy is the one heard; its sound fades in and out.
   const fullScreenVideo = useRef<HTMLVideoElement>(null);
   useSoundFade(fullScreenVideo, !soundOn, current?.url);
 
@@ -131,17 +108,13 @@ export default function ProjectPage({
     current?.type === "file" ? (
       <video
         ref={inFullScreen ? fullScreenVideo : undefined}
-        // Lets the screenshot read the pixels of CDN-hosted media.
         crossOrigin={current.url.startsWith("/") ? undefined : "anonymous"}
         src={current.url}
         className={className}
         autoPlay
-        // Starts muted, to autoplay. The full-screen copy is unmuted by
-        // useSoundFade; the one behind it stays silent.
         muted
         loop
         playsInline
-        // Described once, on the full-screen copy that's showing.
         aria-label={inFullScreen ? alt : undefined}
         aria-hidden={!inFullScreen}
       />
@@ -197,8 +170,7 @@ export default function ProjectPage({
                   ? "h-full aspect-3/4"
                   : aspect === "1/1"
                     ? "h-full aspect-square"
-                    : // Landscape: as wide as fits, both across and down.
-                      aspect === "16/9"
+                    : aspect === "16/9"
                       ? "w-[min(100%,calc((100dvh-2.75rem)*16/9))] aspect-video"
                       : ""
               }`}
@@ -227,9 +199,6 @@ export default function ProjectPage({
           <NameMark play={fullScreen} watermark still={still} blue={blue} />
         </div>
 
-        {/* The nav keeps only the project's own section link here — Personal
-            top left, Commissioned top right — so Back takes the other top
-            corner. */}
         <span
           className={`fixed top-0 z-80 flex flex-row items-center ${
             category === "personal"
@@ -250,8 +219,6 @@ export default function ProjectPage({
         </span>
 
         <div className="fixed bottom-0 inset-x-0 z-110 grid grid-cols-4 pointer-events-none">
-          {/* Mobile: Back alone, in the bottom-right corner like the nav's
-              corner links. */}
           <div className="col-start-4 row-start-1 flex flex-row items-center justify-end lg:justify-start gap-x-4">
             <Button
               variant="link"

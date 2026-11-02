@@ -4,11 +4,6 @@ import { SITE_URL } from "@/lib/site";
 
 const CATEGORIES: Category[] = ["personal", "commissioned"];
 
-// Home, About, Connect, the archive, and every project page — the project
-// pages are otherwise only reached through buttons, which crawlers don't
-// follow. Each with when it last changed (from Sanity), so search engines
-// re-crawl what's been edited; home and the archive change whenever a project
-// does. Refreshed on publish, by the Sanity webhook (see api/revalidate).
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { projects, aboutUpdatedAt, connectUpdatedAt } =
     await fetchSitemapEntries();

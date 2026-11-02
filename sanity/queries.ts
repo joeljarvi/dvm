@@ -81,8 +81,6 @@ export async function fetchAbout(): Promise<About | null> {
   }
 }
 
-// For the sitemap: every project's address and when it was last edited, and
-// when About and Connect were — so search engines know what to re-crawl.
 export async function fetchSitemapEntries(): Promise<{
   projects: { category: Category; slug: string; updatedAt: string }[];
   aboutUpdatedAt: string | null;
@@ -123,8 +121,6 @@ export async function fetchSitemapEntries(): Promise<{
   }
 }
 
-// Ordered slugs for one category — same order as fetchProjects, so prev/next
-// on a project walks the list in the order the browser shows it.
 export async function fetchProjectSlugs(category: Category): Promise<string[]> {
   try {
     const rows = await client.fetch<{ slug: string | null }[]>(
@@ -161,8 +157,7 @@ export async function fetchProjectBySlug(
 export async function fetchSiteSettings(): Promise<{
   underConstruction: boolean;
   landingText: string | null;
-  /** Site Settings' Share Image — the site-wide link preview (see
-   * app/layout.tsx). */
+
   shareImageUrl: string | null;
 }> {
   try {

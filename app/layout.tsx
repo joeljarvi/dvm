@@ -7,11 +7,13 @@ import { motionCssVars } from "@/lib/motion";
 import { fetchSiteSettings } from "@/sanity/queries";
 import { sanityImage } from "@/lib/image";
 import SiteAnalytics from "@/components/SiteAnalytics";
-import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/site";
+import {
+  SITE_DESCRIPTION,
+  SITE_SUMMARY,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/lib/site";
 
-// Defaults for every page; a page's own metadata (e.g. a project's) layers
-// over them. The share image is Site Settings' Share Image, if one's set —
-// none otherwise.
 export async function generateMetadata(): Promise<Metadata> {
   const { shareImageUrl } = await fetchSiteSettings();
   const image = sanityImage(shareImageUrl, { w: 1200 });
@@ -22,19 +24,19 @@ export async function generateMetadata(): Promise<Metadata> {
       default: `${SITE_TITLE} — ${SITE_DESCRIPTION}`,
       template: `%s — ${SITE_TITLE}`,
     },
-    description: SITE_DESCRIPTION,
+    description: SITE_SUMMARY,
     openGraph: {
       type: "website",
       siteName: SITE_TITLE,
       title: SITE_TITLE,
-      description: SITE_DESCRIPTION,
+      description: SITE_SUMMARY,
       locale: "en_US",
       ...(image && { images: [{ url: image, alt: SITE_TITLE }] }),
     },
     twitter: {
       card: "summary_large_image",
       title: SITE_TITLE,
-      description: SITE_DESCRIPTION,
+      description: SITE_SUMMARY,
       ...(image && { images: [image] }),
     },
   };

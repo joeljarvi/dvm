@@ -1,8 +1,5 @@
 import { useEffect, useRef } from "react";
 
-// A stack of open modal layers, each with a close fn. The topmost entry is the
-// "latest opened" — Escape (see Nav) closes it. Entries come from
-// route layers (close = router.back) and internal overlays (close = setState).
 type Entry = { id: number; close: () => void };
 
 let stack: Entry[] = [];
@@ -23,7 +20,6 @@ export function closeTop() {
   if (top) top.close();
 }
 
-// Register a modal layer while `active`. `close` is read fresh on each call.
 export function useRegisterModal(active: boolean, close: () => void) {
   const closeRef = useRef(close);
   closeRef.current = close;

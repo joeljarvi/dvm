@@ -1,8 +1,3 @@
-// Build an optimized Sanity CDN image URL from a resolved asset URL.
-// Sanity's CDN honors query params (w/h/q/auto/fit/blur), turning multi-MB
-// originals into right-sized, auto-formatted (webp/avif) images — or blurred
-// ones, done on the CDN rather than with a CSS filter.
-// Non-Sanity URLs (e.g. fallback data) are returned untouched.
 export function sanityImage(
   url: string | undefined | null,
   {
@@ -26,9 +21,6 @@ export function sanityImage(
   return `${url}?${params.toString()}`;
 }
 
-// Alt text for a project's image or video: its own alt text from Sanity, or
-// its caption, or failing those where it sits in the project — "Title –
-// image 2 of 5".
 export function mediaAlt(
   title: string,
   media: { type: "image" | "file"; caption?: string; alt?: string },

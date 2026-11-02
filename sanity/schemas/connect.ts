@@ -1,7 +1,5 @@
 import { defineField, defineType } from "sanity";
 
-// The Connect column of the About page. A single document (see
-// sanity/structure.ts).
 export const connect = defineType({
   name: "connect",
   title: "Connect",
@@ -43,7 +41,8 @@ export const connect = defineType({
             defineField({
               name: "url",
               title: "URL",
-              description: "A web address, or mailto: / tel: for email and phone.",
+              description:
+                "A web address, or mailto: / tel: for email and phone.",
               type: "url",
               validation: (Rule) =>
                 Rule.required().uri({

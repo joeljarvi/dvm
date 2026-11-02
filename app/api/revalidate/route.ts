@@ -10,11 +10,17 @@ export async function POST(req: NextRequest) {
     );
 
     if (!isValidSignature) {
-      return NextResponse.json({ message: "Invalid signature" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Invalid signature" },
+        { status: 401 },
+      );
     }
 
     if (!body?._type) {
-      return NextResponse.json({ message: "Missing _type in payload" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Missing _type in payload" },
+        { status: 400 },
+      );
     }
 
     revalidateTag(body._type, { expire: 0 });
@@ -22,6 +28,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ revalidated: true, now: Date.now() });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ message: "Error revalidating" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error revalidating" },
+      { status: 500 },
+    );
   }
 }

@@ -17,10 +17,9 @@ export default function InfoLayout({
   highlight = false,
 }: {
   title?: string;
-  /** Where the title links to — its own project page. Omit to render it as
-   * plain text, e.g. on the project page itself. */
+
   titleHref?: string;
-  /** Called as the title link is followed. */
+
   onTitleClick?: () => void;
 
   model?: string;
@@ -49,12 +48,9 @@ export default function InfoLayout({
   const titleClass = `transition-colors ${QUICK_CLASS} font-diatype font-normal tracking-wide group-hover:text-blue-700 ${
     highlight
       ? "text-blue-700 mix-blend-normal"
-      : // Always blue on mobile — only desktop greys it out of view.
-        "mix-blend-difference text-neutral-400 dark:text-neutral-500 max-lg:mix-blend-normal max-lg:text-blue-700 max-lg:dark:text-blue-700"
+      : "mix-blend-difference text-neutral-400 dark:text-neutral-500 max-lg:mix-blend-normal max-lg:text-blue-700 max-lg:dark:text-blue-700"
   }`;
 
-  // The whole left block — title, credit and agency — is the link to the
-  // project's page, when there is one.
   const blockClass = "justify-self-end flex flex-col items-start text-left";
   const block = (
     <>
@@ -98,9 +94,6 @@ export default function InfoLayout({
           onClick={onTitleClick}
           className={`${blockClass} relative group/link pointer-events-auto cursor-zoom-in`}
         >
-          {/* Hovered anywhere, the whole block crossfades to "Show In
-              Fullscreen" — where the link goes. The lines stay in place,
-              only faded, so the link keeps its size under the pointer. */}
           <div
             className={`${blockClass} transition-opacity ${QUICK_CLASS} group-hover/link:opacity-0`}
           >
@@ -108,7 +101,6 @@ export default function InfoLayout({
           </div>
           <span
             aria-hidden
-            // Its colour follows the lines' (titleClass), its own fade added.
             className={`${titleClass.replace("transition-colors", "transition-[color,opacity]")} absolute top-0 left-0 whitespace-nowrap opacity-0 group-hover/link:opacity-100`}
           >
             Show In Fullscreen

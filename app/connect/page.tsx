@@ -15,7 +15,6 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-// Linkable contact page — the same links as About's Connect column.
 export default async function Connect() {
   const about = await fetchAbout();
   return <ConnectPage connect={about?.connect} />;

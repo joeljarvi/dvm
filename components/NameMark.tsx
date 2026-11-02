@@ -5,25 +5,12 @@ import { motion, useMotionValue } from "motion/react";
 import { DURATION, REVEAL_CLASS, ms } from "@/lib/motion";
 import { lastPointer } from "@/lib/pointer";
 
-// "Daniel von Malmborg" spread around the screen: across it at the landing
-// prompt's height (see LandingPrompt), and turned on its side down its full
-// height. Shared by the maintenance gate and the 404.
-//
-// Reveals word by word while `play` is on — across first, then down.
-//
-// As a watermark, the names cross at the cursor — on mobile, at the finger:
-// the across name slides up and down with it, the turned one side to side,
-// and the across name's "von" leaves its line to sit where they meet, as the
-// cursor's tip.
-// Each block sits in its own full-screen layer that does the moving — the
-// turned block's own rotate/translate stay untouched.
 const WORD = "font-diatype text-[0.8rem] tracking-wide";
 
 const FIRST_WORD = ms(300);
 const PER_WORD = ms(400);
 const WORDS = 6;
 
-/** ms from `play` until the last word has fully faded in. */
 export const NAME_REVEAL_MS =
   FIRST_WORD + PER_WORD * (WORDS - 1) + DURATION.reveal;
 
@@ -35,31 +22,30 @@ export default function NameMark({
   instant = false,
 }: {
   play?: boolean;
-  /** Watermark held at its starting position instead of following. */
+
   still?: boolean;
-  /** Blue instead of grey. */
+
   blue?: boolean;
-  /** All words up at once — no word-by-word reveal. */
+
   instant?: boolean;
-  /** Over a full-screen image: both names follow the cursor (or, on
-   * mobile, the finger) and cross at it. */
+
   watermark?: boolean;
 }) {
   const [shown, setShown] = useState(instant ? WORDS : 0);
 
-  const tint = blue ? "text-blue-700" : "text-neutral-400 dark:text-neutral-500";
+  const tint = blue
+    ? "text-blue-700"
+    : "text-neutral-400 dark:text-neutral-500";
 
   const acrossY = useMotionValue(0);
   const downX = useMotionValue(0);
-  // Where the two lines cross — the one "von", the cursor's tip.
+
   const vonX = useMotionValue(0);
   const acrossRow = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!watermark) return;
     const desktop = window.matchMedia("(min-width: 64rem)");
-    // The starting (and Static) position: the across name where it sits
-    // elsewhere — its top at 62.5% — and the turned one centred. acrossY
-    // places the across row by its middle, hence the half height.
+
     const centre = () => {
       const half = (acrossRow.current?.offsetHeight ?? 0) / 2;
       acrossY.set(window.innerHeight * 0.625 + half);
@@ -72,13 +58,12 @@ export default function NameMark({
       vonX.set(e.clientX);
     };
     centre();
-    // Following: open on the pointer if it's already been somewhere.
+
     const at = lastPointer();
     if (!still && at) follow({ clientX: at.x, clientY: at.y });
     desktop.addEventListener("change", centre);
     if (still) window.addEventListener("resize", centre);
     else {
-      // A touch has no hover — it jumps there on the tap, then follows a drag.
       window.addEventListener("pointerdown", follow);
       window.addEventListener("pointermove", follow);
     }
@@ -118,10 +103,7 @@ export default function NameMark({
           </p>
           <p
             data-name-word
-            className={word(
-              2,
-              `text-center ${watermark ? "invisible" : ""}`,
-            )}
+            className={word(2, `text-center ${watermark ? "invisible" : ""}`)}
           >
             von
           </p>
@@ -130,10 +112,7 @@ export default function NameMark({
           </p>
         </div>
       </motion.div>
-      {/* Turned to read top to bottom: laid out as a row the screen's
-          height long, then rotated about its top-left corner and shifted
-          back across, so it covers the screen exactly with "Daniel" at the
-          top. */}
+
       <motion.div
         style={{ x: downX }}
         className="pointer-events-none fixed inset-0 z-922"
@@ -153,9 +132,7 @@ export default function NameMark({
           </p>
         </div>
       </motion.div>
-      {/* As a watermark, the across line's "von" — held out of the row
-          above — sits where the lines cross, centred on the pointer: its
-          tip. */}
+
       {watermark && (
         <motion.div
           style={{ x: vonX, y: acrossY }}

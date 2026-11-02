@@ -7,23 +7,13 @@ import { REVEAL_CLASS } from "@/lib/motion";
 import { useSanityLoggedIn } from "@/lib/sanityUser";
 import NameMark, { NAME_REVEAL_MS } from "@/components/NameMark";
 
-// The maintenance gate — driven by the "Under Construction" toggle in
-// Sanity's Site Settings singleton (see sanity/schemas/settings.ts).
-// Styled and animated identically to SectionOverlay: always mounted, a
-// plain opacity/pointer-events toggle on the same transition, just a
-// higher z-index so it sits above both SectionOverlays and the InfoOverlay
-// drawers.
 export default function UnderConstruction({ active }: { active: boolean }) {
   const [dismissed, setDismissed] = useState(!active);
 
-  // The Sanity flag is the source of truth — if it flips on again (or a
-  // different visit loads with it already on), re-show the gate rather
-  // than keeping a stale dismissal from a previous render.
   useEffect(() => {
     setDismissed(!active);
   }, [active]);
 
-  // The name comes in word by word (see NameMark); the message once it's in.
   const [messageShown, setMessageShown] = useState(false);
   useEffect(() => {
     if (dismissed) return;
@@ -31,14 +21,11 @@ export default function UnderConstruction({ active }: { active: boolean }) {
     return () => clearTimeout(message);
   }, [dismissed]);
 
-  // Only editors logged in to the Studio get to see past the gate.
   const loggedIn = useSanityLoggedIn();
-
 
   return (
     <div
       aria-hidden={dismissed}
-      // Faded out, but still there — and out of reach, links and all.
       inert={dismissed}
       className={`fixed z-920 h-screen inset-0 bg-background backdrop-blur-xs transition-opacity ${REVEAL_CLASS} flex flex-col gap-y-4 items-center justify-center ${
         dismissed ? "opacity-0 pointer-events-none" : "opacity-100"

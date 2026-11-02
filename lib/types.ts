@@ -2,7 +2,7 @@ export type ProjectMedia = {
   url: string;
   type: "image" | "file";
   caption?: string;
-  /** Optional alt text from Sanity (see mediaAlt). */
+
   alt?: string;
 };
 
@@ -36,7 +36,7 @@ export type About = {
   longBio?: PortableTextBlock[];
   bioImageUrl?: string;
   links?: AboutLink[];
-  /** From the separate Connect document. */
+
   connect?: Connect;
 };
 
@@ -45,11 +45,11 @@ export type Project = {
   slug?: string;
   coverImageUrl?: string;
   coverAlt?: string;
-  /** A video cover takes precedence over `coverImageUrl` when both are set. */
+
   coverVideoUrl?: string;
   client?: string;
   agency?: string;
-  /** Optional short description, for search results and link previews. */
+
   description?: string;
   year?: number;
   images?: ProjectMedia[];

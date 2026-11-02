@@ -4,9 +4,9 @@ import { toPlainText } from "@portabletext/react";
 import { fetchAbout, fetchSiteSettings } from "@/sanity/queries";
 import { pageMetadata } from "@/lib/metadata";
 import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/site";
+import JsonLd from "@/components/JsonLd";
+import { aboutSchema } from "@/lib/structuredData";
 
-// The short bio as the description, cut to what a search result shows; the
-// bio image to share.
 export async function generateMetadata(): Promise<Metadata> {
   const { shareImageUrl } = await fetchSiteSettings();
   const about = await fetchAbout();
@@ -27,12 +27,14 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-// Full, linkable about page.
 export default async function AboutPage() {
   const about = await fetchAbout();
 
   return (
     <main className="w-screen h-dvh">
+      <JsonLd data={aboutSchema(about)} />
+
+      <h1 className="sr-only">About {SITE_TITLE}</h1>
       <AboutSection about={about} />
     </main>
   );

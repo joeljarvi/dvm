@@ -1,8 +1,5 @@
 import { useSyncExternalStore } from "react";
 
-// Which section the pointer is over on the home page. The panels are their own
-// component but the nav has to echo them — hovering a panel marks the matching
-// nav button — so the state lives here rather than in either one.
 export type Section = "personal" | "commissioned" | null;
 
 let hovered: Section = null;

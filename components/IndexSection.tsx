@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import type { Project } from "@/lib/types";
 import { clients, models } from "@/lib/data";
@@ -14,8 +15,6 @@ import {
 import { Button } from "./ui/button";
 import { REVEAL_TRANSITION, STAGGER, fadeItem } from "@/lib/motion";
 
-// A client's dropdown of titles: opens, then the titles fade in one by one;
-// closing, they fade out one by one from the last, then it closes.
 const submenu: Variants = {
   hidden: {
     height: 0,
@@ -58,10 +57,6 @@ const CATEGORY_STORAGE_KEY = "index-section-category";
 const projectKey = (project: Project, i: number) =>
   project.slug ?? `${project.title}-${i}`;
 
-// A client's projects, together under its name, in the order the client
-// first appears. A project with no client stands alone under its title.
-// "&" reads as "and", so "Björk & Berries" and "björk and berries" are one
-// client, shown as "Björk and Berries" (spelled as it first appears).
 const spellOutAmpersand = (name: string) =>
   name
     .replace(/\s*&\s*/g, " and ")
@@ -119,16 +114,14 @@ export default function IndexSection({
   projects: Record<Category, Project[]>;
   onSelect?: (project: Project, category: Category) => void;
   initialCategory?: Category;
-  /** Whether its overlay is up. It stays mounted when closed, so closing
-   * it is what clears the search. */
+
   open?: boolean;
 }) {
   const router = useRouter();
 
-  // This state is ONLY used for the mobile category.
   const [mobileCategory, setMobileCategory] =
     useState<Category>(initialCategory);
-  // Follows the open column when it's switched with Index up.
+
   const [prevInitialCategory, setPrevInitialCategory] =
     useState(initialCategory);
   if (initialCategory !== prevInitialCategory) {
@@ -138,7 +131,7 @@ export default function IndexSection({
 
   const visibility = useProjectVisibility();
   const [hovered, setHovered] = useState<Project | null>(null);
-  // The client whose projects are dropped down, as `${category}:${name}`.
+
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [wasOpen, setWasOpen] = useState(open);
@@ -147,12 +140,10 @@ export default function IndexSection({
     if (!open) setQuery("");
   }
 
-  // Resolve URL/localStorage state on the client.
   useEffect(() => {
     setMobileCategory(getStoredCategory());
   }, []);
 
-  // Keep mobile state synced with hash navigation.
   useEffect(() => {
     const handleHashChange = () => {
       const category = getHashCategory();
@@ -163,7 +154,6 @@ export default function IndexSection({
 
       setMobileCategory(category);
 
-      // Remember commissioned specifically.
       if (category === "commissioned") {
         window.localStorage.setItem(CATEGORY_STORAGE_KEY, "commissioned");
       }
@@ -187,7 +177,6 @@ export default function IndexSection({
       ? list.filter((p) => p.featured)
       : FALLBACK[category];
 
-    // A search looks through everything, not just the selection.
     if (q)
       return all.filter((p) => [p.title, p.client, p.agency].some(matches));
 
@@ -203,15 +192,21 @@ export default function IndexSection({
     router.push(`/#${category}`);
   };
 
-  // Selected / Show All: the one in effect reads blue, the other grey — in
-  // dark mode too, where the link variant's own grey would otherwise win.
+  const projectHref = (project: Project, category: Category) =>
+    project.slug ? `/${category}/${project.slug}` : undefined;
+  const followSelect =
+    (project: Project, category: Category) => (e: React.MouseEvent) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
+        return;
+      e.preventDefault();
+      select(project, category);
+    };
+
   const toggleColor = (on: boolean) =>
     on
       ? "text-blue-700 dark:text-blue-700"
       : "text-neutral-400 dark:text-neutral-500";
 
-  // The hovered project's cover, as it leads its column on home — a video
-  // cover plays here too.
   const preview = hovered ? coverImages(hovered, PLACEHOLDER_IMAGE)[0] : null;
 
   return (
@@ -287,12 +282,10 @@ export default function IndexSection({
             >
               {groupByClient(entries).map(({ name, items }, i) => {
                 const [first] = items;
-                // More than one project: the name drops down their titles
-                // rather than going straight to the project.
+
                 const multiple = items.length > 1;
                 const groupKey = `${category}:${name}`;
-                // Found by a title rather than the name: dropped down while
-                // searching, so the titles found show.
+
                 const foundByTitle =
                   !matches(name) && items.some((p) => matches(p.title));
                 const open =
@@ -304,22 +297,42 @@ export default function IndexSection({
                     className="break-inside-avoid"
                     onMouseLeave={() => setHovered(null)}
                   >
-                    <Button
-                      variant="link"
-                      size="sm"
-                      aria-expanded={multiple ? open : undefined}
-                      onMouseEnter={() => setHovered(first)}
-                      onClick={() =>
-                        multiple
-                          ? setOpenGroup(open ? null : groupKey)
-                          : select(first, category)
-                      }
-                      className={`truncate h-auto justify-start text-blue-700 dark:text-blue-700 text-left cursor-pointer hover:text-blue-700 dark:hover:text-blue-700 ${
-                        first.client ? "" : "capitalize"
-                      }`}
-                    >
-                      {name}
-                    </Button>
+                    {(() => {
+                      const href = multiple
+                        ? undefined
+                        : projectHref(first, category);
+                      return (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          asChild={!!href}
+                          aria-expanded={multiple ? open : undefined}
+                          onMouseEnter={() => setHovered(first)}
+                          onClick={
+                            href
+                              ? undefined
+                              : () =>
+                                  multiple
+                                    ? setOpenGroup(open ? null : groupKey)
+                                    : select(first, category)
+                          }
+                          className={`truncate h-auto justify-start text-blue-700 dark:text-blue-700 text-left cursor-pointer hover:text-blue-700 dark:hover:text-blue-700 ${
+                            first.client ? "" : "capitalize"
+                          }`}
+                        >
+                          {href ? (
+                            <Link
+                              href={href}
+                              onClick={followSelect(first, category)}
+                            >
+                              {name}
+                            </Link>
+                          ) : (
+                            name
+                          )}
+                        </Button>
+                      );
+                    })()}
 
                     <AnimatePresence initial={false}>
                       {open && (
@@ -341,10 +354,24 @@ export default function IndexSection({
                               <Button
                                 variant="link"
                                 size="sm"
-                                onClick={() => select(project, category)}
+                                asChild={!!projectHref(project, category)}
+                                onClick={
+                                  projectHref(project, category)
+                                    ? undefined
+                                    : () => select(project, category)
+                                }
                                 className="w-full truncate h-auto justify-start text-blue-700 dark:text-blue-700 text-left capitalize cursor-pointer hover:text-blue-700 dark:hover:text-blue-700"
                               >
-                                {project.title}
+                                {projectHref(project, category) ? (
+                                  <Link
+                                    href={projectHref(project, category)!}
+                                    onClick={followSelect(project, category)}
+                                  >
+                                    {project.title}
+                                  </Link>
+                                ) : (
+                                  project.title
+                                )}
                               </Button>
                             </motion.li>
                           ))}
@@ -385,9 +412,6 @@ export default function IndexSection({
         );
       })}
 
-      {/* Desktop: along the bottom of column 4, level with the nav's
-          bottom links. After the lists, so it's tabbed to last, as it
-          reads. */}
       <div className="hidden lg:flex absolute bottom-0 left-3/4 w-1/4 h-14 z-20 items-center px-5.5">
         <input
           type="search"

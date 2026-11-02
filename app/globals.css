@@ -3,11 +3,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* No manual toggle — the site just follows the visitor's OS/browser
-   preference, so `dark:` stays Tailwind's default prefers-color-scheme
-   variant rather than being rebound to a `.dark` class (the shadcn default,
-   meant for a next-themes-style toggle we don't have). */
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -90,10 +85,6 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-/* Dark palette — mirrors the light theme's contrast (near-white on
-   near-black rather than a softened grey), and keeps blue-700 as the one
-   fixed accent color in both themes; nothing here overrides it. Driven purely by the OS/browser preference, no `.dark`
-   class involved. */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: oklch(0.145 0 0);
@@ -149,9 +140,6 @@
   background-repeat: no-repeat;
 }
 
-/* Same texture, tuned for a dark backdrop: grey-lit noise instead of white,
-   softer frequency, and its own opacity baked into the SVG rather than
-   relying on a wrapping element's opacity utility. */
 @media (prefers-color-scheme: dark) {
   .noise-bg {
     background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCA3MDAgNzAwIiB3aWR0aD0iNzAwIiBoZWlnaHQ9IjcwMCIgb3BhY2l0eT0iMC41NCI+PGRlZnM+PGZpbHRlciBpZD0ibm5ub2lzZS1maWx0ZXIiIHg9Ii0yMCUiIHk9Ii0yMCUiIHdpZHRoPSIxNDAlIiBoZWlnaHQ9IjE0MCUiIGZpbHRlclVuaXRzPSJvYmplY3RCb3VuZGluZ0JveCIgcHJpbWl0aXZlVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9ImxpbmVhclJHQiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuMDc0IiBudW1PY3RhdmVzPSI0IiBzZWVkPSIxNSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgeD0iMCUiIHk9IjAlIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiByZXN1bHQ9InR1cmJ1bGVuY2UiPjwvZmVUdXJidWxlbmNlPjxmZVNwZWN1bGFyTGlnaHRpbmcgc3VyZmFjZVNjYWxlPSIzNCIgc3BlY3VsYXJDb25zdGFudD0iMS43IiBzcGVjdWxhckV4cG9uZW50PSIyMCIgbGlnaHRpbmctY29sb3I9IiM4ODg4ODgiIHg9IjAlIiB5PSIwJSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgaW49InR1cmJ1bGVuY2UiIHJlc3VsdD0ic3BlY3VsYXJMaWdodGluZyI+PGZlRGlzdGFudExpZ2h0IGF6aW11dGg9IjMiIGVsZXZhdGlvbj0iMTQ5Ij48L2ZlRGlzdGFudExpZ2h0PjwvZmVTcGVjdWxhckxpZ2h0aW5nPjxmZUNvbG9yTWF0cml4IHR5cGU9InNhdHVyYXRlIiB2YWx1ZXM9IjAiIHg9IjAlIiB5PSIwJSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgaW49InNwZWN1bGFyTGlnaHRpbmciIHJlc3VsdD0iY29sb3JtYXRyaXgiPjwvZmVDb2xvck1hdHJpeD48L2ZpbHRlcj48L2RlZnM+PHJlY3Qgd2lkdGg9IjcwMCIgaGVpZ2h0PSI3MDAiIGZpbGw9IiNmZmZmZmYwMCI+PC9yZWN0PjxyZWN0IHdpZHRoPSI3MDAiIGhlaWdodD0iNzAwIiBmaWxsPSIjODg4ODg4IiBmaWx0ZXI9InVybCgjbm5ub2lzZS1maWx0ZXIpIj48L3JlY3Q+PC9zdmc+");
@@ -206,10 +194,6 @@ body::-webkit-scrollbar {
   display: none;
 }
 
-/* Home → project page (see morphName in components/HomeClient): the cover's
-   media grows into the full-screen one while the rest of the page — nav,
-   info, the other column — crossfades away underneath, all on the site's
-   main reveal. */
 ::view-transition-group(.morph) {
   animation-duration: var(--motion-reveal);
   animation-timing-function: var(--motion-ease-reveal);
@@ -221,21 +205,12 @@ body::-webkit-scrollbar {
   animation-timing-function: var(--motion-ease-reveal);
 }
 
-/* Mobile, a section picked out of landing mode (slideIntoSection in
-   components/HomeClient): the landing view slides out one way as the opened
-   section slides in from the other — Personal from the left, Commissioned
-   from the right — unhurried (--motion-home-slide). While it runs, the panels' and
-   covers' own transitions are held off, so the incoming view is already in
-   its final layout; InfoLayout and the nav keep theirs, and fade in after. */
 html[data-home-slide] [data-panel],
 html[data-home-slide] [data-slug],
 html[data-home-slide] [data-slug] * {
   transition: none !important;
 }
-/* The covers' own morph names (see morphName) lift them out of the page to
-   animate on their own. Only the chosen column's showing cover keeps its:
-   it glides from its landing place and size into its open ones, over the
-   page sliding beneath. Every other one slides with the page. */
+
 html[data-home-slide="from-left"] [data-panel="commissioned"] *,
 html[data-home-slide="from-right"] [data-panel="personal"] *,
 html[data-home-slide] [data-slug]:not([data-current]) * {
@@ -265,16 +240,24 @@ html[data-home-slide="from-right"]::view-transition-new(root) {
   animation-name: home-slide-in-right;
 }
 @keyframes home-slide-out-right {
-  to { transform: translateX(100%); }
+  to {
+    transform: translateX(100%);
+  }
 }
 @keyframes home-slide-in-left {
-  from { transform: translateX(-100%); }
+  from {
+    transform: translateX(-100%);
+  }
 }
 @keyframes home-slide-out-left {
-  to { transform: translateX(-100%); }
+  to {
+    transform: translateX(-100%);
+  }
 }
 @keyframes home-slide-in-right {
-  from { transform: translateX(100%); }
+  from {
+    transform: translateX(100%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
